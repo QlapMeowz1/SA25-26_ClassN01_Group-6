@@ -103,7 +103,7 @@
     </main>
 
     <footer class="footer">
-        <p>&copy; 2024 BadNet - Badminton Social Network. All rights reserved.</p>
+        <p>&copy; demo by melmuop.</p>
     </footer>
 
     <script>
