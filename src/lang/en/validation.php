@@ -1,0 +1,40 @@
+<?php
+
+return [
+    'required' => 'The :attribute field is required.',
+    'string' => 'The :attribute must be a string.',
+    'email' => 'The :attribute must be a valid email address.',
+    'max' => [
+        'string' => 'The :attribute may not be greater than :max characters.',
+        'file' => 'The :attribute may not be greater than :max kilobytes.',
+        'numeric' => 'The :attribute may not be greater than :max.',
+        'array' => 'The :attribute may not have more than :max items.',
+    ],
+    'min' => [
+        'string' => 'The :attribute must be at least :min characters.',
+        'file' => 'The :attribute must be at least :min kilobytes.',
+        'numeric' => 'The :attribute must be at least :min.',
+        'array' => 'The :attribute must have at least :min items.',
+    ],
+    'unique' => 'The :attribute has already been taken.',
+    'confirmed' => 'The :attribute confirmation does not match.',
+    'integer' => 'The :attribute must be an integer.',
+    'date' => 'The :attribute is not a valid date.',
+    'after' => 'The :attribute must be a date after :date.',
+    'exists' => 'The selected :attribute is invalid.',
+    'not_in' => 'The selected :attribute is invalid.',
+    'nullable' => 'The :attribute is optional.',
+    'attributes' => [
+        'name' => 'full name',
+        'email' => 'email',
+        'phone' => 'phone',
+        'password' => 'password',
+        'password_confirmation' => 'password confirmation',
+        'player2_id' => 'opponent',
+        'match_date' => 'match date',
+        'location' => 'location',
+        'amount' => 'amount',
+        'max_participants' => 'maximum participants',
+        'prize_pool' => 'prize pool',
+    ],
+];

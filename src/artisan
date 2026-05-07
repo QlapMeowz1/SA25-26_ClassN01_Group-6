@@ -1,0 +1,35 @@
+#!/usr/bin/env php
+<?php
+
+define('LARAVEL_START', microtime(true));
+
+/*
+|--------------------------------------------------------------------------
+| Register The Auto Loader
+|--------------------------------------------------------------------------
+|
+| Composer provides a convenient, automatically generated class loader for
+| our application. We just need to utilize it! We'll simply require it
+| into the script here so that we don't have to worry about manual
+| loading any of our classes later on. It feels great to relax.
+|
+*/
+
+require __DIR__.'/vendor/autoload.php';
+
+$app = require_once __DIR__.'/bootstrap/app.php';
+
+/*
+|--------------------------------------------------------------------------
+| Run The Artisan Application
+|--------------------------------------------------------------------------
+|
+| When we run the console application, the bootstrap file will have set up
+| the application and it will be ready to use. We just need to execute it
+| and send the exit code back to the shell.
+|
+*/
+
+$kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
+
+exit($kernel->handle($input = new Symfony\Component\Console\Input\ArgvInput, new Symfony\Component\Console\Output\ConsoleOutput));

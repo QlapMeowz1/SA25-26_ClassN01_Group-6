@@ -1,0 +1,91 @@
+@extends('layout')
+
+@section('title', 'Social - BadNet')
+
+@section('content')
+<div class="page-shell">
+    <div class="posts-header">
+        <div>
+            <p class="home-eyebrow">Community Archive</p>
+            <h1>Social</h1>
+            <p class="page-subtitle">The live feed now sits on the dashboard. Use this page as an archive, comment lane, and quick posting surface.</p>
+        </div>
+        <a href="{{ route('dashboard') }}" class="btn btn-secondary">Go to Dashboard Feed</a>
+    </div>
+
+    <div class="dashboard-section">
+        @auth
+            <section class="post-creator">
+                <div class="creator-header">
+                    <div class="creator-avatar">{{ strtoupper(substr(auth()->user()->name, 0, 1)) }}</div>
+                    <form action="{{ route('posts.store') }}" method="POST" class="creator-form">
+                        @csrf
+                        <textarea name="content" placeholder="Share a recap, highlight, or invite..." maxlength="500" required></textarea>
+                        <button type="submit" class="btn btn-primary">Post</button>
+                    </form>
+                </div>
+            </section>
+        @endauth
+
+        <section class="posts-feed">
+            @if($posts->isEmpty())
+                <div class="empty-panel">
+                    <p class="empty-message">No posts yet. Be the first to share!</p>
+                </div>
+            @else
+                @foreach($posts as $post)
+                    <div class="post-card">
+                        <div class="post-header">
+                            <div class="post-author">
+                                <a href="{{ route('profile.show', $post->user->id) }}" class="author-avatar">
+                                    {{ strtoupper(substr($post->user->name, 0, 1)) }}
+                                </a>
+                                <div class="author-info">
+                                    <a href="{{ route('profile.show', $post->user->id) }}" class="author-name">
+                                        {{ $post->user->name }}
+                                    </a>
+                                    <span class="post-time">{{ $post->created_at->diffForHumans() }}</span>
+                                </div>
+                            </div>
+                            @auth
+                                @if(auth()->id() === $post->user->id)
+                                    <form action="{{ route('posts.delete', $post->id) }}" method="POST" class="delete-form">
+                                        @csrf
+                                        <button type="submit" class="delete-btn" onclick="return confirm('Delete this post?')">Delete</button>
+                                    </form>
+                                @endif
+                            @endauth
+                        </div>
+
+                        <div class="post-content">{{ $post->content }}</div>
+
+                        <div class="post-stats">
+                            <span>❤️ {{ $post->likes_count }} Likes</span>
+                            <span>💬 {{ $post->comments->count() }} Comments</span>
+                        </div>
+
+                        <div class="post-actions">
+                            @auth
+                                <form action="{{ route('posts.like', $post->id) }}" method="POST" class="action-form">
+                                    @csrf
+                                    <button type="submit" class="action-btn @if($post->isLikedBy(auth()->id())) liked @endif">❤️ Like</button>
+                                </form>
+                            @else
+                                <button class="action-btn" disabled>❤️ Like</button>
+                            @endauth
+
+                            <a href="{{ route('posts.show', $post->id) }}" class="action-btn">💬 Comment</a>
+                        </div>
+                    </div>
+                @endforeach
+            @endif
+        </section>
+
+        @if($posts->hasPages())
+            <div>
+                {{ $posts->links() }}
+            </div>
+        @endif
+    </div>
+</div>
+@endsection
