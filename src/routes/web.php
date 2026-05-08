@@ -119,6 +119,12 @@ Route::middleware('auth')->group(function () {
     Route::post('/tournaments/{tournament}/leave', [TournamentController::class, 'leave'])->name('tournaments.leave');
 });
 
+// Notifications (simple JSON endpoints for the header)
+Route::middleware('auth')->group(function () {
+    Route::get('/notifications/recent', [\App\Http\Controllers\NotificationsController::class, 'recent'])->name('notifications.recent');
+    Route::post('/notifications/mark-all-read', [\App\Http\Controllers\NotificationsController::class, 'markAllRead'])->name('notifications.markAll');
+});
+
 // Post Routes
 Route::middleware('auth')->group(function () {
     Route::get('/posts', [PostController::class, 'index'])->name('posts.index');

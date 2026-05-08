@@ -97,6 +97,6 @@ class User extends Authenticatable
     public function getWinRate()
     {
         $total = $this->wins + $this->losses;
-        return $total > 0 ? round(($this->wins / $total) * 100, 2) : 0;
+        return $total > 0 ? (int) round(($this->wins / $total) * 100) : 0;
     }
 }

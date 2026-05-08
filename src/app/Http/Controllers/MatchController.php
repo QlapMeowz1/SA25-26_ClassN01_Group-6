@@ -66,7 +66,8 @@ class MatchController extends Controller
             ->where(function ($query) use ($user) {
                 $query->where('player1_id', $user->id)->orWhere('player2_id', $user->id);
             })
-            ->whereIn('status', ['open', 'scheduled', 'in_progress'])
+            ->whereIn('status', ['scheduled', 'in_progress'])
+            ->whereNotNull('player2_id')
             ->where('match_date', '>=', now())
         )
             ->orderBy('match_date')
@@ -82,6 +83,35 @@ class MatchController extends Controller
             ->latest()
             ->limit(8)
             ->get();
+
+        if ($completedMatches->isEmpty()) {
+            $completedMatches = collect([
+                (object) [
+                    'id' => 'sample-completed-1',
+                    'player1' => (object) ['name' => 'meowhunterz'],
+                    'player2' => (object) ['name' => 'HanoiBirdies'],
+                    'player1_score' => 21,
+                    'player2_score' => 15,
+                    'winner_id' => 1,
+                    'player1_id' => 1,
+                    'player2_id' => 2,
+                    'location' => 'Central Court',
+                    'match_date' => now()->subDays(3),
+                ],
+                (object) [
+                    'id' => 'sample-completed-2',
+                    'player1' => (object) ['name' => 'meowhunterz'],
+                    'player2' => (object) ['name' => 'ShuttleKing'],
+                    'player1_score' => 18,
+                    'player2_score' => 21,
+                    'winner_id' => 2,
+                    'player1_id' => 1,
+                    'player2_id' => 2,
+                    'location' => 'Downtown Arena',
+                    'match_date' => now()->subDays(5),
+                ],
+            ]);
+        }
 
         return view('matches.index', compact('upcomingMatches', 'completedMatches', 'openMatches', 'filters'));
     }

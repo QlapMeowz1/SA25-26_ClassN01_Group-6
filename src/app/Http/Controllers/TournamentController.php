@@ -26,21 +26,22 @@ class TournamentController extends Controller
             ->get()
             ->map(fn ($tournament) => $this->decorateTournament($tournament, false));
 
+        $myIds = $myTournaments->pluck('id')->filter()->all();
+
         $upcomingTournaments = Tournament::with('organizer')
             ->where('status', 'upcoming')
+            ->when(!empty($myIds), fn ($query) => $query->whereNotIn('id', $myIds))
             ->orderBy('start_date')
             ->get()
             ->map(fn ($tournament) => $this->decorateTournament($tournament, false));
 
-        if ($upcomingTournaments->isEmpty()) {
-            $upcomingTournaments = $this->sampleTournaments(false);
+        if ($upcomingTournaments->isEmpty() && $myTournaments->isEmpty()) {
+            $samples = $this->sampleTournaments(false);
+            $myTournaments = $samples->take(2)->values();
+            $upcomingTournaments = $samples->skip(2)->values();
         }
 
-        if ($myTournaments->isEmpty()) {
-            $myTournaments = collect();
-        }
-
-        $featuredTournament = $upcomingTournaments->first() ?? $this->sampleTournaments(true)->first();
+        $featuredTournament = $upcomingTournaments->first() ?? $myTournaments->first() ?? $this->sampleTournaments(true)->first();
 
         if (!$featuredTournament) {
             $featuredTournament = $this->decorateTournament(
@@ -90,39 +91,70 @@ class TournamentController extends Controller
                 'name' => 'Spring Championship 2026',
                 'description' => 'The biggest circuit event of the spring season. Play for glory, ranking points, and the trophy badge.',
                 'status' => 'upcoming',
-                'start_date' => Carbon::now()->addWeeks(2),
-                'end_date' => Carbon::now()->addWeeks(2)->addDay(),
+                'start_date' => Carbon::create(2026, 5, 28, 15, 0, 0, 'Asia/Ho_Chi_Minh'),
+                'end_date' => Carbon::create(2026, 5, 29, 20, 0, 0, 'Asia/Ho_Chi_Minh'),
                 'max_participants' => 16,
                 'prize_pool' => 5000,
                 'banner_color' => '#f97316',
                 'participant_count' => 12,
-                'prize_details' => '5000 coins + Trophy badge',
+                'prize_details' => '5000 🪙 Coins',
+                'organizer' => 'CourtKings',
             ],
             [
-                'id' => 'sample-weekly-casual-cup',
-                'name' => 'Weekly Casual Cup',
-                'description' => 'A relaxed weekly bracket for players who want consistent matches and a fun competition.',
+                'id' => 'sample-rookie-cup-2026',
+                'name' => 'Rookie Cup 2026',
+                'description' => 'A welcoming bracket for rising players looking for their first tournament run.',
                 'status' => 'upcoming',
-                'start_date' => Carbon::now()->addDays(4),
-                'end_date' => Carbon::now()->addDays(4)->addHours(6),
+                'start_date' => Carbon::create(2026, 5, 21, 15, 0, 0, 'Asia/Ho_Chi_Minh'),
+                'end_date' => Carbon::create(2026, 5, 22, 20, 0, 0, 'Asia/Ho_Chi_Minh'),
                 'max_participants' => 8,
-                'prize_pool' => 2000,
+                'prize_pool' => 1000,
                 'banner_color' => '#22c55e',
-                'participant_count' => 5,
-                'prize_details' => '2000 coins',
+                'participant_count' => 3,
+                'prize_details' => '1000 🪙 Coins',
+                'organizer' => 'ShuttleKing',
             ],
             [
-                'id' => 'sample-district-open-tournament',
-                'name' => 'District Open Tournament',
-                'description' => 'Open registration for district-level players chasing a big title and special rewards.',
+                'id' => 'sample-weekend-warrior-open',
+                'name' => 'Weekend Warrior Open',
+                'description' => 'Weekend competition for active community players.',
                 'status' => 'upcoming',
-                'start_date' => Carbon::now()->addWeeks(3),
-                'end_date' => Carbon::now()->addWeeks(3)->addDay(),
+                'start_date' => Carbon::create(2026, 5, 30, 9, 0, 0, 'Asia/Ho_Chi_Minh'),
+                'end_date' => Carbon::create(2026, 5, 30, 22, 0, 0, 'Asia/Ho_Chi_Minh'),
+                'max_participants' => 16,
+                'prize_pool' => 2000,
+                'banner_color' => '#3b82f6',
+                'participant_count' => 5,
+                'prize_details' => '2000 🪙 Coins',
+                'organizer' => 'RacketMaster',
+            ],
+            [
+                'id' => 'sample-city-smash-fest',
+                'name' => 'City Smash Fest',
+                'description' => 'Large city-wide event with mixed divisions and knockout finals.',
+                'status' => 'upcoming',
+                'start_date' => Carbon::create(2026, 6, 5, 9, 0, 0, 'Asia/Ho_Chi_Minh'),
+                'end_date' => Carbon::create(2026, 6, 6, 20, 0, 0, 'Asia/Ho_Chi_Minh'),
+                'max_participants' => 32,
+                'prize_pool' => 3000,
+                'banner_color' => '#8b5cf6',
+                'participant_count' => 8,
+                'prize_details' => '3000 🪙 Coins',
+                'organizer' => 'NetNinjas',
+            ],
+            [
+                'id' => 'sample-summer-slam-2026',
+                'name' => 'Summer Slam 2026',
+                'description' => 'Premier summer major with elite seeding and championship bracket.',
+                'status' => 'upcoming',
+                'start_date' => Carbon::create(2026, 6, 15, 10, 0, 0, 'Asia/Ho_Chi_Minh'),
+                'end_date' => Carbon::create(2026, 6, 16, 21, 0, 0, 'Asia/Ho_Chi_Minh'),
                 'max_participants' => 32,
                 'prize_pool' => 10000,
-                'banner_color' => '#3b82f6',
-                'participant_count' => 8,
-                'prize_details' => '10000 coins + Champion role',
+                'banner_color' => '#ef4444',
+                'participant_count' => 15,
+                'prize_details' => '10000 🪙 Coins',
+                'organizer' => 'SmashPro',
             ],
         ]);
 
@@ -138,6 +170,7 @@ class TournamentController extends Controller
             $tournament->prize_pool = $sample['prize_pool'];
             $tournament->banner_color = $sample['banner_color'];
             $tournament->prize_details = $sample['prize_details'];
+            $tournament->organizer = (object) ['name' => $sample['organizer']];
             $tournament->tournamentParticipants = collect(range(1, $sample['participant_count']))->map(fn () => new \stdClass());
 
             return $this->decorateTournament($tournament, $sample['id'] === 'sample-spring-championship-2026');
@@ -148,13 +181,21 @@ class TournamentController extends Controller
 
     private function formatCountdown(Carbon $date, bool $featured = false)
     {
-        $diff = now()->diffInDays($date, false);
-
-        if ($diff <= 0) {
-            return $featured ? 'Starting today' : 'Starting soon';
+        $minutes = now()->diffInMinutes($date, false);
+        if ($minutes <= 0) {
+            return $featured ? 'Starts now' : 'Starting soon';
         }
 
-        return $diff . ' days left';
+        $days = intdiv($minutes, 1440);
+        $hours = intdiv($minutes % 1440, 60);
+        $mins = $minutes % 60;
+
+        $parts = [];
+        if ($days > 0) $parts[] = $days . 'd';
+        if ($hours > 0) $parts[] = $hours . 'h';
+        if ($mins > 0) $parts[] = $mins . 'm';
+
+        return 'Starts in ' . implode(' ', array_slice($parts, 0, 3));
     }
 
     private function formatPrizeDetails(Tournament $tournament)
@@ -163,15 +204,17 @@ class TournamentController extends Controller
             return $tournament->prize_details;
         }
 
-        return 'Prize pool: ' . number_format($tournament->prize_pool ?? 0) . ' coins';
+        return number_format($tournament->prize_pool ?? 0) . ' 🪙 Coins';
     }
 
     private function bannerColorForTournament(Tournament $tournament)
     {
         return match (strtolower($tournament->name ?? '')) {
             'spring championship 2026' => '#f97316',
-            'weekly casual cup' => '#22c55e',
-            'district open tournament' => '#3b82f6',
+            'rookie cup 2026' => '#22c55e',
+            'weekend warrior open' => '#3b82f6',
+            'city smash fest' => '#8b5cf6',
+            'summer slam 2026' => '#ef4444',
             default => '#6366f1',
         };
     }

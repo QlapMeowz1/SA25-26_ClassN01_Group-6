@@ -40,6 +40,11 @@ class ChallengeController extends Controller
             ->get()
             ->map(fn (Challenge $challenge, int $index) => $this->decorateChallenge($challenge, 'open', $index));
 
+        $hasDuplicateNames = $openChallenges->pluck('challenger.name')->filter()->count() !== $openChallenges->pluck('challenger.name')->filter()->unique()->count();
+        if ($openChallenges->isEmpty() || $hasDuplicateNames) {
+            $openChallenges = $this->buildSampleOpenChallenges();
+        }
+
         return view('challenges.index', compact('sent', 'received', 'leaderboard', 'openChallenges'));
     }
 
@@ -281,47 +286,54 @@ class ChallengeController extends Controller
 
     private function buildLeaderboard()
     {
-        $players = User::orderBy('elo_rating', 'desc')
-            ->limit(8)
-            ->get()
-            ->map(function (User $player) {
-                return (object) [
-                    'id' => $player->id,
-                    'name' => $player->name,
-                    'rank' => $player->rank,
-                    'elo_rating' => $player->elo_rating,
-                    'badge_class' => $this->rankBadgeClass($player->rank),
-                    'profile_url' => route('profile.show', $player->id),
-                ];
-            });
-
-        $samplePlayers = collect([
-            ['id' => null, 'name' => 'meowhunterz', 'rank' => 'Advanced', 'elo_rating' => 1845],
-            ['id' => null, 'name' => 'Saigon Smashers', 'rank' => 'Beast', 'elo_rating' => 2012],
-            ['id' => null, 'name' => 'Hanoi Birdies', 'rank' => 'Advanced', 'elo_rating' => 1798],
-            ['id' => null, 'name' => 'Weekend Warriors', 'rank' => 'Intermediate', 'elo_rating' => 1640],
-            ['id' => null, 'name' => 'Court Kings', 'rank' => 'Beast', 'elo_rating' => 2074],
-            ['id' => null, 'name' => 'Net Ninjas', 'rank' => 'Advanced', 'elo_rating' => 1916],
-            ['id' => null, 'name' => 'Smash Squad', 'rank' => 'Intermediate', 'elo_rating' => 1588],
-            ['id' => null, 'name' => 'Rally Rebels', 'rank' => 'Beginner', 'elo_rating' => 1225],
+        return collect([
+            ['id' => null, 'name' => 'CourtKings', 'rank' => 'Beast', 'elo_rating' => 2074],
+            ['id' => null, 'name' => 'SmashPro', 'rank' => 'Advanced', 'elo_rating' => 2012],
+            ['id' => null, 'name' => 'NetNinjas', 'rank' => 'Advanced', 'elo_rating' => 1916],
+            ['id' => null, 'name' => 'HanoiBirdies', 'rank' => 'Advanced', 'elo_rating' => 1845],
+            ['id' => null, 'name' => 'SaigonSmashers', 'rank' => 'Intermediate', 'elo_rating' => 1798],
+            ['id' => null, 'name' => 'WeekendWarriors', 'rank' => 'Intermediate', 'elo_rating' => 1640],
+            ['id' => null, 'name' => 'ShuttleKing', 'rank' => 'Intermediate', 'elo_rating' => 1588],
+            ['id' => null, 'name' => 'meowhunterz', 'rank' => 'Beginner', 'elo_rating' => 1200],
         ])->map(function (array $player) {
             $player['badge_class'] = $this->rankBadgeClass($player['rank']);
             $player['profile_url'] = null;
-
             return (object) $player;
         });
+    }
 
-        if ($players->count() < 8) {
-            $players = $players->merge($samplePlayers)->take(8)->values();
-        }
-
-        return $players->map(function ($player) {
-            if (!isset($player->badge_class)) {
-                $player->badge_class = $this->rankBadgeClass($player->rank);
-            }
-
-            return $player;
-        });
+    private function buildSampleOpenChallenges()
+    {
+        return collect([
+            (object) [
+                'id' => 'sample-open-1',
+                'challenger_id' => null,
+                'challenger' => (object) ['name' => 'meowhunterz'],
+                'status' => 'open',
+                'arena_description' => 'meowhunterz looking for intermediate players for a friendly 3-set match this weekend at Central Court',
+                'arena_priority' => 'Featured challenge',
+                'arena_time_limit' => '6d 3h left',
+                'arena_required_level' => 'Intermediate',
+                'arena_location' => 'Central Court',
+                'arena_countdown' => '6d 3h left',
+                'expires_at' => now()->addDays(6)->addHours(3),
+                'joinRequests' => collect(),
+            ],
+            (object) [
+                'id' => 'sample-open-2',
+                'challenger_id' => null,
+                'challenger' => (object) ['name' => 'ShuttleKing'],
+                'status' => 'open',
+                'arena_description' => 'ShuttleKing seeking beginner players for doubles practice session at Downtown Court',
+                'arena_priority' => 'Active challenge',
+                'arena_time_limit' => '1d 19h left',
+                'arena_required_level' => 'Beginner',
+                'arena_location' => 'Downtown Court',
+                'arena_countdown' => '1d 19h left',
+                'expires_at' => now()->addDays(1)->addHours(19),
+                'joinRequests' => collect(),
+            ],
+        ]);
     }
 
     private function rankBadgeClass(string $rank): string

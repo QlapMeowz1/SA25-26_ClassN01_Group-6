@@ -22,8 +22,7 @@
         </div>
         @if($myTeams->isEmpty())
             <div class="empty-panel team-empty-panel">
-                <h3>You're not in any team yet</h3>
-                <p>Create one or browse teams to join!</p>
+                @include('partials.empty-illustration', ['title' => "You're not in any team yet", 'message' => 'Create one or browse teams to join!'])
                 <div class="empty-panel-actions">
                     <a href="{{ route('teams.create') }}" class="btn btn-primary">Create Team</a>
                     <a href="#all-teams" class="btn btn-secondary">Browse Teams</a>
@@ -92,7 +91,9 @@
             </div>
         </div>
         @if($suggestedTeams->isEmpty())
-            <p class="empty-message">No suggestions right now. Check back later!</p>
+            <div class="empty-panel team-empty-panel">
+                @include('partials.empty-illustration', ['title' => 'No suggestions right now', 'message' => 'We will recommend teams based on your activity.'])
+            </div>
         @else
             <div class="team-grid">
                 @foreach($suggestedTeams as $team)
@@ -169,16 +170,20 @@
                         <option value="{{ $level }}" @selected($levelFilter === $level)>{{ $level }}</option>
                     @endforeach
                 </select>
-                <input type="text" name="location" value="{{ $locationFilter }}" placeholder="📍 Location">
-                <button type="submit" class="btn btn-primary btn-small">Filter</button>
+                <select name="location">
+                    <option value="">All Locations</option>
+                    @foreach(['Saigon', 'Hanoi', 'Da Nang'] as $city)
+                        <option value="{{ $city }}" @selected($locationFilter === $city)>{{ $city }}</option>
+                    @endforeach
+                </select>
+                <button type="submit" class="btn btn-primary btn-small">Search</button>
                 <a href="{{ route('teams.index') }}" class="btn btn-secondary btn-small">Reset</a>
             </div>
         </form>
 
         @if($allTeams->isEmpty())
             <div class="empty-panel team-empty-panel">
-                <h3>No teams match your search</h3>
-                <p>Try adjusting your filters or create a new team.</p>
+                @include('partials.empty-illustration', ['title' => 'No teams match your search', 'message' => 'Try adjusting your filters or create a new team.'])
                 <a href="{{ route('teams.create') }}" class="btn btn-primary">Create Team</a>
             </div>
         @else
@@ -242,4 +247,45 @@
         @endif
     </section>
 </div>
+<script>
+    (function(){
+        const form = document.querySelector('.team-search-bar');
+        if (!form) return;
+
+        const searchInput = form.querySelector('input[name="search"]');
+        const levelSelect = form.querySelector('select[name="level"]');
+        const locationInput = form.querySelector('[name="location"]');
+
+        function debounce(fn, wait) {
+            let t;
+            return function(...args){ clearTimeout(t); t = setTimeout(()=> fn.apply(this,args), wait); };
+        }
+
+        async function doSearch(){
+            const params = new URLSearchParams();
+            if (searchInput && searchInput.value) params.set('search', searchInput.value);
+            if (levelSelect && levelSelect.value) params.set('level', levelSelect.value);
+            if (locationInput && locationInput.value) params.set('location', locationInput.value);
+
+            const url = window.location.pathname + '?' + params.toString();
+            try {
+                const res = await fetch(url, { credentials: 'same-origin' });
+                const text = await res.text();
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(text, 'text/html');
+                const newSection = doc.getElementById('all-teams');
+                const current = document.getElementById('all-teams');
+                if (newSection && current) current.innerHTML = newSection.innerHTML;
+            } catch (e) {
+                console.error('Team search failed', e);
+            }
+        }
+
+        const debounced = debounce(doSearch, 300);
+
+        if (searchInput) searchInput.addEventListener('input', debounced);
+        if (levelSelect) levelSelect.addEventListener('change', debounced);
+        if (locationInput) locationInput.addEventListener('change', debounced);
+    })();
+</script>
 @endsection

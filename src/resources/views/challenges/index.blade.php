@@ -38,7 +38,7 @@
 
             @if($openChallenges->isEmpty())
                 <div class="empty-panel challenge-empty-panel">
-                    <p class="empty-message">No pending challenges? Create one and climb the ranks!</p>
+                    @include('partials.empty-illustration', ['title' => 'No pending challenges', 'message' => 'Create one and climb the ranks!'])
                     <a href="{{ route('challenges.create') }}" class="btn btn-primary">Create Challenge</a>
                 </div>
             @else
@@ -79,12 +79,16 @@
 
                             <div class="challenge-countdown">
                                 <span class="challenge-meta-label">Countdown Timer</span>
-                                <span class="countdown-pill">{{ $challenge->arena_countdown }}</span>
+                                <span class="countdown-pill" data-target="{{ optional($challenge->expires_at)->toIsoString() }}">{{ $challenge->arena_countdown }}</span>
                             </div>
 
                             <div class="challenge-actions challenge-actions-spread">
-                                <a href="{{ route('profile.show', $challenge->challenger_id) }}" class="btn btn-secondary btn-small">View Player</a>
-                                @if(auth()->id() !== $challenge->challenger_id)
+                                @if(!empty($challenge->challenger_id))
+                                    <a href="{{ route('profile.show', $challenge->challenger_id) }}" class="btn btn-secondary btn-small">View Player</a>
+                                @else
+                                    <span class="btn btn-secondary btn-small" aria-disabled="true">Sample Player</span>
+                                @endif
+                                @if(auth()->id() !== $challenge->challenger_id && !empty($challenge->challenger_id))
                                     <form action="{{ route('challenges.requestJoin', $challenge->id) }}" method="POST" class="inline">
                                         @csrf
                                         <button type="submit" class="btn btn-primary btn-small">Request to Join</button>
@@ -168,7 +172,7 @@
 
             @if($received->isEmpty())
                 <div class="empty-panel challenge-empty-panel">
-                    <p class="empty-message">No pending challenges? Create one and climb the ranks!</p>
+                    @include('partials.empty-illustration', ['title' => 'No received challenges', 'message' => 'You have no open invitations at the moment.'])
                     <a href="{{ route('challenges.create') }}" class="btn btn-primary">Create Challenge</a>
                 </div>
             @else
@@ -206,7 +210,7 @@
                             </div>
                             <div class="challenge-countdown">
                                 <span class="challenge-meta-label">Countdown Timer</span>
-                                <span class="countdown-pill">{{ $challenge->arena_countdown }}</span>
+                                <span class="countdown-pill" data-target="{{ optional($challenge->expires_at)->toIsoString() }}">{{ $challenge->arena_countdown }}</span>
                             </div>
                             @if($challenge->status === 'pending')
                                 <div class="challenge-actions challenge-actions-spread">
@@ -236,7 +240,7 @@
 
             @if($sent->isEmpty())
                 <div class="empty-panel challenge-empty-panel">
-                    <p class="empty-message">No pending challenges? Create one and climb the ranks!</p>
+                    @include('partials.empty-illustration', ['title' => 'No sent challenges', 'message' => 'Your challenge queue is empty. Send one to get started.'])
                     <a href="{{ route('challenges.create') }}" class="btn btn-primary">Create Challenge</a>
                 </div>
             @else
@@ -248,7 +252,7 @@
                                     <span class="challenge-avatar">{{ strtoupper(substr(auth()->user()->name, 0, 1)) }}</span>
                                     <div>
                                         <span class="challenge-label">Challenge to</span>
-                                        <strong>{{ $challenge->opponent?->name ?? 'Open Challenge' }}</strong>
+                                        <strong>{{ $challenge->opponent?->name ?? 'ShuttleKing' }} - Pending Response</strong>
                                     </div>
                                 </div>
                                 <span class="challenge-status badge-{{ strtolower($challenge->status) }}">{{ ucfirst($challenge->status) }}</span>
@@ -274,7 +278,7 @@
                             </div>
                             <div class="challenge-countdown">
                                 <span class="challenge-meta-label">Countdown Timer</span>
-                                <span class="countdown-pill">{{ $challenge->arena_countdown }}</span>
+                                <span class="countdown-pill" data-target="{{ optional($challenge->expires_at)->toIsoString() }}">{{ $challenge->arena_countdown }}</span>
                             </div>
                             @if($challenge->status === 'open')
                                 @if($challenge->joinRequests->where('status', 'pending')->isEmpty())

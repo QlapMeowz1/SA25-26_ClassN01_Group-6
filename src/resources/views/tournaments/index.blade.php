@@ -17,9 +17,9 @@
     <section class="featured-tournament-section">
         <div class="featured-tournament-card">
             <div class="featured-banner" style="background: linear-gradient(135deg, {{ $featuredTournament->banner_color ?? '#6366f1' }}, rgba(99, 102, 241, 0.6))">
-                <div class="featured-badge">🔥 Featured</div>
+                <div class="featured-badge">⭐ FEATURED TOURNAMENT</div>
                 <div class="featured-countdown">
-                    <span class="countdown-value">{{ $featuredTournament->countdown }}</span>
+                    <span class="countdown-value" data-target="{{ $featuredTournament->start_date->toIsoString() }}">{{ $featuredTournament->countdown }}</span>
                 </div>
             </div>
             
@@ -37,22 +37,22 @@
                     <div class="featured-meta-block">
                         <span class="meta-icon">💰</span>
                         <div class="meta-text">
-                            <span class="meta-label">Prize Pool</span>
-                            <span class="meta-value">{{ $featuredTournament->prize_details ?? 'TBD' }}</span>
+                            <span class="meta-label">PRIZE POOL</span>
+                            <span class="meta-value">{{ $featuredTournament->prize_details ?? '22 🪙 Coins' }}</span>
                         </div>
                     </div>
                     <div class="featured-meta-block">
                         <span class="meta-icon">👥</span>
                         <div class="meta-text">
-                            <span class="meta-label">Slots Available</span>
-                            <span class="meta-value">{{ $featuredTournament->slots_filled }}/{{ $featuredTournament->slots_total }}</span>
+                            <span class="meta-label">SLOTS</span>
+                            <span class="meta-value">{{ $featuredTournament->slots_filled }} of {{ $featuredTournament->slots_total }} filled</span>
                         </div>
                     </div>
                     <div class="featured-meta-block">
                         <span class="meta-icon">📅</span>
                         <div class="meta-text">
-                            <span class="meta-label">Starts</span>
-                            <span class="meta-value">{{ $featuredTournament->start_date->format('M d, g\A') }}</span>
+                            <span class="meta-label">STARTS</span>
+                            <span class="meta-value">{{ $featuredTournament->start_date->format('M d, Y \a\t g:i A') }} GMT+7</span>
                         </div>
                     </div>
                 </div>
@@ -62,12 +62,12 @@
                     <div class="progress-bar-large">
                         <div class="progress-fill" style="width: {{ $featuredTournament->slots_percentage }}%"></div>
                     </div>
-                    <div class="slots-text">{{ $featuredTournament->slots_filled }} of {{ $featuredTournament->slots_total }} spots filled</div>
+                    <div class="slots-text">SLOTS: {{ $featuredTournament->slots_filled }} of {{ $featuredTournament->slots_total }} filled</div>
                 </div>
 
                 <div class="featured-actions">
                     <a href="{{ route('tournaments.show', $featuredTournament->id) }}" class="btn btn-primary btn-large">Register Now</a>
-                    <p class="deadline-text">Register by {{ $featuredTournament->time_until_deadline }}</p>
+                    <p class="deadline-text">Registration closes: {{ optional($featuredTournament->start_date)->copy()->subDay()->format('M d, Y \a\t h:i A') }} GMT+7</p>
                 </div>
             </div>
         </div>
@@ -83,8 +83,7 @@
         </div>
         @if($myTournaments->isEmpty())
             <div class="empty-panel tournament-empty-panel">
-                <h3>You haven't registered for any tournament yet</h3>
-                <p>Check out the upcoming ones!</p>
+                @include('partials.empty-illustration', ['title' => "You haven't registered for any tournament yet", 'message' => 'Check out the upcoming ones!'])
                 <a href="#upcoming-tournaments" class="btn btn-primary">Browse Tournaments</a>
             </div>
         @else
@@ -93,7 +92,7 @@
                     <article class="tournament-card">
                         <div class="tournament-banner" style="background: linear-gradient(135deg, {{ $tournament->banner_color ?? '#6366f1' }}, rgba(99, 102, 241, 0.6))">
                             <span class="tournament-status-badge">{{ ucfirst($tournament->status) }}</span>
-                            <span class="countdown-pill">{{ $tournament->countdown }}</span>
+                            <span class="countdown-pill" data-target="{{ $tournament->start_date->toIsoString() }}">{{ $tournament->countdown }}</span>
                         </div>
 
                         <div class="tournament-card-content">
@@ -134,8 +133,7 @@
         </div>
         @if($upcomingTournaments->isEmpty())
             <div class="empty-panel tournament-empty-panel">
-                <h3>No tournaments coming up</h3>
-                <p>Create one to start the next big competition!</p>
+                @include('partials.empty-illustration', ['title' => 'No tournaments coming up', 'message' => 'Create one to start the next big competition!'])
                 <a href="{{ route('tournaments.create') }}" class="btn btn-primary">Create Tournament</a>
             </div>
         @else
@@ -144,7 +142,7 @@
                     <article class="tournament-card">
                         <div class="tournament-banner" style="background: linear-gradient(135deg, {{ $tournament->banner_color ?? '#6366f1' }}, rgba(99, 102, 241, 0.6))">
                             <span class="tournament-status-badge">{{ ucfirst($tournament->status) }}</span>
-                            <span class="countdown-pill">{{ $tournament->countdown }}</span>
+                            <span class="countdown-pill" data-target="{{ $tournament->start_date->toIsoString() }}">{{ $tournament->countdown }}</span>
                         </div>
 
                         <div class="tournament-card-content">

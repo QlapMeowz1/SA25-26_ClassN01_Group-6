@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'BadNet')</title>
     <script>
         (function () {
@@ -39,12 +40,27 @@
                     @php
                         $unreadNotifications = auth()->user()->notifications()->where('is_read', false)->count();
                     @endphp
-                    <a href="{{ route('dashboard') }}#notifications" class="nav-bell" aria-label="Notifications">
-                        <span aria-hidden="true">🔔</span>
-                        @if($unreadNotifications > 0)
-                            <span class="nav-bell-badge">{{ $unreadNotifications }}</span>
-                        @endif
-                    </a>
+                    <div class="nav-bell-wrapper">
+                        <button type="button" id="navBell" class="nav-bell" aria-label="Notifications" aria-haspopup="true" aria-expanded="false">
+                            <span aria-hidden="true">🔔</span>
+                            @if($unreadNotifications > 0)
+                                <span class="nav-bell-badge" id="navBellBadge">{{ $unreadNotifications }}</span>
+                            @endif
+                        </button>
+
+                        <div class="nav-bell-dropdown" id="navBellDropdown" hidden>
+                            <div class="nav-bell-header">
+                                <strong>Notifications</strong>
+                                <button type="button" id="markAllReadBtn" class="btn btn-link">Mark all read</button>
+                            </div>
+                            <div class="nav-bell-list" id="navBellList">
+                                <p class="muted">Loading…</p>
+                            </div>
+                            <div class="nav-bell-footer">
+                                <a href="{{ route('dashboard') }}#notifications">View all</a>
+                            </div>
+                        </div>
+                    </div>
 
                     <details class="nav-user-menu">
                         <summary class="nav-user-trigger">
@@ -132,6 +148,125 @@
                     alert.classList.add('fade-out');
                 }, 3000);
             });
+
+            // Notifications dropdown behavior
+            const navBell = document.getElementById('navBell');
+            const navBellDropdown = document.getElementById('navBellDropdown');
+            const navBellList = document.getElementById('navBellList');
+            const navBellBadge = document.getElementById('navBellBadge');
+            const markAllReadBtn = document.getElementById('markAllReadBtn');
+
+            async function fetchNotifications() {
+                try {
+                    const res = await fetch('{{ route('notifications.recent') }}', { credentials: 'same-origin' });
+                    const data = await res.json();
+                    renderNotifications(data.notifications || []);
+                } catch (e) {
+                    navBellList.innerHTML = '<p class="muted">Unable to load</p>';
+                }
+            }
+
+            function renderNotifications(items) {
+                if (!items.length) {
+                    navBellList.innerHTML = '<p class="muted">No new notifications</p>';
+                    if (navBellBadge) navBellBadge.remove();
+                    return;
+                }
+
+                navBellList.innerHTML = items.map(n => {
+                    const link = n.link || '#';
+                    const icon = n.icon || '🔔';
+                    const rawText = n.data.title ?? n.data.message ?? 'Update';
+                    const parts = String(rawText).split(' ');
+                    const head = parts.shift() || '';
+                    const tail = parts.join(' ');
+                    return `<a href="${escapeHtml(link)}" class="notification-item ${n.is_read ? 'read' : 'unread'}" data-link="${escapeHtml(link)}">
+                        <div class="notification-icon">${escapeHtml(icon)}</div>
+                        <div class="notification-body">
+                            <div class="notification-text"><strong>${escapeHtml(head)}</strong>${tail ? ' ' + escapeHtml(tail) : ''}</div>
+                            <div class="notification-meta">${n.time ?? ''}</div>
+                        </div>
+                    </a>`;
+                }).join('');
+
+                // make items clickable to navigate
+                Array.from(navBellList.querySelectorAll('.notification-item')).forEach(function(el){
+                    el.addEventListener('click', function(e){
+                        // allow normal link behavior
+                    });
+                });
+
+                // update badge
+                const unread = items.filter(i => !i.is_read).length;
+                if (navBellBadge) {
+                    if (unread > 0) navBellBadge.textContent = unread; else navBellBadge.remove();
+                }
+            }
+
+            function escapeHtml(s){ if(!s) return ''; return String(s).replace(/[&<>"']/g, function(m){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[m]; }); }
+
+            navBell.addEventListener('click', function (e) {
+                e.preventDefault();
+                const isOpen = navBellDropdown.hasAttribute('hidden') === false;
+                if (isOpen) {
+                    navBellDropdown.setAttribute('hidden','');
+                    navBell.setAttribute('aria-expanded','false');
+                } else {
+                    navBellDropdown.removeAttribute('hidden');
+                    navBell.setAttribute('aria-expanded','true');
+                    fetchNotifications();
+                }
+            });
+
+            markAllReadBtn.addEventListener('click', async function () {
+                try {
+                    await fetch('{{ route('notifications.markAll') }}', {
+                        method: 'POST',
+                        credentials: 'same-origin',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]') ? document.querySelector('meta[name="csrf-token"]').getAttribute('content') : document.querySelector('input[name="_token"]') ? document.querySelector('input[name="_token"]').value : '' ,
+                            'Accept': 'application/json'
+                        }
+                    });
+                    // refresh list
+                    fetchNotifications();
+                } catch (e) {
+                    console.error(e);
+                }
+            });
+
+            // close dropdown when clicking outside
+            document.addEventListener('click', function (ev) {
+                if (!navBell || !navBellDropdown) return;
+                if (!navBell.contains(ev.target) && !navBellDropdown.contains(ev.target)) {
+                    navBellDropdown.setAttribute('hidden','');
+                    navBell.setAttribute('aria-expanded','false');
+                }
+            });
+
+            // Countdown ticker for any element with data-target
+            function updateCountdowns() {
+                const els = document.querySelectorAll('[data-target]');
+                const now = new Date();
+                els.forEach(el => {
+                    const target = new Date(el.getAttribute('data-target'));
+                    if (isNaN(target)) return;
+                    let diff = Math.max(0, Math.floor((target - now) / 1000));
+                    const days = Math.floor(diff / 86400); diff %= 86400;
+                    const hours = Math.floor(diff / 3600); diff %= 3600;
+                    const minutes = Math.floor(diff / 60);
+                    let parts = [];
+                    if (days > 0) parts.push(days + 'd');
+                    if (hours > 0) parts.push(hours + 'h');
+                    if (minutes > 0) parts.push(minutes + 'm');
+                    if (parts.length === 0) parts.push('less than 1m');
+                    el.textContent = parts.slice(0,3).join(' ') + (days+hours+minutes > 0 ? ' left' : '');
+                });
+            }
+
+            // initial update and then every minute
+            updateCountdowns();
+            setInterval(updateCountdowns, 60 * 1000);
         });
     </script>
 </body>

@@ -115,8 +115,8 @@
 
             @if($upcomingMatches->isEmpty())
                 <div class="empty-state-block match-empty-cta">
-                    <h3>No upcoming matches</h3>
-                    <p>Create or join a match to get on the schedule.</p>
+                    <h3>No upcoming matches yet</h3>
+                    <p>No upcoming matches yet. Create or join a match to get started!</p>
                     <a href="{{ route('matches.create') }}" class="btn btn-primary">Create Match</a>
                 </div>
             @else

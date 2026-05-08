@@ -7,7 +7,7 @@
     $user = auth()->user();
     $rankProgress = $user->getRankPercentage();
     $winRate = $user->getWinRate();
-    $winRateLabel = $winRate > 0 ? $winRate . '%' : 'New Player - Play your first match!';
+    $winRateLabel = $winRate > 0 ? $winRate . '%' : 'Rookie 🏸';
     $recentConnections = collect($recentMatches)
         ->map(function ($match) use ($user) {
             $opponent = $match->player1_id === $user->id ? $match->player2 : $match->player1;
@@ -26,9 +26,9 @@
 <div class="dashboard-shell">
     <section class="dashboard-header dashboard-hero">
         <div>
-            <p class="home-eyebrow">Meowhunterz Hub</p>
+            <p class="home-eyebrow">Meowhunterz HQ</p>
             <h1>Welcome back, {{ $user->name }}!</h1>
-            <p>Everything you need to queue a match, follow the feed, and keep your BadNet momentum in one place.</p>
+            <p>Welcome back! Ready for your next match? Check the feed and keep your BadNet momentum going.</p>
         </div>
         <div class="dashboard-hero-metrics">
             <div class="stat-box">
@@ -60,17 +60,17 @@
                     <a href="{{ route('matches.create') }}" class="action-card action-card-green">
                         <span class="action-icon">🔍</span>
                         <strong>Find Match</strong>
-                        <span>Green light to join a court near you</span>
+                        <span>Find a court nearby</span>
                     </a>
                     <a href="{{ route('challenges.create') }}" class="action-card action-card-orange">
                         <span class="action-icon">⚔️</span>
                         <strong>Create Challenge</strong>
-                        <span>Orange alert for your next opponent</span>
+                        <span>Challenge an opponent</span>
                     </a>
                     <a href="{{ route('tournaments.index') }}" class="action-card action-card-blue">
                         <span class="action-icon">🏆</span>
                         <strong>Join Tournament</strong>
-                        <span>Blue bracket for upcoming events</span>
+                        <span>Enter a tournament</span>
                     </a>
                 </div>
             </section>
@@ -83,7 +83,7 @@
                         <div class="profile-summary-avatar profile-summary-avatar-fallback">{{ strtoupper(substr($user->name, 0, 1)) }}</div>
                     @endif
                     <div>
-                        <p class="home-eyebrow">Current Player</p>
+                        <p class="home-eyebrow">Active Player</p>
                         <h2>{{ $user->name }}</h2>
                         <span class="rank-tag rank-tag-strong">{{ $user->rank }}</span>
                     </div>
@@ -114,7 +114,7 @@
                     </div>
                     <div>
                         <span class="profile-summary-label">Win Rate</span>
-                        <strong class="@if($winRate === 0) stat-value-message @endif">{{ $winRateLabel }}</strong>
+                        <strong class="@if($winRate === 0) stat-value-message @endif" title="Play your first match to establish your ranking!">{{ $winRateLabel }}</strong>
                     </div>
                 </div>
             </section>
@@ -122,8 +122,8 @@
             <section class="dashboard-section">
                 <div class="feed-heading">
                     <div>
-                        <p class="home-eyebrow">Teammates</p>
-                        <h2>Recent sparring partners</h2>
+                        <p class="home-eyebrow">Active Players</p>
+                        <h2>Recent Sparring Partners</h2>
                     </div>
                 </div>
 
