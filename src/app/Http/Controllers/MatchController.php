@@ -60,14 +60,13 @@ class MatchController extends Controller
             ->orderBy('match_date')
             ->limit(8)
             ->get()
-            ->map(fn($match) => $this->decorateMatch($match))
-            ->concat($this->buildSampleMatches());
+            ->map(fn($match) => $this->decorateMatch($match));
 
         $upcomingMatches = $applyFilters(GameMatch::with(['player1', 'player2'])
             ->where(function ($query) use ($user) {
                 $query->where('player1_id', $user->id)->orWhere('player2_id', $user->id);
             })
-            ->whereIn('status', ['scheduled', 'in_progress'])
+            ->whereIn('status', ['open', 'scheduled', 'in_progress'])
             ->where('match_date', '>=', now())
         )
             ->orderBy('match_date')

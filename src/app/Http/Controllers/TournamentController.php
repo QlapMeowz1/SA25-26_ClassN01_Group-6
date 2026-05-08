@@ -16,12 +16,16 @@ class TournamentController extends Controller
 
     public function index()
     {
+        $featuredTournament = Tournament::where('status', 'upcoming')
+                                        ->orderBy('start_date')
+                                        ->first();
+
         $upcomingTournaments = Tournament::where('status', 'upcoming')
                                         ->orderBy('start_date')
                                         ->paginate(10);
         $myTournaments = Auth::user()->tournaments()->paginate(10);
 
-        return view('tournaments.index', compact('upcomingTournaments', 'myTournaments'));
+        return view('tournaments.index', compact('featuredTournament', 'upcomingTournaments', 'myTournaments'));
     }
 
     public function show(Tournament $tournament)

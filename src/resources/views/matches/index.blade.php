@@ -97,11 +97,7 @@
                             @endif
 
                             <div class="ticket-footer">
-                                @if($match->is_sample ?? false)
-                                    <button type="button" class="btn btn-primary btn-small" onclick="alert('Sample match data')">View</button>
-                                @else
-                                    <a href="{{ route('matches.show', $match->id) }}" class="btn btn-primary btn-small">View Match</a>
-                                @endif
+                                <a href="{{ route('matches.show', $match->id) }}" class="btn btn-primary btn-small">View Match</a>
                             </div>
                         </article>
                     @endforeach
