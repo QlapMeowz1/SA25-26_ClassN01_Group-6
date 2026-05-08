@@ -118,6 +118,32 @@
         @yield('content')
     </main>
 
+    <!-- Mobile Bottom Navigation -->
+    @auth
+    <nav class="mobile-bottom-nav">
+        <a href="{{ route('dashboard') }}" class="mobile-nav-item {{ request()->routeIs('dashboard') ? 'mobile-nav-active' : '' }}" title="Dashboard">
+            <span class="mobile-nav-icon">📊</span>
+            <span class="mobile-nav-label">Home</span>
+        </a>
+        <a href="{{ route('challenges.index') }}" class="mobile-nav-item {{ request()->routeIs('challenges.*') ? 'mobile-nav-active' : '' }}" title="Challenges">
+            <span class="mobile-nav-icon">⚔️</span>
+            <span class="mobile-nav-label">Challenges</span>
+        </a>
+        <a href="{{ route('matches.index') }}" class="mobile-nav-item {{ request()->routeIs('matches.*') ? 'mobile-nav-active' : '' }}" title="Matches">
+            <span class="mobile-nav-icon">🎾</span>
+            <span class="mobile-nav-label">Matches</span>
+        </a>
+        <a href="{{ route('teams.index') }}" class="mobile-nav-item {{ request()->routeIs('teams.*') ? 'mobile-nav-active' : '' }}" title="Teams">
+            <span class="mobile-nav-icon">👥</span>
+            <span class="mobile-nav-label">Teams</span>
+        </a>
+        <a href="{{ route('tournaments.index') }}" class="mobile-nav-item {{ request()->routeIs('tournaments.*') ? 'mobile-nav-active' : '' }}" title="Tournaments">
+            <span class="mobile-nav-icon">🏆</span>
+            <span class="mobile-nav-label">Tournaments</span>
+        </a>
+    </nav>
+    @endauth
+
     <footer class="footer">
         <p>&copy; demo by melmuop.</p>
     </footer>
