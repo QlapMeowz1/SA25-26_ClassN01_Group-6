@@ -84,7 +84,7 @@
         @if($myTournaments->isEmpty())
             <div class="empty-panel tournament-empty-panel">
                 <h3>You haven't registered for any tournament yet</h3>
-                <p>Check out the upcoming ones and join the competition!</p>
+                <p>Check out the upcoming ones!</p>
                 <a href="#upcoming-tournaments" class="btn btn-primary">Browse Tournaments</a>
             </div>
         @else
@@ -129,7 +129,7 @@
         <div class="feed-heading">
             <div>
                 <p class="home-eyebrow">Upcoming Tournaments</p>
-                <h2>Next Events</h2>
+                <h2>Open Events</h2>
             </div>
         </div>
         @if($upcomingTournaments->isEmpty())
@@ -178,12 +178,6 @@
                     </article>
                 @endforeach
             </div>
-
-            @if($upcomingTournaments->hasPages())
-                <div class="pagination-wrapper">
-                    {{ $upcomingTournaments->links() }}
-                </div>
-            @endif
         @endif
     </section>
 </div>
