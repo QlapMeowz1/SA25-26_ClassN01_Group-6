@@ -134,54 +134,61 @@
                         <p>Be the first to share a result, a photo, or a doubles callout.</p>
                     </div>
                 @else
-                    <div class="posts-feed">
+                    <div class="posts-feed" id="posts-feed">
                         @foreach($communityPosts as $post)
-                            <article class="post-card feed-card">
-                                <div class="post-header">
-                                    <div class="post-author">
-                                        <a href="{{ route('profile.show', $post->user->id) }}" class="author-avatar">
-                                            {{ strtoupper(substr($post->user->name, 0, 1)) }}
-                                        </a>
-                                        <div class="author-info">
-                                            <a href="{{ route('profile.show', $post->user->id) }}" class="author-name">
-                                                {{ $post->user->name }}
-                                            </a>
-                                            <span class="author-rank">{{ $post->user->rank }}</span>
-                                            <span class="post-time">{{ $post->created_at->diffForHumans() }}</span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="post-content">
-                                    {!! nl2br(e($post->display_content)) !!}
-                                </div>
-
-                                @if($post->embedded_image_url)
-                                    <div class="post-media">
-                                        <img src="{{ $post->embedded_image_url }}" alt="Post image" class="post-image" loading="lazy" />
-                                    </div>
-                                @endif
-
-                                <div class="post-actions">
-                                    <form action="{{ route('posts.like', $post->id) }}" method="POST" class="action-form">
-                                        @csrf
-                                        <button type="submit" class="action-btn @if($post->isLikedBy(auth()->id())) liked @endif">
-                                            ❤️ <span class="action-count">{{ $post->likes_count }}</span>
-                                        </button>
-                                    </form>
-                                    <a href="{{ route('posts.show', $post->id) }}" class="action-btn">
-                                        💬 <span class="action-count">{{ $post->comments->count() }}</span>
-                                    </a>
-                                    <button type="button" class="action-btn action-btn-share">
-                                        📤
-                                    </button>
-                                    <button type="button" class="action-btn action-btn-bookmark">
-                                        📌
-                                    </button>
-                                </div>
-                            </article>
+                            @include('partials.post_card', ['post' => $post])
                         @endforeach
                     </div>
+
+                    <div id="infinite-loader" style="text-align:center; padding:18px;" data-next-page="{{ $communityPosts->currentPage() + 1 }}" data-has-more="{{ $communityPosts->hasMorePages() ? '1' : '0' }}">
+                        <button id="load-more-btn" class="btn btn-small">Load more</button>
+                        <div id="loader-spinner" style="display:none; margin-top:8px;">Loading…</div>
+                    </div>
+
+                    <script>
+                    (function(){
+                        const loader = document.getElementById('infinite-loader');
+                        const feed = document.getElementById('posts-feed');
+                        const loadMoreBtn = document.getElementById('load-more-btn');
+                        const spinner = document.getElementById('loader-spinner');
+                        let isLoading = false;
+
+                        function fetchPage(page){
+                            if (isLoading) return;
+                            isLoading = true;
+                            spinner.style.display = 'block';
+                            const url = '{{ route('posts.loadMore') }}' + '?page=' + page;
+                            fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' }})
+                                .then(r => r.json())
+                                .then(data => {
+                                    if (data.html) {
+                                        const tmp = document.createElement('div');
+                                        tmp.innerHTML = data.html;
+                                        while (tmp.firstChild) feed.appendChild(tmp.firstChild);
+                                    }
+                                    loader.setAttribute('data-has-more', data.hasMore ? '1' : '0');
+                                    loader.setAttribute('data-next-page', data.nextPage);
+                                })
+                                .catch(console.error)
+                                .finally(()=>{ isLoading = false; spinner.style.display = 'none'; });
+                        }
+
+                        loadMoreBtn.addEventListener('click', function(){
+                            const next = parseInt(loader.getAttribute('data-next-page')) || 2;
+                            fetchPage(next);
+                        });
+
+                        // Infinite scroll trigger
+                        window.addEventListener('scroll', function(){
+                            if (isLoading) return;
+                            const rect = loader.getBoundingClientRect();
+                            if (rect.top < window.innerHeight + 200 && loader.getAttribute('data-has-more') === '1') {
+                                const next = parseInt(loader.getAttribute('data-next-page')) || 2;
+                                fetchPage(next);
+                            }
+                        });
+                    })();
+                    </script>
                 @endif
             </section>
 

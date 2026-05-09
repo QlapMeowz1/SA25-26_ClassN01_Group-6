@@ -125,4 +125,27 @@ class PostController extends Controller
 
         return back()->with('success', 'Comment deleted!');
     }
+
+    /**
+     * AJAX: load more posts for infinite scroll
+     */
+    public function loadMore(Request $request)
+    {
+        $page = (int) $request->query('page', 1);
+        $posts = Post::with(['user', 'comments'])
+            ->withCount('likes')
+            ->latest()
+            ->paginate(6, ['*'], 'page', $page);
+
+        $html = '';
+        foreach ($posts as $post) {
+            $html .= view('partials.post_card', ['post' => $post])->render();
+        }
+
+        return response()->json([
+            'html' => $html,
+            'hasMore' => $posts->hasMorePages(),
+            'nextPage' => $posts->currentPage() + 1,
+        ]);
+    }
 }
