@@ -114,11 +114,16 @@ class DashboardController extends Controller
 
         $leaderboard = User::orderBy('elo_rating', 'desc')->limit(10)->get();
 
+        $onlinePlayers = User::where('id', '!=', $user->id)
+            ->orderBy('elo_rating', 'desc')
+            ->limit(8)
+            ->get();
+
         $notifications = $user->notifications()
                               ->latest()
                               ->limit(10)
                               ->get();
 
-        return view('dashboard', compact('upcomingMatches', 'recentMatches', 'leaderboard', 'notifications', 'openMatches', 'communityPosts'));
+        return view('dashboard', compact('upcomingMatches', 'recentMatches', 'leaderboard', 'notifications', 'openMatches', 'communityPosts', 'onlinePlayers'));
     }
 }

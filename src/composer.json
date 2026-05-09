@@ -5,10 +5,11 @@
     "require": {
         "php": "^8.0",
         "laravel/framework": "^9.0",
-        "laravel/tinker": "^2.7"
+        "laravel/tinker": "^2.7",
+        "openai-php/laravel": "^0.11.0"
     },
     "require-dev": {
-        "fakerphp/faker": "^1.9.1",
+        "fakerphp/faker": "^1.24",
         "laravel/pint": "^1.0",
         "laravel/sail": "^1.0.1",
         "mockery/mockery": "^1.4.4",
@@ -41,5 +42,10 @@
         ]
     },
     "minimum-stability": "dev",
-    "prefer-stable": true
+    "prefer-stable": true,
+    "config": {
+        "allow-plugins": {
+            "php-http/discovery": true
+        }
+    }
 }

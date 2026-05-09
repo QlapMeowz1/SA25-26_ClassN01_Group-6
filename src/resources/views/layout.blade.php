@@ -13,6 +13,7 @@
         })();
     </script>
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/dashboard-redesign.css') }}">
 </head>
 <body>
     <nav class="navbar">
@@ -154,19 +155,22 @@
             const root = document.documentElement;
 
             function updateThemeButton() {
+                if (!themeToggle) return;
                 const currentTheme = root.dataset.theme || 'light';
                 themeToggle.textContent = currentTheme === 'dark' ? 'Light Mode' : 'Dark Mode';
             }
 
-            themeToggle.addEventListener('click', function() {
-                const nextTheme = (root.dataset.theme === 'dark') ? 'light' : 'dark';
-                root.dataset.theme = nextTheme;
-                root.style.colorScheme = nextTheme;
-                localStorage.setItem('badnet-theme', nextTheme);
-                updateThemeButton();
-            });
+            if (themeToggle) {
+                themeToggle.addEventListener('click', function() {
+                    const nextTheme = (root.dataset.theme === 'dark') ? 'light' : 'dark';
+                    root.dataset.theme = nextTheme;
+                    root.style.colorScheme = nextTheme;
+                    localStorage.setItem('badnet-theme', nextTheme);
+                    updateThemeButton();
+                });
 
-            updateThemeButton();
+                updateThemeButton();
+            }
 
             const alerts = document.querySelectorAll('.alert');
             alerts.forEach(alert => {
@@ -183,6 +187,7 @@
             const markAllReadBtn = document.getElementById('markAllReadBtn');
 
             async function fetchNotifications() {
+                if (!navBellList) return;
                 try {
                     const res = await fetch('{{ route('notifications.recent') }}', { credentials: 'same-origin' });
                     const data = await res.json();
@@ -193,6 +198,7 @@
             }
 
             function renderNotifications(items) {
+                if (!navBellList) return;
                 if (!items.length) {
                     navBellList.innerHTML = '<p class="muted">No new notifications</p>';
                     if (navBellBadge) navBellBadge.remove();
@@ -231,44 +237,45 @@
 
             function escapeHtml(s){ if(!s) return ''; return String(s).replace(/[&<>"']/g, function(m){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[m]; }); }
 
-            navBell.addEventListener('click', function (e) {
-                e.preventDefault();
-                const isOpen = navBellDropdown.hasAttribute('hidden') === false;
-                if (isOpen) {
-                    navBellDropdown.setAttribute('hidden','');
-                    navBell.setAttribute('aria-expanded','false');
-                } else {
-                    navBellDropdown.removeAttribute('hidden');
-                    navBell.setAttribute('aria-expanded','true');
-                    fetchNotifications();
-                }
-            });
+            if (navBell && navBellDropdown) {
+                navBell.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const isOpen = navBellDropdown.hasAttribute('hidden') === false;
+                    if (isOpen) {
+                        navBellDropdown.setAttribute('hidden','');
+                        navBell.setAttribute('aria-expanded','false');
+                    } else {
+                        navBellDropdown.removeAttribute('hidden');
+                        navBell.setAttribute('aria-expanded','true');
+                        fetchNotifications();
+                    }
+                });
 
-            markAllReadBtn.addEventListener('click', async function () {
-                try {
-                    await fetch('{{ route('notifications.markAll') }}', {
-                        method: 'POST',
-                        credentials: 'same-origin',
-                        headers: {
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]') ? document.querySelector('meta[name="csrf-token"]').getAttribute('content') : document.querySelector('input[name="_token"]') ? document.querySelector('input[name="_token"]').value : '' ,
-                            'Accept': 'application/json'
-                        }
-                    });
-                    // refresh list
-                    fetchNotifications();
-                } catch (e) {
-                    console.error(e);
-                }
-            });
+                document.addEventListener('click', function (ev) {
+                    if (!navBell.contains(ev.target) && !navBellDropdown.contains(ev.target)) {
+                        navBellDropdown.setAttribute('hidden','');
+                        navBell.setAttribute('aria-expanded','false');
+                    }
+                });
+            }
 
-            // close dropdown when clicking outside
-            document.addEventListener('click', function (ev) {
-                if (!navBell || !navBellDropdown) return;
-                if (!navBell.contains(ev.target) && !navBellDropdown.contains(ev.target)) {
-                    navBellDropdown.setAttribute('hidden','');
-                    navBell.setAttribute('aria-expanded','false');
-                }
-            });
+            if (markAllReadBtn) {
+                markAllReadBtn.addEventListener('click', async function () {
+                    try {
+                        await fetch('{{ route('notifications.markAll') }}', {
+                            method: 'POST',
+                            credentials: 'same-origin',
+                            headers: {
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]') ? document.querySelector('meta[name="csrf-token"]').getAttribute('content') : document.querySelector('input[name="_token"]') ? document.querySelector('input[name="_token"]').value : '' ,
+                                'Accept': 'application/json'
+                            }
+                        });
+                        fetchNotifications();
+                    } catch (e) {
+                        console.error(e);
+                    }
+                });
+            }
 
             // Countdown ticker for any element with data-target
             function updateCountdowns() {

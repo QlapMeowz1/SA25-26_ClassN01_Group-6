@@ -57,7 +57,13 @@
                             @endauth
                         </div>
 
-                        <div class="post-content">{{ $post->content }}</div>
+                        <div class="post-content">{!! nl2br(e($post->display_content)) !!}</div>
+
+                        @if($post->embedded_image_url)
+                            <div class="post-media">
+                                <img src="{{ $post->embedded_image_url }}" alt="Post image" class="post-image" loading="lazy" />
+                            </div>
+                        @endif
 
                         <div class="post-stats">
                             <span>❤️ {{ $post->likes_count }} Likes</span>
