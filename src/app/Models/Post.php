@@ -53,6 +53,25 @@ class Post extends Model
         return null;
     }
 
+    public function getEmbeddedImageUrlsAttribute(): array
+    {
+        $content = (string) $this->content;
+        preg_match_all('/https?:\/\/[^\s)\]\'";]+/i', $content, $matches);
+
+        if (empty($matches[0])) {
+            return [];
+        }
+
+        // filter likely image URLs (simple heuristic)
+        $urls = array_filter($matches[0], function ($u) {
+            return preg_match('/\.(jpg|jpeg|png|gif|webp|bmp)|picsum\.photos|unsplash\.com/i', $u);
+        });
+
+        return array_values(array_map(function ($u) {
+            return rtrim($u, '.,)\]\'"');
+        }, $urls));
+    }
+
     public function getDisplayContentAttribute(): string
     {
         $content = (string) $this->content;

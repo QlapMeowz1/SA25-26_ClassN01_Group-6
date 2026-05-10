@@ -14,13 +14,28 @@
         </div>
     </div>
 
-    <div class="post-content">
-        {!! nl2br(e($post->display_content ?? $post->content)) !!}
+    <div class="post-content" data-full-content="{{ e($post->display_content ?? $post->content) }}">
+        {!! nl2br(e(\Illuminate\Support\Str::limit($post->display_content ?? $post->content, 400))) !!}
     </div>
 
-    @if(!empty($post->embedded_image_url))
+    @php
+        $images = $post->embedded_image_urls ?? [];
+        if (empty($images) && !empty($post->embedded_image_url)) {
+            $images = [$post->embedded_image_url];
+        }
+    @endphp
+
+    @if(!empty($images))
         <div class="post-media">
-            <img src="{{ $post->embedded_image_url }}" alt="Post image" class="post-image" loading="lazy" />
+            @if(count($images) === 1)
+                <img src="{{ $images[0] }}" alt="Post image" class="post-image" loading="lazy" />
+            @else
+                <div class="post-image-grid">
+                    @foreach($images as $img)
+                        <div class="post-image-cell"><img src="{{ $img }}" alt="Post image" loading="lazy" /></div>
+                    @endforeach
+                </div>
+            @endif
         </div>
     @endif
 
@@ -35,4 +50,23 @@
         <button type="button" class="action-btn action-btn-share">📤</button>
         <button type="button" class="action-btn action-btn-bookmark">📌</button>
     </div>
+
+    @if(isset($post->comments) && $post->comments->count() > 0)
+        <div class="post-comments">
+            @foreach($post->comments as $comment)
+                <div class="comment-row">
+                    <strong>{{ $comment->user->name ?? 'User' }}</strong>
+                    <span class="comment-text">{{ $comment->content ?? '' }}</span>
+                </div>
+            @endforeach
+
+            @if(isset($post->comments_count) && $post->comments_count > $post->comments->count())
+                <a href="{{ route('posts.show', $post->id) }}" class="view-all-comments">View all {{ $post->comments_count }} comments</a>
+            @endif
+        </div>
+    @endif
+
+    <script>
+    // Post expand/collapse handled after DOM load globally in dashboard
+    </script>
 </article>

@@ -692,3 +692,49 @@
 :root[data-theme="dark"] .action-btn:hover {
     background: rgba(79, 216, 197, 0.1);
 }
+
+/* Multi-image grid for posts */
+.post-image-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+}
+
+.post-image-cell img {
+    width: 100%;
+    height: 160px;
+    object-fit: cover;
+    display: block;
+    border-radius: 6px;
+}
+
+.post-comments {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(148, 163, 184, 0.06);
+}
+
+.comment-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    padding: 6px 0;
+    font-size: 13px;
+    color: var(--muted-color);
+}
+
+.comment-row strong {
+    color: var(--text-color);
+    font-weight: 600;
+    margin-right: 6px;
+}
+
+.view-all-comments {
+    display: inline-block;
+    margin-top: 6px;
+    font-size: 12px;
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+.view-all-comments:hover { text-decoration: underline; }

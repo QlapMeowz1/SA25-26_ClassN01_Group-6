@@ -45,8 +45,10 @@ class DashboardController extends Controller
             ->limit(4)
             ->get();
 
-        $communityPosts = Post::with(['user', 'comments'])
-            ->withCount('likes')
+        $communityPosts = Post::with(['user', 'comments' => function($q) {
+                $q->latest()->take(2);
+            }])
+            ->withCount(['likes', 'comments'])
             ->latest()
             ->paginate(6);
 
