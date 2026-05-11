@@ -16,7 +16,6 @@ class BadmintonSeeder extends Seeder
         DB::table('comments')->delete();
         DB::table('posts')->delete();
 
-        // Tạo Users
         $users = User::query()->take(60)->get();
 
         if ($users->count() < 60) {
@@ -25,7 +24,6 @@ class BadmintonSeeder extends Seeder
 
         $this->command->info("✅ Đã tạo {$users->count()} tài khoản.");
 
-        // Tạo Posts
         $postCount = 0;
         foreach ($users as $user) {
             $posts = Post::factory(rand(4, 10))->create(['user_id' => $user->id]);

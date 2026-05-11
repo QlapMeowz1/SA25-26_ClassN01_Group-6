@@ -19,9 +19,15 @@
     </div>
 
     @php
-        $images = $post->embedded_image_urls ?? [];
-        if (empty($images) && !empty($post->embedded_image_url)) {
-            $images = [$post->embedded_image_url];
+        $images = [];
+
+        if (!empty($post->image)) {
+            $images = [$post->image];
+        } else {
+            $images = $post->embedded_image_urls ?? [];
+            if (empty($images) && !empty($post->embedded_image_url)) {
+                $images = [$post->embedded_image_url];
+            }
         }
     @endphp
 
@@ -36,6 +42,27 @@
                     @endforeach
                 </div>
             @endif
+        </div>
+    @endif
+
+    @php
+        $videos = [];
+
+        if (!empty($post->videos) && is_array($post->videos)) {
+            $videos = $post->videos;
+        } elseif (!empty($post->video)) {
+            $videos = [$post->video];
+        }
+    @endphp
+
+    @if(!empty($videos))
+        <div class="post-media post-video-media">
+            @foreach($videos as $video)
+                <video class="post-video" controls preload="metadata">
+                    <source src="{{ $video }}">
+                    Your browser does not support the video tag.
+                </video>
+            @endforeach
         </div>
     @endif
 
@@ -66,7 +93,4 @@
         </div>
     @endif
 
-    <script>
-    // Post expand/collapse handled after DOM load globally in dashboard
-    </script>
 </article>

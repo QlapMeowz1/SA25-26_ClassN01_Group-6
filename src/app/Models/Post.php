@@ -12,12 +12,18 @@ class Post extends Model
     protected $fillable = [
         'user_id',
         'content',
+        'image',
+        'video',
+        'images',
+        'videos',
         'likes_count',
     ];
 
     protected $casts = [
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
+        'images' => 'array',
+        'videos' => 'array',
     ];
 
     public function user()
@@ -55,6 +61,10 @@ class Post extends Model
 
     public function getEmbeddedImageUrlsAttribute(): array
     {
+        if (is_array($this->images) && ! empty($this->images)) {
+            return $this->images;
+        }
+
         $content = (string) $this->content;
         preg_match_all('/https?:\/\/[^\s)\]\'";]+/i', $content, $matches);
 

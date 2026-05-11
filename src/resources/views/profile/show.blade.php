@@ -120,9 +120,21 @@
                         <div class="post-card">
                             <div class="post-content">{!! nl2br(e($post->display_content)) !!}</div>
 
-                            @if($post->embedded_image_url)
+                            @if($post->image || $post->embedded_image_url)
                                 <div class="post-media">
-                                    <img src="{{ $post->embedded_image_url }}" alt="Post image" class="post-image" loading="lazy" />
+                                    <img src="{{ $post->image ?? $post->embedded_image_url }}" alt="Post image" class="post-image" loading="lazy" />
+                                </div>
+                            @endif
+
+                            @if(!empty($post->videos) || $post->video)
+                                <div class="post-media post-video-media">
+                                    @foreach(($post->videos ?? [$post->video]) as $video)
+                                        @if($video)
+                                            <video class="post-video" controls preload="metadata">
+                                                <source src="{{ $video }}">
+                                            </video>
+                                        @endif
+                                    @endforeach
                                 </div>
                             @endif
                             <div class="post-meta">{{ $post->created_at->diffForHumans() }}</div>

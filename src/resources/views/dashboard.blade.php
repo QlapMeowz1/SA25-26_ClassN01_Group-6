@@ -15,7 +15,6 @@
 @endphp
 
 <div class="dashboard-shell">
-    <!-- Minimal Header -->
     <section class="dashboard-header dashboard-header-minimal">
         <div>
             <h2 class="greeting-text">Welcome back, {{ $user->name }}!</h2>
@@ -23,13 +22,10 @@
         </div>
     </section>
 
-    <!-- Three-Column Layout -->
     <div class="dashboard-grid dashboard-grid-three">
         
-        <!-- LEFT SIDEBAR: User Card + Online Friends -->
         <aside class="dashboard-column dashboard-column-left">
             
-            <!-- Compact User Card -->
             <section class="dashboard-section compact-user-card">
                 <div class="user-card-top">
                     <div class="user-card-avatar">
@@ -45,7 +41,6 @@
                 <div class="user-card-elo">{{ $user->elo_rating }} ELO</div>
             </section>
 
-            <!-- Online Friends Section -->
             <section class="dashboard-section online-friends-section">
                 <div class="section-header-compact">
                     <span class="online-pulse-dot"></span>
@@ -77,31 +72,34 @@
 
         </aside>
 
-        <!-- CENTER: Status Composer + Community Feed -->
         <section class="dashboard-column dashboard-column-center">
             
-            <!-- Status Composer -->
             <section class="dashboard-section feed-composer feed-composer-featured" id="status-update">
                 <div class="composer-top">
                     <div class="composer-avatar">
                         {{ strtoupper(substr($user->name, 0, 1)) }}
                     </div>
-                    <form action="{{ route('posts.store') }}" method="POST" class="composer-form">
+                    <form action="{{ route('posts.store') }}" method="POST" class="composer-form" enctype="multipart/form-data">
                         @csrf
                         <textarea 
                             name="content" 
                             rows="3" 
-                            maxlength="500" 
+                                maxlength="1000" 
                             placeholder="Share your match story, {{ $user->name }}..."
                             class="composer-input"></textarea>
+                        <div class="composer-upload-row">
+                            <label class="composer-upload-chip" for="post-images-input">
+                                <input type="file" id="post-images-input" name="images[]" accept="image/*" multiple hidden>
+                                <span>🖼️</span> Image
+                            </label>
+                            <label class="composer-upload-chip" for="post-videos-input">
+                                <input type="file" id="post-videos-input" name="videos[]" accept="video/*" multiple hidden>
+                                <span>🎥</span> Video
+                            </label>
+                        </div>
+                        <div class="composer-media-preview" id="composer-media-preview" aria-live="polite"></div>
                         <div class="composer-actions">
                             <div class="composer-tools">
-                                <button type="button" class="composer-tool" title="Attach image">
-                                    <span>🖼️</span> Image
-                                </button>
-                                <button type="button" class="composer-tool" title="Attach video">
-                                    <span>🎥</span> Video
-                                </button>
                                 <button type="button" class="composer-tool" title="Tag teammates">
                                     <span>@</span> Tag
                                 </button>
@@ -112,7 +110,6 @@
                 </div>
             </section>
 
-            <!-- Community Feed -->
             <section class="dashboard-section dashboard-section-feed" id="live-feed">
                 <div class="feed-header-compact">
                     <div>
@@ -178,7 +175,6 @@
                             fetchPage(next);
                         });
 
-                        // Infinite scroll trigger
                         window.addEventListener('scroll', function(){
                             if (isLoading) return;
                             const rect = loader.getBoundingClientRect();
@@ -194,10 +190,8 @@
 
         </section>
 
-        <!-- RIGHT SIDEBAR: Matches + Leaderboard -->
         <aside class="dashboard-column dashboard-column-right">
             
-            <!-- Upcoming Matches -->
             <section class="dashboard-section">
                 <div class="section-header-compact">
                     <h4>YOUR MATCHES</h4>
@@ -235,7 +229,6 @@
                 @endif
             </section>
 
-            <!-- Leaderboard Preview -->
             <section class="dashboard-section">
                 <div class="section-header-compact">
                     <h4>TOP PLAYERS</h4>
@@ -269,7 +262,6 @@
 
     </div>
 
-    <!-- Floating Action Button (Mobile Only) -->
     <div class="fab-menu">
         <button class="fab fab-main" aria-label="Quick actions" title="Quick actions">
             ➕
@@ -293,7 +285,6 @@
 </div>
 
 <style>
-/* FAB Menu Styling */
 .fab-menu {
     position: fixed;
     bottom: 20px;
@@ -378,6 +369,9 @@
 document.addEventListener('DOMContentLoaded', function() {
     const fabMain = document.querySelector('.fab.fab-main');
     const fabMenu = document.querySelector('.fab-menu');
+    const imageInput = document.getElementById('post-images-input');
+    const videoInput = document.getElementById('post-videos-input');
+    const preview = document.getElementById('composer-media-preview');
     
     if (fabMain) {
         fabMain.addEventListener('click', function() {
@@ -385,6 +379,37 @@ document.addEventListener('DOMContentLoaded', function() {
             fabMain.classList.toggle('active');
         });
     }
+
+    function renderPreview() {
+        if (!preview) return;
+
+        const imageFiles = imageInput ? Array.from(imageInput.files || []) : [];
+        const videoFiles = videoInput ? Array.from(videoInput.files || []) : [];
+
+        if (!imageFiles.length && !videoFiles.length) {
+            preview.innerHTML = '';
+            preview.classList.remove('has-preview');
+            return;
+        }
+
+        const cards = [];
+
+        imageFiles.forEach((file) => {
+            const url = URL.createObjectURL(file);
+            cards.push(`<div class="media-preview-card"><img src="${url}" alt="Selected image" /></div>`);
+        });
+
+        videoFiles.forEach((file) => {
+            const url = URL.createObjectURL(file);
+            cards.push(`<div class="media-preview-card"><video src="${url}" muted playsinline></video></div>`);
+        });
+
+        preview.innerHTML = cards.join('');
+        preview.classList.add('has-preview');
+    }
+
+    if (imageInput) imageInput.addEventListener('change', renderPreview);
+    if (videoInput) videoInput.addEventListener('change', renderPreview);
 });
 </script>
 

@@ -27,16 +27,55 @@ class PostController extends Controller
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'content' => 'required|string|max:500',
+        $request->validate([
+            'content' => 'required|string|max:1000',
+            'images'  => 'nullable|array',
+            'images.*'=> 'image|mimes:jpeg,png,jpg,gif,webp|max:5120',
+            'videos'  => 'nullable|array',
+            'videos.*'=> 'file|mimetypes:video/mp4,video/quicktime,video/x-msvideo,video/x-matroska,video/webm|max:30720',
         ]);
+
+        $imageUrls = [];
+        $videoUrls = [];
+
+        if ($request->hasFile('images')) {
+            foreach ($request->file('images') as $imageFile) {
+                $uploadedUrl = uploadToSupabase($imageFile, 'posts');
+
+                if (! $uploadedUrl) {
+                    return back()->with('error', 'Upload ảnh thất bại!');
+                }
+
+                $imageUrls[] = $uploadedUrl;
+            }
+        }
+
+        if ($request->hasFile('videos')) {
+            foreach ($request->file('videos') as $videoFile) {
+                $uploadedUrl = uploadToSupabase($videoFile, 'videos');
+
+                if (! $uploadedUrl) {
+                    return back()->with('error', 'Upload video thất bại!');
+                }
+
+                $videoUrls[] = $uploadedUrl;
+            }
+        }
+
+        $imageUrl = $imageUrls[0] ?? null;
+        $videoUrl = $videoUrls[0] ?? null;
 
         Post::create([
             'user_id' => Auth::id(),
-            'content' => $validated['content'],
+            'content' => $request->content,
+            'image'   => $imageUrl,
+            'video'   => $videoUrl,
+            'images'  => $imageUrls ?: null,
+            'videos'  => $videoUrls ?: null,
         ]);
 
-        return back()->with('success', 'Post created!');
+        return redirect()->route('dashboard')
+            ->with('success', 'Đăng bài thành công!');
     }
 
     public function show(Post $post)
