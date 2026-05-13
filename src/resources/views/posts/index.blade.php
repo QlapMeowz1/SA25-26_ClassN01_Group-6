@@ -78,8 +78,8 @@
                         @endif
 
                         <div class="post-stats">
-                            <span>❤️ {{ $post->likes_count }} Likes</span>
-                            <span>💬 {{ $post->comments->count() }} Comments</span>
+                            <span data-post-like-stat>❤️ {{ $post->likes_count }} Likes</span>
+                            <span data-post-comment-stat>💬 {{ $post->comments->count() }} Comments</span>
                         </div>
 
                         <div class="post-actions post-actions-fb">
@@ -89,21 +89,21 @@
                                     <button type="submit" class="action-btn fb-action-btn @if($post->isLikedBy(auth()->id())) liked @endif">
                                         <span class="action-icon" aria-hidden="true">👍</span>
                                         <span class="action-label">Like</span>
-                                        <span class="action-count">{{ $post->likes_count }}</span>
+                                        <span class="action-count" data-like-count>{{ $post->likes_count }}</span>
                                     </button>
                                 </form>
                             @else
                                 <button class="action-btn fb-action-btn" disabled>
                                     <span class="action-icon" aria-hidden="true">👍</span>
                                     <span class="action-label">Like</span>
-                                    <span class="action-count">{{ $post->likes_count }}</span>
+                                    <span class="action-count" data-like-count>{{ $post->likes_count }}</span>
                                 </button>
                             @endauth
 
                             <a href="{{ route('posts.show', $post->id) }}#comments-section" class="action-btn fb-action-btn">
                                 <span class="action-icon" aria-hidden="true">💬</span>
                                 <span class="action-label">Comment</span>
-                                <span class="action-count">{{ $post->comments->count() }}</span>
+                                <span class="action-count" data-comment-count>{{ $post->comments->count() }}</span>
                             </a>
                         </div>
                     </div>

@@ -28,20 +28,29 @@ class TournamentController extends Controller
 
         $myIds = $myTournaments->pluck('id')->filter()->all();
 
-        $upcomingTournaments = Tournament::with('organizer')
-            ->where('status', 'upcoming')
-            ->when(!empty($myIds), fn ($query) => $query->whereNotIn('id', $myIds))
+        $allTournaments = Tournament::with('organizer', 'tournamentParticipants')
             ->orderBy('start_date')
             ->get()
             ->map(fn ($tournament) => $this->decorateTournament($tournament, false));
 
-        if ($upcomingTournaments->isEmpty() && $myTournaments->isEmpty()) {
+        $upcomingTournaments = $allTournaments
+            ->where('display_status', 'upcoming')
+            ->when(!empty($myIds), fn ($collection) => $collection->reject(fn ($tournament) => in_array($tournament->id, $myIds, true)))
+            ->values();
+
+        $ongoingTournaments = $allTournaments->where('display_status', 'ongoing')->values();
+        $completedTournaments = $allTournaments->where('display_status', 'completed')->values();
+
+        if ($allTournaments->isEmpty() && $myTournaments->isEmpty()) {
             $samples = $this->sampleTournaments(false);
             $myTournaments = $samples->take(2)->values();
             $upcomingTournaments = $samples->skip(2)->values();
+            $ongoingTournaments = collect();
+            $completedTournaments = collect();
+            $allTournaments = $samples->values();
         }
 
-        $featuredTournament = $upcomingTournaments->first() ?? $myTournaments->first() ?? $this->sampleTournaments(true)->first();
+        $featuredTournament = $upcomingTournaments->first() ?? $ongoingTournaments->first() ?? $myTournaments->first() ?? $this->sampleTournaments(true)->first();
 
         if (!$featuredTournament) {
             $featuredTournament = $this->decorateTournament(
@@ -61,8 +70,10 @@ class TournamentController extends Controller
 
         $myTournaments = $myTournaments->take(10);
         $upcomingTournaments = $upcomingTournaments->take(10);
+        $ongoingTournaments = $ongoingTournaments->take(10);
+        $completedTournaments = $completedTournaments->take(10);
 
-        return view('tournaments.index', compact('featuredTournament', 'upcomingTournaments', 'myTournaments'));
+        return view('tournaments.index', compact('featuredTournament', 'upcomingTournaments', 'ongoingTournaments', 'completedTournaments', 'myTournaments', 'allTournaments'));
     }
 
     private function decorateTournament(Tournament $tournament, bool $featured = false)
@@ -70,6 +81,11 @@ class TournamentController extends Controller
         $slotsFilled = $tournament->tournamentParticipants?->count() ?? ($tournament->participants_count ?? 0);
         $slotsTotal = $tournament->max_participants ?? 16;
         $deadline = $tournament->end_date ?? optional($tournament->start_date)->copy()->subHours(2);
+        $now = now();
+        $isRegistrationClosed = $slotsFilled >= $slotsTotal || ($tournament->start_date && $tournament->start_date->isPast() && (!$tournament->end_date || $tournament->end_date->isFuture()));
+        $isCompleted = ($tournament->status ?? '') === 'completed' || ($tournament->end_date && $tournament->end_date->isPast());
+        $isOngoing = (!$isCompleted && $tournament->start_date && $tournament->start_date->isPast() && (!$tournament->end_date || $tournament->end_date->isFuture()));
+        $displayStatus = $isCompleted ? 'completed' : ($isOngoing ? 'ongoing' : ($isRegistrationClosed ? 'registration closed' : 'upcoming'));
 
         $tournament->slots_filled = $slotsFilled;
         $tournament->slots_total = $slotsTotal;
@@ -79,6 +95,13 @@ class TournamentController extends Controller
         $tournament->prize_details = $this->formatPrizeDetails($tournament);
         $tournament->banner_color = $this->bannerColorForTournament($tournament);
         $tournament->tournament_type = $featured ? 'featured' : 'standard';
+        $tournament->display_status = $displayStatus;
+        $tournament->status_class = str_replace(' ', '-', $displayStatus);
+        $tournament->status_label = ucfirst($displayStatus);
+        $tournament->starts_text = $tournament->start_date ? $tournament->start_date->format('M d, Y \a\t g:i A') . ' GMT+7' : 'TBA';
+        $tournament->action_label = $isCompleted ? 'View Details' : ($isRegistrationClosed ? 'View Details' : 'Register Now');
+        $tournament->action_variant = $isCompleted || $isRegistrationClosed ? 'secondary' : 'primary';
+        $tournament->countdown_text = $isCompleted ? 'Completed' : ($isOngoing ? 'Ongoing now' : $this->formatCountdown($tournament->start_date ?? $now, $featured));
 
         return $tournament;
     }

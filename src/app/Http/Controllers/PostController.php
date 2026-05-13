@@ -87,7 +87,21 @@ class PostController extends Controller
             ->latest()
             ->paginate(20);
 
-        return view('posts.show', compact('post', 'comments'));
+        $mentionUsers = collect([$post->user])
+            ->merge($comments->getCollection()->flatMap(function ($comment) {
+                return collect([$comment->user])->merge($comment->replies->pluck('user'));
+            }))
+            ->filter()
+            ->unique('id')
+            ->values()
+            ->map(function ($user) {
+                return [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                ];
+            });
+
+        return view('posts.show', compact('post', 'comments', 'mentionUsers'));
     }
 
     public function delete(Post $post)
@@ -174,7 +188,7 @@ class PostController extends Controller
             ]);
         }
 
-        return redirect()->route('posts.show', $post->id)->fragment('comments-section')->with('success', 'Comment added!');
+        return redirect()->route('posts.show', $post->id)->withFragment('comments-section')->with('success', 'Comment added!');
     }
 
     public function replyComment(Comment $comment, Request $request)
@@ -212,7 +226,7 @@ class PostController extends Controller
             ]);
         }
 
-        return redirect()->route('posts.show', $comment->post_id)->fragment('comments-section')->with('success', 'Reply added!');
+        return redirect()->route('posts.show', $comment->post_id)->withFragment('comments-section')->with('success', 'Reply added!');
     }
 
     public function toggleCommentLike(Request $request, Comment $comment)

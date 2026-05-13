@@ -72,13 +72,13 @@
             <button type="submit" class="action-btn fb-action-btn @if(method_exists($post, 'isLikedBy') && $post->isLikedBy(auth()->id())) liked @endif">
                 <span class="action-icon" aria-hidden="true">👍</span>
                 <span class="action-label">Like</span>
-                <span class="action-count">{{ $post->likes_count ?? 0 }}</span>
+                <span class="action-count" data-like-count>{{ $post->likes_count ?? 0 }}</span>
             </button>
         </form>
         <a href="{{ route('posts.show', $post->id) }}#comments-section" class="action-btn fb-action-btn">
             <span class="action-icon" aria-hidden="true">💬</span>
             <span class="action-label">Comment</span>
-            <span class="action-count">{{ $post->comments->count() ?? 0 }}</span>
+            <span class="action-count" data-comment-count>{{ $post->comments->count() ?? 0 }}</span>
         </a>
     </div>
 

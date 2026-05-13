@@ -332,8 +332,11 @@
                     // Update UI: toggle liked class and update count
                     const btn = form.querySelector('button') || form;
                     if (data.liked) btn.classList.add('liked'); else btn.classList.remove('liked');
+                    btn.classList.add('like-pop');
+                    setTimeout(function () { btn.classList.remove('like-pop'); }, 350);
+
                     const count = data.likes_count ?? data.likesCount ?? data.count;
-                    const countEl = btn.querySelector('.action-count') || btn.querySelector('.action-count');
+                    const countEl = btn.querySelector('[data-like-count]') || btn.querySelector('.action-count') || btn.querySelector('.comment-like-count');
                     if (countEl && typeof count !== 'undefined') countEl.textContent = count;
                 } catch (err) {
                     console.error('Like action failed', err);
@@ -357,22 +360,21 @@
                         // update all elements for this post
                         const els = document.querySelectorAll('[data-post-id="' + id + '"]');
                         els.forEach(function(container) {
-                            // update action-count spans inside this container
-                            const countEls = container.querySelectorAll('.action-count');
+                            // update only like counters inside this container
+                            const countEls = container.querySelectorAll('.fb-action-btn [data-like-count], .comment-like-btn [data-like-count], .comment-like-btn .comment-like-count');
                             countEls.forEach(function(c){ c.textContent = data.likes_count; });
 
-                            // update any post-stats like count
-                            const statLike = container.querySelector('.post-stats span');
+                            const statLike = container.querySelector('[data-post-like-stat]');
                             if (statLike) {
-                                // preserve emoji + number
-                                statLike.textContent = '❤️ ' + data.likes_count + (statLike.textContent.includes('Comments') ? '' : ' Likes');
+                                const isUppercase = statLike.textContent.indexOf('Likes') !== -1;
+                                statLike.textContent = '❤️ ' + data.likes_count + (isUppercase ? ' Likes' : ' likes');
                             }
 
                             // toggle liked class on like buttons
-                            const likeBtn = container.querySelector('.fb-action-btn');
-                            if (likeBtn) {
+                            const likeButtons = container.querySelectorAll('.fb-action-btn, .comment-like-btn');
+                            likeButtons.forEach(function (likeBtn) {
                                 if (data.liked) likeBtn.classList.add('liked'); else likeBtn.classList.remove('liked');
-                            }
+                            });
                         });
                     } catch (e) {
                         // ignore individual failures
@@ -385,5 +387,7 @@
             setInterval(pollLikes, 15000);
         });
     </script>
+
+    @stack('scripts')
 </body>
 </html>
