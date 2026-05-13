@@ -29,6 +29,11 @@ class SupabaseService
         ]);
     }
 
+    public function getUrl()
+    {
+        return $this->url;
+    }
+
     public function storage()
     {
         return new SupabaseStorage($this);
