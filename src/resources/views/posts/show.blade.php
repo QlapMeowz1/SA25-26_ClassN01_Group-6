@@ -8,7 +8,11 @@
         <div class="post-header">
             <div class="post-author">
                 <a href="{{ route('profile.show', $post->user->id) }}" class="author-avatar">
-                    {{ strtoupper(substr($post->user->name, 0, 1)) }}
+                    @if($post->user->avatar)
+                        <img src="{{ asset('avatars/' . $post->user->avatar) }}" alt="{{ $post->user->name }}">
+                    @else
+                        {{ strtoupper(substr($post->user->name, 0, 1)) }}
+                    @endif
                 </a>
                 <div class="author-info">
                     <a href="{{ route('profile.show', $post->user->id) }}" class="author-name">
@@ -71,9 +75,10 @@
 
         @auth
         <div class="comment-form">
-            <form action="{{ route('posts.comment', $post->id) }}" method="POST">
+            <form action="{{ route('posts.comment', $post->id) }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 <textarea name="content" placeholder="Write a comment..." maxlength="300" required></textarea>
+                <input type="file" name="image" accept="image/*" class="comment-image-input">
                 <button type="submit" class="btn btn-primary">Comment</button>
             </form>
         </div>
@@ -86,9 +91,18 @@
                 @foreach($comments as $comment)
                     <div class="comment-card">
                         <div class="comment-header">
-                            <a href="{{ route('profile.show', $comment->user->id) }}" class="comment-author">
-                                {{ $comment->user->name }}
-                            </a>
+                            <div class="comment-user-info">
+                                <a href="{{ route('profile.show', $comment->user->id) }}" class="comment-avatar-link">
+                                    @if($comment->user->avatar)
+                                        <img src="{{ asset('avatars/' . $comment->user->avatar) }}" alt="{{ $comment->user->name }}" class="comment-avatar">
+                                    @else
+                                        <span class="comment-avatar comment-avatar-fallback">{{ strtoupper(substr($comment->user->name, 0, 1)) }}</span>
+                                    @endif
+                                </a>
+                                <a href="{{ route('profile.show', $comment->user->id) }}" class="comment-author">
+                                    {{ $comment->user->name }}
+                                </a>
+                            </div>
                             <span class="comment-time">{{ $comment->created_at->diffForHumans() }}</span>
                             @auth
                                 @if(auth()->id() === $comment->user->id)
@@ -100,6 +114,11 @@
                             @endauth
                         </div>
                         <div class="comment-content">{{ $comment->content }}</div>
+                        @if($comment->image)
+                            <div class="comment-media">
+                                <img src="{{ $comment->image }}" alt="Comment image" class="comment-image" loading="lazy">
+                            </div>
+                        @endif
                     </div>
                 @endforeach
             @endif

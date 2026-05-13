@@ -132,12 +132,24 @@ class PostController extends Controller
     {
         $validated = $request->validate([
             'content' => 'required|string|max:300',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
         ]);
+
+        $commentImageUrl = null;
+
+        if ($request->hasFile('image')) {
+            $commentImageUrl = uploadToSupabase($request->file('image'), 'comment_posts');
+
+            if (! $commentImageUrl) {
+                return back()->with('error', 'Upload comment image failed!');
+            }
+        }
 
         $comment = Comment::create([
             'post_id' => $post->id,
             'user_id' => Auth::id(),
             'content' => $validated['content'],
+            'image' => $commentImageUrl,
         ]);
 
         if ($post->user_id !== Auth::id()) {
