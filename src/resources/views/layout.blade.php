@@ -300,6 +300,89 @@
             // initial update and then every minute
             updateCountdowns();
             setInterval(updateCountdowns, 60 * 1000);
+
+            // Intercept like forms and submit via AJAX to avoid full page reload (prevents jumping to top)
+            document.addEventListener('submit', async function (ev) {
+                const form = ev.target;
+                if (!form || !form.classList.contains('action-form')) return;
+
+                const actionUrl = form.getAttribute('action') || '';
+                if (!/\/like($|\/)/.test(actionUrl)) return; // only handle like endpoints
+
+                ev.preventDefault();
+
+                const tokenMeta = document.querySelector('meta[name="csrf-token"]');
+                const csrf = tokenMeta ? tokenMeta.getAttribute('content') : (form.querySelector('input[name="_token"]') ? form.querySelector('input[name="_token"]').value : '');
+
+                try {
+                    const res = await fetch(actionUrl, {
+                        method: 'POST',
+                        credentials: 'same-origin',
+                        headers: {
+                            'X-CSRF-TOKEN': csrf,
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+
+                    if (!res.ok) throw new Error('Network response not ok');
+
+                    const data = await res.json();
+
+                    // Update UI: toggle liked class and update count
+                    const btn = form.querySelector('button') || form;
+                    if (data.liked) btn.classList.add('liked'); else btn.classList.remove('liked');
+                    const count = data.likes_count ?? data.likesCount ?? data.count;
+                    const countEl = btn.querySelector('.action-count') || btn.querySelector('.action-count');
+                    if (countEl && typeof count !== 'undefined') countEl.textContent = count;
+                } catch (err) {
+                    console.error('Like action failed', err);
+                    // fallback to normal submit -> reload
+                    form.submit();
+                }
+            });
+
+            // Poll likes count periodically so changes by other users reflect on this page
+            async function pollLikes() {
+                const postEls = document.querySelectorAll('[data-post-id]');
+                const ids = Array.from(new Set(Array.from(postEls).map(el => el.getAttribute('data-post-id')).filter(Boolean)));
+                if (!ids.length) return;
+
+                for (const id of ids) {
+                    try {
+                        const res = await fetch('/posts/' + encodeURIComponent(id) + '/likes-count', { credentials: 'same-origin', headers: { 'Accept': 'application/json' }});
+                        if (!res.ok) continue;
+                        const data = await res.json();
+
+                        // update all elements for this post
+                        const els = document.querySelectorAll('[data-post-id="' + id + '"]');
+                        els.forEach(function(container) {
+                            // update action-count spans inside this container
+                            const countEls = container.querySelectorAll('.action-count');
+                            countEls.forEach(function(c){ c.textContent = data.likes_count; });
+
+                            // update any post-stats like count
+                            const statLike = container.querySelector('.post-stats span');
+                            if (statLike) {
+                                // preserve emoji + number
+                                statLike.textContent = '❤️ ' + data.likes_count + (statLike.textContent.includes('Comments') ? '' : ' Likes');
+                            }
+
+                            // toggle liked class on like buttons
+                            const likeBtn = container.querySelector('.fb-action-btn');
+                            if (likeBtn) {
+                                if (data.liked) likeBtn.classList.add('liked'); else likeBtn.classList.remove('liked');
+                            }
+                        });
+                    } catch (e) {
+                        // ignore individual failures
+                    }
+                }
+            }
+
+            // run first poll after short delay, then at interval
+            setTimeout(pollLikes, 3000);
+            setInterval(pollLikes, 15000);
         });
     </script>
 </body>

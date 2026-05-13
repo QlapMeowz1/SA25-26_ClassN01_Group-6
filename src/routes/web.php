@@ -134,5 +134,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/posts/{post}/delete', [PostController::class, 'delete'])->name('posts.delete');
     Route::post('/posts/{post}/like', [PostController::class, 'like'])->name('posts.like');
     Route::post('/posts/{post}/comment', [PostController::class, 'comment'])->name('posts.comment');
+    Route::get('/posts/{post}/likes-count', [PostController::class, 'getLikesCount'])->name('posts.likesCount');
+    Route::post('/comments/{comment}/reply', [PostController::class, 'replyComment'])->name('comments.reply');
+    Route::post('/comments/{comment}/like', [PostController::class, 'toggleCommentLike'])->name('comments.like');
     Route::post('/comments/{comment}/delete', [PostController::class, 'deleteComment'])->name('comments.delete');
 });

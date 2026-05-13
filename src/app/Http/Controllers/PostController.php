@@ -80,7 +80,12 @@ class PostController extends Controller
 
     public function show(Post $post)
     {
-        $comments = $post->comments()->with('user')->latest()->paginate(20);
+        $comments = $post->comments()
+            ->whereNull('parent_id')
+            ->with(['user', 'replies.user', 'replies.likes'])
+            ->withCount('likes')
+            ->latest()
+            ->paginate(20);
 
         return view('posts.show', compact('post', 'comments'));
     }
@@ -96,7 +101,7 @@ class PostController extends Controller
         return back()->with('success', 'Post deleted!');
     }
 
-    public function like(Post $post)
+    public function like(Request $request, Post $post)
     {
         $user = Auth::user();
 
@@ -124,6 +129,13 @@ class PostController extends Controller
         }
 
         $post->save();
+
+        if ($request->wantsJson() || $request->ajax() || $request->header('Accept') === 'application/json') {
+            return response()->json([
+                'liked' => $post->isLikedBy($user->id),
+                'likes_count' => $post->likes_count,
+            ]);
+        }
 
         return back();
     }
@@ -162,7 +174,86 @@ class PostController extends Controller
             ]);
         }
 
-        return back()->with('success', 'Comment added!');
+        return redirect()->route('posts.show', $post->id)->fragment('comments-section')->with('success', 'Comment added!');
+    }
+
+    public function replyComment(Comment $comment, Request $request)
+    {
+        $validated = $request->validate([
+            'content' => 'required|string|max:300',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
+        ]);
+
+        $replyImageUrl = null;
+
+        if ($request->hasFile('image')) {
+            $replyImageUrl = uploadToSupabase($request->file('image'), 'comment_posts');
+
+            if (! $replyImageUrl) {
+                return back()->with('error', 'Upload reply image failed!');
+            }
+        }
+
+        $reply = Comment::create([
+            'post_id' => $comment->post_id,
+            'user_id' => Auth::id(),
+            'parent_id' => $comment->id,
+            'content' => $validated['content'],
+            'image' => $replyImageUrl,
+        ]);
+
+        if ($comment->user_id !== Auth::id()) {
+            Notification::create([
+                'user_id' => $comment->user_id,
+                'title' => 'New Reply',
+                'message' => Auth::user()->name . ' replied to your comment!',
+                'type' => 'comment',
+                'related_user_id' => Auth::id(),
+            ]);
+        }
+
+        return redirect()->route('posts.show', $comment->post_id)->fragment('comments-section')->with('success', 'Reply added!');
+    }
+
+    public function toggleCommentLike(Request $request, Comment $comment)
+    {
+        $existingLike = $comment->likes()->where('user_id', Auth::id())->first();
+
+        if ($existingLike) {
+            $existingLike->delete();
+
+            if ($request->wantsJson() || $request->ajax() || $request->header('Accept') === 'application/json') {
+                return response()->json([
+                    'liked' => false,
+                    'likes_count' => $comment->likes()->count(),
+                ]);
+            }
+
+            return back()->with('success', 'Comment unliked!');
+        }
+
+        $comment->likes()->create([
+            'user_id' => Auth::id(),
+        ]);
+
+        if ($comment->user_id !== Auth::id()) {
+            Notification::create([
+                'user_id' => $comment->user_id,
+                'title' => 'New Comment Like',
+                'message' => Auth::user()->name . ' liked your comment!',
+                'type' => 'like',
+                'related_user_id' => Auth::id(),
+            ]);
+        }
+
+        if ($request->wantsJson() || $request->ajax() || $request->header('Accept') === 'application/json') {
+            return response()->json([
+                'liked' => true,
+                'likes_count' => $comment->likes()->count(),
+            ]);
+        }
+
+        return back()->with('success', 'Comment liked!');
     }
 
     public function deleteComment(Comment $comment)
@@ -197,6 +288,15 @@ class PostController extends Controller
             'html' => $html,
             'hasMore' => $posts->hasMorePages(),
             'nextPage' => $posts->currentPage() + 1,
+        ]);
+    }
+
+    public function getLikesCount(Request $request, Post $post)
+    {
+        $user = Auth::user();
+        return response()->json([
+            'likes_count' => $post->likes_count ?? $post->likes()->count(),
+            'liked' => $user ? $post->isLikedBy($user->id) : false,
         ]);
     }
 }

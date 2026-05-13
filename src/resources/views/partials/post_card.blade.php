@@ -1,4 +1,4 @@
-<article class="post-card feed-card">
+<article class="post-card feed-card" data-post-id="{{ $post->id }}">
     <div class="post-header">
         <div class="post-author">
             <a href="{{ route('profile.show', $post->user->id) }}" class="author-avatar">
@@ -66,16 +66,20 @@
         </div>
     @endif
 
-    <div class="post-actions">
+    <div class="post-actions post-actions-fb">
         <form action="{{ route('posts.like', $post->id) }}" method="POST" class="action-form">
             @csrf
-            <button type="submit" class="action-btn @if(method_exists($post, 'isLikedBy') && $post->isLikedBy(auth()->id())) liked @endif">
-                ❤️ <span class="action-count">{{ $post->likes_count ?? 0 }}</span>
+            <button type="submit" class="action-btn fb-action-btn @if(method_exists($post, 'isLikedBy') && $post->isLikedBy(auth()->id())) liked @endif">
+                <span class="action-icon" aria-hidden="true">👍</span>
+                <span class="action-label">Like</span>
+                <span class="action-count">{{ $post->likes_count ?? 0 }}</span>
             </button>
         </form>
-        <a href="{{ route('posts.show', $post->id) }}" class="action-btn">💬 <span class="action-count">{{ $post->comments->count() ?? 0 }}</span></a>
-        <button type="button" class="action-btn action-btn-share">📤</button>
-        <button type="button" class="action-btn action-btn-bookmark">📌</button>
+        <a href="{{ route('posts.show', $post->id) }}#comments-section" class="action-btn fb-action-btn">
+            <span class="action-icon" aria-hidden="true">💬</span>
+            <span class="action-label">Comment</span>
+            <span class="action-count">{{ $post->comments->count() ?? 0 }}</span>
+        </a>
     </div>
 
     @if(isset($post->comments) && $post->comments->count() > 0)

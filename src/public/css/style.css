@@ -3297,6 +3297,83 @@ h6 { font-size: 1rem; line-height: 1.5; }
     cursor: not-allowed;
 }
 
+.post-actions-fb {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+}
+
+.post-actions-fb .action-form {
+    flex: 1;
+    display: block;
+}
+
+.post-actions-fb .fb-action-btn {
+    width: 100%;
+    min-height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    border-radius: 10px;
+    border: 1px solid rgba(148, 163, 184, 0.26);
+    background: var(--surface-alt-bg);
+    color: var(--muted-color);
+    font-weight: 700;
+    text-decoration: none;
+    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.post-actions-fb .fb-action-btn:hover {
+    background: rgba(14, 165, 233, 0.11);
+    border-color: rgba(14, 165, 233, 0.35);
+    color: var(--primary-color);
+}
+
+.post-actions-fb .fb-action-btn .action-icon {
+    font-size: 14px;
+    line-height: 1;
+}
+
+.post-actions-fb .fb-action-btn .action-label {
+    font-size: 14px;
+    line-height: 1;
+}
+
+.post-actions-fb .fb-action-btn .action-count {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted-color);
+    line-height: 1;
+}
+
+.post-actions-fb .fb-action-btn.liked {
+    background: rgba(14, 165, 233, 0.15);
+    border-color: rgba(14, 165, 233, 0.45);
+    color: #0b7ec2;
+}
+
+.post-actions-fb .fb-action-btn:disabled {
+    opacity: 0.6;
+}
+
+:root[data-theme="dark"] .post-actions-fb .fb-action-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(148, 163, 184, 0.25);
+    color: #d2d7df;
+}
+
+:root[data-theme="dark"] .post-actions-fb .fb-action-btn:hover {
+    background: rgba(14, 165, 233, 0.2);
+    border-color: rgba(56, 189, 248, 0.55);
+    color: #7dd3fc;
+}
+
+:root[data-theme="dark"] .post-actions-fb .fb-action-btn .action-count {
+    color: #b0bac8;
+}
+
 /* Comments */
 .comments-section {
     margin-top: 15px;
@@ -3337,6 +3414,54 @@ h6 { font-size: 1rem; line-height: 1.5; }
     padding: 12px;
     border-radius: 4px;
     border-left: 3px solid var(--secondary-color);
+}
+
+.comment-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.comment-like-btn {
+    padding: 6px 10px;
+    font-size: 12px;
+}
+
+.comment-like-count {
+    color: var(--muted-color);
+    font-size: 12px;
+}
+
+.comment-reply-form {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(148, 163, 184, 0.12);
+}
+
+.comment-reply-form textarea {
+    width: 100%;
+    min-height: 72px;
+    padding: 8px 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    resize: vertical;
+    margin-bottom: 8px;
+    background: var(--surface-bg);
+    color: var(--text-color);
+}
+
+.comment-replies {
+    margin-top: 12px;
+    padding-left: 18px;
+    border-left: 2px solid rgba(148, 163, 184, 0.18);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.comment-reply-card {
+    background: rgba(255, 255, 255, 0.02);
 }
 
 /* Theme overrides */

@@ -34,7 +34,7 @@
                 </div>
             @else
                 @foreach($posts as $post)
-                    <div class="post-card">
+                        <div class="post-card" data-post-id="{{ $post->id }}">
                         <div class="post-header">
                             <div class="post-author">
                                 <a href="{{ route('profile.show', $post->user->id) }}" class="author-avatar">
@@ -82,17 +82,29 @@
                             <span>💬 {{ $post->comments->count() }} Comments</span>
                         </div>
 
-                        <div class="post-actions">
+                        <div class="post-actions post-actions-fb">
                             @auth
                                 <form action="{{ route('posts.like', $post->id) }}" method="POST" class="action-form">
                                     @csrf
-                                    <button type="submit" class="action-btn @if($post->isLikedBy(auth()->id())) liked @endif">❤️ Like</button>
+                                    <button type="submit" class="action-btn fb-action-btn @if($post->isLikedBy(auth()->id())) liked @endif">
+                                        <span class="action-icon" aria-hidden="true">👍</span>
+                                        <span class="action-label">Like</span>
+                                        <span class="action-count">{{ $post->likes_count }}</span>
+                                    </button>
                                 </form>
                             @else
-                                <button class="action-btn" disabled>❤️ Like</button>
+                                <button class="action-btn fb-action-btn" disabled>
+                                    <span class="action-icon" aria-hidden="true">👍</span>
+                                    <span class="action-label">Like</span>
+                                    <span class="action-count">{{ $post->likes_count }}</span>
+                                </button>
                             @endauth
 
-                            <a href="{{ route('posts.show', $post->id) }}" class="action-btn">💬 Comment</a>
+                            <a href="{{ route('posts.show', $post->id) }}#comments-section" class="action-btn fb-action-btn">
+                                <span class="action-icon" aria-hidden="true">💬</span>
+                                <span class="action-label">Comment</span>
+                                <span class="action-count">{{ $post->comments->count() }}</span>
+                            </a>
                         </div>
                     </div>
                 @endforeach
