@@ -140,7 +140,7 @@
                             </div>
 
                             @if($team->is_sample ?? false)
-                                <button type="button" class="btn btn-primary btn-block" onclick="alert('Sample team - Click View Team to learn more')">View Team</button>
+                                <button type="button" class="btn btn-primary btn-block sample-team-btn" data-team-id="{{ $team->id }}" data-team-name="{{ $team->name }}" data-team-level="{{ $team->level }}" data-team-location="{{ $team->location }}" data-team-members="{{ $team->members_count }}" data-team-max="{{ $team->max_members }}" data-team-slogan="{{ $team->slogan }}" data-team-description="{{ $team->description }}">View Team</button>
                             @else
                                 <a href="{{ route('teams.show', $team->id) }}" class="btn btn-primary btn-block">View Team</a>
                             @endif
@@ -247,45 +247,157 @@
         @endif
     </section>
 </div>
+
+<!-- Sample Team Modal -->
+<div id="sampleTeamModal" class="modal-overlay" style="display: none;">
+    <div class="modal-content sample-team-modal">
+        <div class="modal-header">
+            <h2>Learn More About This Team</h2>
+            <button type="button" class="modal-close" id="closeModal">&times;</button>
+        </div>
+        
+        <div class="modal-body">
+            <div class="sample-team-banner">
+                <div class="team-banner-placeholder-lg">
+                    <span id="modalTeamInitial">S</span>
+                </div>
+            </div>
+            
+            <div class="modal-team-info">
+                <div class="modal-team-header">
+                    <h1 id="modalTeamName">Team Name</h1>
+                    <span class="team-badge" id="modalTeamLevel">Level</span>
+                </div>
+                
+                <p class="modal-team-slogan" id="modalTeamSlogan">Team slogan</p>
+                <p class="modal-team-description" id="modalTeamDescription">Team description</p>
+                
+                <div class="modal-team-meta">
+                    <div class="meta-item">
+                        <span class="meta-label">Members</span>
+                        <span class="meta-value" id="modalTeamMembers">0/0</span>
+                        <div class="progress-bar-small">
+                            <div class="progress-fill" id="modalTeamProgress" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">Location</span>
+                        <span class="meta-value" id="modalTeamLocation">Location</span>
+                    </div>
+                </div>
+                
+                <div class="sample-team-notice">
+                    <p class="notice-icon">ℹ️</p>
+                    <p class="notice-text">This is a <strong>sample team</strong>. Click "Join Team" to request membership or explore real teams in the directory.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" id="closeModalBtn">Close</button>
+            <button type="button" class="btn btn-primary">Join Team</button>
+        </div>
+    </div>
+</div>
+
 <script>
     (function(){
+        // Team Search Functionality
         const form = document.querySelector('.team-search-bar');
-        if (!form) return;
+        if (form) {
+            const searchInput = form.querySelector('input[name="search"]');
+            const levelSelect = form.querySelector('select[name="level"]');
+            const locationInput = form.querySelector('[name="location"]');
 
-        const searchInput = form.querySelector('input[name="search"]');
-        const levelSelect = form.querySelector('select[name="level"]');
-        const locationInput = form.querySelector('[name="location"]');
-
-        function debounce(fn, wait) {
-            let t;
-            return function(...args){ clearTimeout(t); t = setTimeout(()=> fn.apply(this,args), wait); };
-        }
-
-        async function doSearch(){
-            const params = new URLSearchParams();
-            if (searchInput && searchInput.value) params.set('search', searchInput.value);
-            if (levelSelect && levelSelect.value) params.set('level', levelSelect.value);
-            if (locationInput && locationInput.value) params.set('location', locationInput.value);
-
-            const url = window.location.pathname + '?' + params.toString();
-            try {
-                const res = await fetch(url, { credentials: 'same-origin' });
-                const text = await res.text();
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(text, 'text/html');
-                const newSection = doc.getElementById('all-teams');
-                const current = document.getElementById('all-teams');
-                if (newSection && current) current.innerHTML = newSection.innerHTML;
-            } catch (e) {
-                console.error('Team search failed', e);
+            function debounce(fn, wait) {
+                let t;
+                return function(...args){ clearTimeout(t); t = setTimeout(()=> fn.apply(this,args), wait); };
             }
+
+            async function doSearch(){
+                const params = new URLSearchParams();
+                if (searchInput && searchInput.value) params.set('search', searchInput.value);
+                if (levelSelect && levelSelect.value) params.set('level', levelSelect.value);
+                if (locationInput && locationInput.value) params.set('location', locationInput.value);
+
+                const url = window.location.pathname + '?' + params.toString();
+                try {
+                    const res = await fetch(url, { credentials: 'same-origin' });
+                    const text = await res.text();
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(text, 'text/html');
+                    const newSection = doc.getElementById('all-teams');
+                    const current = document.getElementById('all-teams');
+                    if (newSection && current) current.innerHTML = newSection.innerHTML;
+                } catch (e) {
+                    console.error('Team search failed', e);
+                }
+            }
+
+            const debounced = debounce(doSearch, 300);
+
+            if (searchInput) searchInput.addEventListener('input', debounced);
+            if (levelSelect) levelSelect.addEventListener('change', debounced);
+            if (locationInput) locationInput.addEventListener('change', debounced);
         }
 
-        const debounced = debounce(doSearch, 300);
-
-        if (searchInput) searchInput.addEventListener('input', debounced);
-        if (levelSelect) levelSelect.addEventListener('change', debounced);
-        if (locationInput) locationInput.addEventListener('change', debounced);
+        // Sample Team Modal Functionality
+        const modal = document.getElementById('sampleTeamModal');
+        const closeModal = document.getElementById('closeModal');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        
+        // Close modal
+        function closeSampleTeamModal() {
+            if (modal) modal.style.display = 'none';
+        }
+        
+        // Open modal with team data
+        function openSampleTeamModal(teamData) {
+            if (!modal) return;
+            
+            document.getElementById('modalTeamInitial').textContent = teamData.name.charAt(0).toUpperCase();
+            document.getElementById('modalTeamName').textContent = teamData.name;
+            document.getElementById('modalTeamLevel').textContent = teamData.level;
+            document.getElementById('modalTeamLevel').setAttribute('data-level', teamData.level.toLowerCase());
+            document.getElementById('modalTeamSlogan').textContent = teamData.slogan;
+            document.getElementById('modalTeamDescription').textContent = teamData.description;
+            document.getElementById('modalTeamMembers').textContent = `${teamData.members}/${teamData.max}`;
+            document.getElementById('modalTeamLocation').textContent = teamData.location;
+            
+            const progressPercent = Math.min(100, (teamData.members / teamData.max) * 100);
+            document.getElementById('modalTeamProgress').style.width = progressPercent + '%';
+            
+            modal.style.display = 'flex';
+        }
+        
+        // Close button handlers
+        if (closeModal) closeModal.addEventListener('click', closeSampleTeamModal);
+        if (closeModalBtn) closeModalBtn.addEventListener('click', closeSampleTeamModal);
+        
+        // Close when clicking outside modal
+        if (modal) {
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) closeSampleTeamModal();
+            });
+        }
+        
+        // Handle sample team button clicks
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('sample-team-btn')) {
+                const btn = e.target;
+                const teamData = {
+                    id: btn.getAttribute('data-team-id'),
+                    name: btn.getAttribute('data-team-name'),
+                    level: btn.getAttribute('data-team-level'),
+                    location: btn.getAttribute('data-team-location'),
+                    members: parseInt(btn.getAttribute('data-team-members')),
+                    max: parseInt(btn.getAttribute('data-team-max')),
+                    slogan: btn.getAttribute('data-team-slogan'),
+                    description: btn.getAttribute('data-team-description')
+                };
+                openSampleTeamModal(teamData);
+            }
+        });
     })();
 </script>
 @endsection
