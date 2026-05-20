@@ -16,10 +16,10 @@
 
 <div class="min-h-screen bg-gradient-to-br from-lime-50 via-white to-orange-50 px-4 py-6 text-slate-900 transition-colors duration-300 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 sm:px-6 lg:px-8">
     <div class="mx-auto flex max-w-7xl flex-col gap-6 font-body">
-        <section class="overflow-hidden rounded-3xl border border-emerald-900/10 bg-white/85 p-6 shadow-[0_18px_50px_rgba(15,23,42,0.08)] backdrop-blur-xl transition-transform duration-300 hover:-translate-y-0.5 dark:border-white/10 dark:bg-slate-900/85 dark:shadow-[0_22px_60px_rgba(2,6,23,0.55)] sm:p-8">
+        <section class="overflow-hidden rounded-3xl border border-emerald-200 bg-white p-6 shadow-md dark:border-emerald-700 dark:bg-zinc-900 dark:shadow-2xl sm:p-8">
             <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                 <div class="max-w-3xl space-y-3">
-                    <p class="inline-flex items-center gap-2 rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-emerald-800 dark:bg-emerald-500/15 dark:text-emerald-300">
+                    <p class="inline-flex items-center gap-2 rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-300">
                         <span>🏸</span> {{ __('ui.dashboard.live') }} · {{ __('ui.dashboard.community_feed') }}
                     </p>
                     <h2 class="font-heading text-3xl font-extrabold tracking-tight text-slate-950 dark:text-white sm:text-4xl lg:text-5xl">
@@ -31,15 +31,15 @@
                 </div>
 
                 <div class="grid grid-cols-3 gap-3 sm:min-w-[320px]">
-                    <div class="rounded-2xl border border-emerald-900/10 bg-emerald-50 px-4 py-3 text-center shadow-sm dark:border-white/10 dark:bg-emerald-500/10">
+                    <div class="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-center shadow-sm dark:border-emerald-700 dark:bg-emerald-900/20">
                         <div class="text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-700 dark:text-emerald-300">Win Rate</div>
                         <div class="mt-1 font-heading text-2xl font-bold text-slate-950 dark:text-white">{{ $winRateLabel }}</div>
                     </div>
-                    <div class="rounded-2xl border border-orange-900/10 bg-orange-50 px-4 py-3 text-center shadow-sm dark:border-white/10 dark:bg-orange-500/10">
+                    <div class="rounded-2xl border border-orange-200 bg-orange-50 px-4 py-3 text-center shadow-sm dark:border-orange-700 dark:bg-orange-900/20">
                         <div class="text-[11px] font-semibold uppercase tracking-[0.18em] text-orange-700 dark:text-orange-300">ELO</div>
                         <div class="mt-1 font-heading text-2xl font-bold text-slate-950 dark:text-white">{{ $user->elo_rating }}</div>
                     </div>
-                    <div class="rounded-2xl border border-amber-900/10 bg-amber-50 px-4 py-3 text-center shadow-sm dark:border-white/10 dark:bg-amber-500/10">
+                    <div class="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-center shadow-sm dark:border-amber-700 dark:bg-amber-900/20">
                         <div class="text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-700 dark:text-amber-300">Posts</div>
                         <div class="mt-1 font-heading text-2xl font-bold text-slate-950 dark:text-white">{{ $communityPosts->total() }}</div>
                     </div>
@@ -49,7 +49,7 @@
 
         <div class="grid gap-6 lg:grid-cols-[300px_minmax(0,1fr)_320px]">
             <aside class="flex flex-col gap-6">
-                <section class="rounded-3xl border border-emerald-900/10 bg-white/90 p-5 shadow-[0_16px_40px_rgba(15,23,42,0.08)] transition-transform duration-300 hover:-translate-y-1 dark:border-white/10 dark:bg-slate-900/90 dark:shadow-[0_20px_50px_rgba(2,6,23,0.45)]">
+                <section class="rounded-3xl border border-emerald-200 bg-white p-5 shadow-md transition-transform duration-300 hover:-translate-y-1 dark:border-emerald-700 dark:bg-zinc-900 dark:shadow-2xl">
                     <div class="flex flex-col items-center gap-4 text-center">
                         <div class="relative">
                             <div class="flex h-24 w-24 items-center justify-center rounded-full border-4 border-white bg-gradient-to-br from-court via-emerald-700 to-energy text-3xl font-bold text-white shadow-[0_18px_40px_rgba(10,92,10,0.28)] ring-8 ring-amber-100/80 dark:border-slate-900 dark:ring-emerald-500/10">
@@ -71,14 +71,14 @@
                             </div>
                         </div>
 
-                        <div class="flex w-full items-center justify-between rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-600 dark:bg-white/5 dark:text-slate-300">
+                        <div class="flex w-full items-center justify-between rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-600 dark:bg-zinc-900 dark:text-slate-300">
                             <span class="font-semibold">ELO Rating</span>
                             <span class="font-heading text-lg font-bold text-slate-950 dark:text-white">{{ $user->elo_rating }}</span>
                         </div>
                     </div>
                 </section>
 
-                <section class="rounded-3xl border border-emerald-900/10 bg-white/90 p-5 shadow-[0_16px_40px_rgba(15,23,42,0.08)] transition-transform duration-300 hover:-translate-y-1 dark:border-white/10 dark:bg-slate-900/90 dark:shadow-[0_20px_50px_rgba(2,6,23,0.45)]">
+                <section class="rounded-3xl border border-emerald-200 bg-white p-5 shadow-md transition-transform duration-300 hover:-translate-y-1 dark:border-emerald-700 dark:bg-zinc-900 dark:shadow-2xl">
                     <div class="mb-4 flex items-center gap-3">
                         <span class="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300">●</span>
                         <div>
@@ -88,7 +88,7 @@
                     </div>
 
                     @if($onlinePlayers->isEmpty())
-                        <div class="rounded-2xl border border-dashed border-emerald-200 bg-emerald-50/60 p-4 dark:border-emerald-500/20 dark:bg-emerald-500/10">
+                        <div class="rounded-2xl border border-dashed border-emerald-200 bg-emerald-50 p-4 dark:border-emerald-700 dark:bg-emerald-900/20">
                             <p class="mb-4 text-sm leading-6 text-slate-600 dark:text-slate-300">{{ __('ui.dashboard.no_friends_online') }}</p>
                             <a href="{{ route('teams.index') }}" class="inline-flex items-center justify-center rounded-full bg-energy px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-orange-500/25 transition hover:-translate-y-0.5 hover:bg-orange-500">
                                 {{ __('ui.dashboard.invite_friends') }}
@@ -97,7 +97,7 @@
                     @else
                         <div class="space-y-3">
                             @foreach($onlinePlayers->take(8) as $player)
-                                <a href="{{ route('profile.show', $player->id) }}" class="group flex items-center gap-3 rounded-2xl border border-slate-200/70 bg-slate-50/80 p-3 transition duration-300 hover:-translate-y-0.5 hover:border-emerald-200 hover:bg-white hover:shadow-lg dark:border-white/10 dark:bg-white/5 dark:hover:border-emerald-400/30 dark:hover:bg-white/10">
+                                <a href="{{ route('profile.show', $player->id) }}" class="group flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-3 transition duration-300 hover:-translate-y-0.5 hover:border-emerald-200 hover:bg-white hover:shadow-lg dark:border-slate-700 dark:bg-zinc-900 dark:hover:border-emerald-700 dark:hover:bg-zinc-800">
                                     <div class="relative flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 to-court font-semibold text-white ring-4 ring-emerald-100 transition group-hover:scale-105 dark:ring-emerald-500/10">
                                         {{ strtoupper(substr($player->name, 0, 1)) }}
                                         <span class="absolute -right-0.5 -bottom-0.5 h-3 w-3 rounded-full border-2 border-white bg-emerald-500 dark:border-slate-900"></span>
@@ -114,7 +114,7 @@
             </aside>
 
             <section class="flex flex-col gap-6">
-                <section id="status-update" class="overflow-hidden rounded-3xl border border-orange-900/10 bg-gradient-to-br from-white via-orange-50/80 to-emerald-50/80 p-5 shadow-[0_16px_40px_rgba(15,23,42,0.08)] transition-transform duration-300 hover:-translate-y-1 dark:border-white/10 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800">
+                <section id="status-update" class="overflow-hidden rounded-3xl border border-orange-200 bg-white p-5 shadow-md transition-transform duration-300 hover:-translate-y-1 dark:border-orange-700 dark:bg-zinc-900 dark:shadow-2xl">
                     <div class="flex gap-4">
                         <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-energy to-amber-500 font-heading text-xl font-bold text-white shadow-lg shadow-orange-500/25">
                             {{ strtoupper(substr($user->name, 0, 1)) }}
@@ -126,15 +126,15 @@
                                 rows="3"
                                 maxlength="1000"
                                 placeholder="{{ __('ui.dashboard.share_match_story', ['name' => $user->name]) }}"
-                                class="w-full rounded-3xl border border-slate-200 bg-white/95 px-4 py-4 font-body text-sm leading-7 text-slate-900 placeholder:text-slate-400 shadow-sm outline-none transition focus:border-energy focus:ring-4 focus:ring-orange-200/70 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-slate-400 dark:focus:ring-orange-500/20"
+                                class="w-full rounded-3xl border border-slate-200 bg-white px-4 py-4 font-body text-sm leading-7 text-slate-900 placeholder:text-slate-400 shadow-sm outline-none transition focus:border-energy focus:ring-4 focus:ring-orange-200/70 dark:border-slate-700 dark:bg-zinc-900 dark:text-white dark:placeholder:text-slate-400 dark:focus:ring-orange-500/20"
                             ></textarea>
 
                             <div class="mt-4 flex flex-wrap gap-3">
-                                <label class="inline-flex cursor-pointer items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-800 transition hover:-translate-y-0.5 hover:bg-emerald-100 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-300 dark:hover:bg-emerald-500/15" for="post-images-input">
+                                <label class="inline-flex cursor-pointer items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-800 transition hover:-translate-y-0.5 hover:bg-emerald-100 dark:border-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-300 dark:hover:bg-emerald-900/30" for="post-images-input">
                                     <input type="file" id="post-images-input" name="images[]" accept="image/*" multiple hidden>
                                     <span>🖼️</span> {{ __('ui.dashboard.image') }}
                                 </label>
-                                <label class="inline-flex cursor-pointer items-center gap-2 rounded-full border border-orange-200 bg-orange-50 px-4 py-2 text-sm font-semibold text-orange-800 transition hover:-translate-y-0.5 hover:bg-orange-100 dark:border-orange-500/20 dark:bg-orange-500/10 dark:text-orange-300 dark:hover:bg-orange-500/15" for="post-videos-input">
+                                <label class="inline-flex cursor-pointer items-center gap-2 rounded-full border border-orange-200 bg-orange-50 px-4 py-2 text-sm font-semibold text-orange-800 transition hover:-translate-y-0.5 hover:bg-orange-100 dark:border-orange-700 dark:bg-orange-900/20 dark:text-orange-300 dark:hover:bg-orange-900/30" for="post-videos-input">
                                     <input type="file" id="post-videos-input" name="videos[]" accept="video/*" multiple hidden>
                                     <span>🎥</span> {{ __('ui.dashboard.video') }}
                                 </label>
@@ -143,7 +143,7 @@
                             <div class="composer-media-preview mt-4 flex flex-wrap gap-3" id="composer-media-preview" aria-live="polite"></div>
 
                             <div class="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                                <button type="button" class="inline-flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-4 py-2 text-sm font-semibold text-amber-800 transition hover:-translate-y-0.5 hover:shadow-md dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-300" title="{{ __('ui.dashboard.tag') }} teammates">
+                                <button type="button" class="inline-flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-4 py-2 text-sm font-semibold text-amber-800 transition hover:-translate-y-0.5 hover:shadow-md dark:border-amber-700 dark:bg-amber-900/20 dark:text-amber-300" title="{{ __('ui.dashboard.tag') }} teammates">
                                     <span>@</span> {{ __('ui.dashboard.tag') }}
                                 </button>
 
@@ -155,26 +155,26 @@
                     </div>
                 </section>
 
-                <section id="live-feed" class="rounded-3xl border border-emerald-900/10 bg-white/90 p-5 shadow-[0_16px_40px_rgba(15,23,42,0.08)] dark:border-white/10 dark:bg-slate-900/90 dark:shadow-[0_20px_50px_rgba(2,6,23,0.45)]">
+                <section id="live-feed" class="rounded-3xl border border-emerald-200 bg-white p-5 shadow-md dark:border-emerald-700 dark:bg-zinc-900 dark:shadow-2xl">
                     <div class="mb-5 flex items-end justify-between gap-4">
                         <div>
-                            <div class="inline-flex items-center gap-2 rounded-full bg-orange-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-orange-800 dark:bg-orange-500/15 dark:text-orange-300">
+                            <div class="inline-flex items-center gap-2 rounded-full bg-orange-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-orange-800 dark:bg-orange-900/20 dark:text-orange-300">
                                 <span>🔥</span> {{ __('ui.dashboard.community_feed') }}
                             </div>
                             <h3 class="mt-3 font-heading text-2xl font-extrabold text-slate-950 dark:text-white">{{ __('ui.dashboard.community_feed') }}</h3>
                         </div>
                         <div class="flex items-center gap-2">
-                            <span class="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-sm font-semibold text-emerald-800 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-300">
+                            <span class="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-sm font-semibold text-emerald-800 dark:border-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-300">
                                 <span class="h-2.5 w-2.5 rounded-full bg-emerald-500"></span> {{ __('ui.dashboard.live') }}
                             </span>
                             @if($newPostCount > 0)
-                                <span class="inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-sm font-semibold text-amber-800 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-300">{{ $newPostCount }} {{ __('ui.dashboard.new') }}</span>
+                                <span class="inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-sm font-semibold text-amber-800 dark:border-amber-700 dark:bg-amber-900/20 dark:text-amber-300">{{ $newPostCount }} {{ __('ui.dashboard.new') }}</span>
                             @endif
                         </div>
                     </div>
 
                     @if($communityPosts->isEmpty())
-                        <div class="rounded-3xl border border-dashed border-slate-200 bg-slate-50 p-6 text-center dark:border-white/10 dark:bg-white/5">
+                        <div class="rounded-3xl border border-dashed border-slate-200 bg-slate-50 p-6 text-center dark:border-slate-700 dark:bg-zinc-900">
                             <h3 class="font-heading text-xl font-bold text-slate-950 dark:text-white">{{ __('ui.dashboard.no_posts_title') }}</h3>
                             <p class="mt-2 text-slate-600 dark:text-slate-300">{{ __('ui.dashboard.no_posts_body') }}</p>
                         </div>
@@ -186,7 +186,7 @@
                         </div>
 
                         <div id="infinite-loader" class="mt-6 text-center" data-next-page="{{ $communityPosts->currentPage() + 1 }}" data-has-more="{{ $communityPosts->hasMorePages() ? '1' : '0' }}">
-                            <button id="load-more-btn" class="inline-flex items-center justify-center rounded-full border border-slate-200 bg-white px-5 py-3 font-heading text-sm font-bold text-slate-900 shadow-sm transition hover:-translate-y-0.5 hover:bg-slate-50 dark:border-white/10 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-100">
+                            <button id="load-more-btn" class="inline-flex items-center justify-center rounded-full border border-slate-200 bg-white px-5 py-3 font-heading text-sm font-bold text-slate-900 shadow-sm transition hover:-translate-y-0.5 hover:bg-slate-50 dark:border-slate-700 dark:bg-zinc-900 dark:text-white dark:hover:bg-zinc-800">
                                 {{ __('ui.dashboard.load_more') }}
                             </button>
                             <div id="loader-spinner" class="mt-3 hidden text-sm text-slate-500 dark:text-slate-400">{{ __('ui.dashboard.loading') }}</div>
@@ -240,7 +240,7 @@
             </section>
 
             <aside class="flex flex-col gap-6">
-                <section class="rounded-3xl border border-emerald-900/10 bg-white/90 p-5 shadow-[0_16px_40px_rgba(15,23,42,0.08)] transition-transform duration-300 hover:-translate-y-1 dark:border-white/10 dark:bg-slate-900/90 dark:shadow-[0_20px_50px_rgba(2,6,23,0.45)]">
+                <section class="rounded-3xl border border-emerald-200 bg-white p-5 shadow-md transition-transform duration-300 hover:-translate-y-1 dark:border-emerald-700 dark:bg-zinc-900 dark:shadow-2xl">
                     <div class="mb-4 flex items-center justify-between gap-3">
                         <div>
                             <h4 class="font-heading text-xl font-bold text-slate-950 dark:text-white">{{ __('ui.dashboard.your_matches') }}</h4>
@@ -250,7 +250,7 @@
                     </div>
 
                     @if($upcomingMatches->isEmpty())
-                        <div class="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-4 dark:border-white/10 dark:bg-white/5">
+                        <div class="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-zinc-900">
                             <p class="mb-4 text-sm text-slate-600 dark:text-slate-300">{{ __('ui.dashboard.no_upcoming_matches') }}</p>
                             <a href="{{ route('challenges.create') }}" class="inline-flex items-center justify-center rounded-full bg-court px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-emerald-900/15 transition hover:-translate-y-0.5 hover:bg-emerald-800">
                                 {{ __('ui.dashboard.find_match') }}
@@ -265,7 +265,7 @@
                                         : 'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-300';
                                     $statusDot = $match->status === 'in_progress' ? 'bg-amber-500' : 'bg-emerald-500';
                                 @endphp
-                                <article class="rounded-3xl border border-slate-200 bg-slate-50 p-4 shadow-sm transition duration-300 hover:-translate-y-0.5 hover:shadow-lg dark:border-white/10 dark:bg-white/5">
+                                <article class="rounded-3xl border border-slate-200 bg-slate-50 p-4 shadow-sm transition duration-300 hover:-translate-y-0.5 hover:shadow-lg dark:border-slate-700 dark:bg-zinc-900">
                                     <div class="flex items-center justify-between gap-3">
                                         <div class="flex items-center gap-3">
                                             <span class="inline-flex h-10 w-10 items-center justify-center rounded-full border {{ $statusTone }} text-xs font-bold uppercase tracking-wider">vs</span>
@@ -284,7 +284,7 @@
                                             </div>
                                         </div>
 
-                                        <a href="{{ route('matches.show', $match->id) }}" class="rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-900 transition hover:-translate-y-0.5 hover:bg-slate-50 dark:border-white/10 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-100">
+                                        <a href="{{ route('matches.show', $match->id) }}" class="rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-900 transition hover:-translate-y-0.5 hover:bg-slate-50 dark:border-slate-700 dark:bg-zinc-900 dark:text-white dark:hover:bg-zinc-800">
                                             {{ __('ui.dashboard.view') }}
                                         </a>
                                     </div>
@@ -305,7 +305,7 @@
                     @endif
                 </section>
 
-                <section class="rounded-3xl border border-emerald-900/10 bg-white/90 p-5 shadow-[0_16px_40px_rgba(15,23,42,0.08)] transition-transform duration-300 hover:-translate-y-1 dark:border-white/10 dark:bg-slate-900/90 dark:shadow-[0_20px_50px_rgba(2,6,23,0.45)]">
+                <section class="rounded-3xl border border-emerald-200 bg-white p-5 shadow-md transition-transform duration-300 hover:-translate-y-1 dark:border-emerald-700 dark:bg-zinc-900 dark:shadow-2xl">
                     <div class="mb-4 flex items-center justify-between gap-3">
                         <div>
                             <h4 class="font-heading text-xl font-bold text-slate-950 dark:text-white">{{ __('ui.dashboard.top_players') }}</h4>
@@ -316,7 +316,7 @@
 
                     <div class="space-y-3">
                         @foreach($leaderboard->take(5) as $index => $player)
-                            <div class="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-3 transition hover:-translate-y-0.5 hover:border-amber-200 hover:bg-white hover:shadow-lg dark:border-white/10 dark:bg-white/5">
+                            <div class="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-3 transition hover:-translate-y-0.5 hover:border-amber-200 hover:bg-white hover:shadow-lg dark:border-slate-700 dark:bg-zinc-900">
                                 <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full font-heading text-sm font-bold {{ $index === 0 ? 'bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-300' : ($index === 1 ? 'bg-slate-100 text-slate-700 dark:bg-slate-700/40 dark:text-slate-200' : ($index === 2 ? 'bg-orange-100 text-orange-800 dark:bg-orange-500/20 dark:text-orange-300' : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-300')) }}">
                                     @if($index === 0)
                                         👑

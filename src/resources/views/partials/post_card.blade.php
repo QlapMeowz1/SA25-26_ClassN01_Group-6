@@ -13,7 +13,7 @@
                     {{ $post->user->name }}
                 </a>
                 <div class="mt-1 flex flex-wrap items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
-                    <span class="rounded-full bg-emerald-50 px-2.5 py-1 font-semibold text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-300">{{ $post->user->rank ?? '' }}</span>
+                    <span class="rounded-full bg-emerald-50 px-2.5 py-1 font-semibold text-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-300">{{ $post->user->rank ?? '' }}</span>
                     <span>{{ $post->created_at->diffForHumans() }}</span>
                 </div>
             </div>
@@ -44,7 +44,7 @@
             @else
                 <div class="post-image-grid">
                     @foreach($images as $img)
-                        <div class="overflow-hidden rounded-2xl bg-white dark:bg-slate-800"><img src="{{ $img }}" alt="Post image" class="h-40 w-full object-cover" loading="lazy" /></div>
+                        <div class="overflow-hidden rounded-2xl bg-white dark:bg-zinc-900"><img src="{{ $img }}" alt="Post image" class="h-40 w-full object-cover" loading="lazy" /></div>
                     @endforeach
                 </div>
             @endif
@@ -64,7 +64,7 @@
     @if(!empty($videos))
         <div class="mt-4 space-y-3">
             @foreach($videos as $video)
-                <video class="w-full rounded-2xl border border-slate-200/70 bg-slate-50 dark:border-white/10 dark:bg-white/5" controls preload="metadata">
+                <video class="w-full rounded-2xl border border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-zinc-900" controls preload="metadata">
                     <source src="{{ $video }}">
                     Your browser does not support the video tag.
                 </video>
@@ -75,23 +75,23 @@
     <div class="post-actions post-actions-fb">
         <form action="{{ route('posts.like', $post->id) }}" method="POST" class="action-form">
             @csrf
-            <button type="submit" class="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-slate-200 bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:-translate-y-0.5 hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-800 dark:border-white/10 dark:bg-white/5 dark:text-slate-200 dark:hover:border-emerald-500/20 dark:hover:bg-emerald-500/10 dark:hover:text-emerald-300 @if(method_exists($post, 'isLikedBy') && $post->isLikedBy(auth()->id())) ring-2 ring-energy/30 @endif">
+            <button type="submit" class="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-slate-200 bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:-translate-y-0.5 hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-800 dark:border-slate-700 dark:bg-zinc-900 dark:text-slate-200 dark:hover:border-emerald-700 dark:hover:bg-zinc-800 dark:hover:text-emerald-300 @if(method_exists($post, 'isLikedBy') && $post->isLikedBy(auth()->id())) ring-2 ring-energy/30 @endif">
                 <span aria-hidden="true">👍</span>
                 <span>Like</span>
-                <span class="rounded-full bg-white px-2 py-0.5 text-xs font-bold text-slate-700 dark:bg-slate-800 dark:text-slate-200" data-like-count>{{ $post->likes_count ?? 0 }}</span>
+                <span class="rounded-full bg-white px-2 py-0.5 text-xs font-bold text-slate-700 dark:bg-zinc-800 dark:text-slate-200" data-like-count>{{ $post->likes_count ?? 0 }}</span>
             </button>
         </form>
-        <a href="{{ route('posts.show', $post->id) }}#comments-section" class="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-slate-200 bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:-translate-y-0.5 hover:border-orange-200 hover:bg-orange-50 hover:text-orange-800 dark:border-white/10 dark:bg-white/5 dark:text-slate-200 dark:hover:border-orange-500/20 dark:hover:bg-orange-500/10 dark:hover:text-orange-300">
+        <a href="{{ route('posts.show', $post->id) }}#comments-section" class="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-slate-200 bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:-translate-y-0.5 hover:border-orange-200 hover:bg-orange-50 hover:text-orange-800 dark:border-slate-700 dark:bg-zinc-900 dark:text-slate-200 dark:hover:border-orange-700 dark:hover:bg-zinc-800 dark:hover:text-orange-300">
             <span aria-hidden="true">💬</span>
             <span>Comment</span>
-            <span class="rounded-full bg-white px-2 py-0.5 text-xs font-bold text-slate-700 dark:bg-slate-800 dark:text-slate-200" data-comment-count>{{ $post->comments->count() ?? 0 }}</span>
+                <span class="rounded-full bg-white px-2 py-0.5 text-xs font-bold text-slate-700 dark:bg-zinc-800 dark:text-slate-200" data-comment-count>{{ $post->comments->count() ?? 0 }}</span>
         </a>
     </div>
 
     @if(isset($post->comments) && $post->comments->count() > 0)
-        <div class="mt-4 space-y-2 border-t border-slate-200/70 pt-4 dark:border-white/10">
+        <div class="mt-4 space-y-2 border-t border-slate-200 pt-4 dark:border-slate-700">
             @foreach($post->comments as $comment)
-                <div class="rounded-2xl bg-slate-50 px-3 py-2 text-sm text-slate-600 dark:bg-white/5 dark:text-slate-300">
+                <div class="rounded-2xl bg-slate-50 px-3 py-2 text-sm text-slate-600 dark:bg-zinc-900 dark:text-slate-300">
                     <strong class="font-heading text-slate-900 dark:text-white">{{ $comment->user->name ?? 'User' }}</strong>
                     <span class="ml-2">{{ $comment->content ?? '' }}</span>
                 </div>
