@@ -91,7 +91,11 @@
                         <div class="post-header">
                             <div class="post-author">
                                 <a href="{{ route('profile.show', $post->user->id) }}" class="author-avatar">
-                                    {{ strtoupper(substr($post->user->name, 0, 1)) }}
+                                    @if($post->user->avatar)
+                                        <img src="{{ asset('avatars/' . $post->user->avatar) }}" alt="{{ $post->user->name }}">
+                                    @else
+                                        {{ strtoupper(substr($post->user->name, 0, 1)) }}
+                                    @endif
                                 </a>
                                 <div class="author-info">
                                     <a href="{{ route('profile.show', $post->user->id) }}" class="author-name">
