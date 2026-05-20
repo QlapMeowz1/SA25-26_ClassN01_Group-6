@@ -9,13 +9,14 @@
         (function () {
             const savedTheme = localStorage.getItem('badnet-theme') || 'light';
             document.documentElement.dataset.theme = savedTheme;
+            document.documentElement.classList.toggle('dark', savedTheme === 'dark');
             document.documentElement.style.colorScheme = savedTheme;
         })();
     </script>
     <script>
         window.tailwind = window.tailwind || {};
         window.tailwind.config = {
-            darkMode: ['class', '[data-theme="dark"]'],
+            darkMode: 'class',
             theme: {
                 extend: {
                     fontFamily: {
@@ -196,6 +197,7 @@
                 themeToggle.addEventListener('click', function() {
                     const nextTheme = (root.dataset.theme === 'dark') ? 'light' : 'dark';
                     root.dataset.theme = nextTheme;
+                    root.classList.toggle('dark', nextTheme === 'dark');
                     root.style.colorScheme = nextTheme;
                     localStorage.setItem('badnet-theme', nextTheme);
                     updateThemeButton();
