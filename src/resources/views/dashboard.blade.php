@@ -186,7 +186,7 @@
                         </div>
 
                         <div id="infinite-loader" class="mt-6 text-center" data-next-page="{{ $communityPosts->currentPage() + 1 }}" data-has-more="{{ $communityPosts->hasMorePages() ? '1' : '0' }}">
-                            <button id="load-more-btn" class="inline-flex items-center justify-center rounded-full bg-slate-900 px-5 py-3 font-heading text-sm font-bold text-white shadow-lg shadow-slate-900/20 transition hover:-translate-y-0.5 hover:bg-slate-800 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-100">
+                            <button id="load-more-btn" class="inline-flex items-center justify-center rounded-full border border-slate-200 bg-white px-5 py-3 font-heading text-sm font-bold text-slate-900 shadow-sm transition hover:-translate-y-0.5 hover:bg-slate-50 dark:border-white/10 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-100">
                                 {{ __('ui.dashboard.load_more') }}
                             </button>
                             <div id="loader-spinner" class="mt-3 hidden text-sm text-slate-500 dark:text-slate-400">{{ __('ui.dashboard.loading') }}</div>
@@ -284,7 +284,7 @@
                                             </div>
                                         </div>
 
-                                        <a href="{{ route('matches.show', $match->id) }}" class="rounded-full bg-slate-900 px-3 py-2 text-xs font-semibold text-white transition hover:-translate-y-0.5 hover:bg-slate-800 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-100">
+                                        <a href="{{ route('matches.show', $match->id) }}" class="rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-900 transition hover:-translate-y-0.5 hover:bg-slate-50 dark:border-white/10 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-100">
                                             {{ __('ui.dashboard.view') }}
                                         </a>
                                     </div>

@@ -44,7 +44,7 @@
             @else
                 <div class="post-image-grid">
                     @foreach($images as $img)
-                        <div class="overflow-hidden rounded-2xl bg-white/70"><img src="{{ $img }}" alt="Post image" class="h-40 w-full object-cover" loading="lazy" /></div>
+                        <div class="overflow-hidden rounded-2xl bg-white dark:bg-slate-800"><img src="{{ $img }}" alt="Post image" class="h-40 w-full object-cover" loading="lazy" /></div>
                     @endforeach
                 </div>
             @endif
