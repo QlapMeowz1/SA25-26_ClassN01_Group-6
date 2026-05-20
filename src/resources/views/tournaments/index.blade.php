@@ -45,7 +45,7 @@
 
     @if(!empty($featuredTournament))
         <section class="featured-tournament-section">
-            <div class="featured-tournament-card tournament-featured-card" style="background: linear-gradient(135deg, {{ $featuredTournament->banner_color ?? '#6366f1' }}, rgba(17, 24, 39, 0.92));">
+            <div class="featured-tournament-card tournament-featured-card" style="--featured-tournament-start: {{ $featuredTournament->banner_color ?? '#6366f1' }};">
                 <div class="featured-tournament-grid">
                     <div class="featured-tournament-copy">
                         <div class="featured-topline">
@@ -134,7 +134,7 @@
             <div class="tournament-card-grid tournament-card-grid-tight">
                 @foreach($myTournaments as $tournament)
                     <article class="tournament-card tournament-card-modern" data-tournament-card data-status="{{ $tournament->display_status }}" data-name="{{ strtolower($tournament->name) }}">
-                        <div class="tournament-banner tournament-banner-modern" style="background: linear-gradient(135deg, {{ $tournament->banner_color ?? '#6366f1' }}, rgba(17, 24, 39, 0.9));">
+                        <div class="tournament-banner tournament-banner-modern" style="--tournament-banner-start: {{ $tournament->banner_color ?? '#6366f1' }};">
                             <span class="tournament-status-badge status-{{ $tournament->status_class }}">{{ $tournament->status_label }}</span>
                             <span class="countdown-pill" data-countdown data-status="{{ $tournament->display_status }}" data-start-date="{{ optional($tournament->start_date)->toIso8601String() }}">{{ $tournament->countdown_text }}</span>
                         </div>
@@ -204,7 +204,7 @@
             <div class="tournament-card-grid tournament-browser-grid" data-tournament-grid>
                 @foreach($allTournaments as $tournament)
                     <article class="tournament-card tournament-card-modern" data-tournament-card data-status="{{ $tournament->display_status }}" data-name="{{ strtolower($tournament->name) }}">
-                        <div class="tournament-banner tournament-banner-modern" style="background: linear-gradient(135deg, {{ $tournament->banner_color ?? '#6366f1' }}, rgba(17, 24, 39, 0.9));">
+                        <div class="tournament-banner tournament-banner-modern" style="--tournament-banner-start: {{ $tournament->banner_color ?? '#6366f1' }};">
                             <span class="tournament-status-badge status-{{ $tournament->status_class }}">{{ $tournament->status_label }}</span>
                             <span class="countdown-pill" data-countdown data-status="{{ $tournament->display_status }}" data-start-date="{{ optional($tournament->start_date)->toIso8601String() }}">{{ $tournament->countdown_text }}</span>
                         </div>

@@ -3214,6 +3214,11 @@ h6 { font-size: 1rem; line-height: 1.5; }
     gap: 24px;
 }
 
+.tournament-circuit-shell {
+    display: grid;
+    gap: 24px;
+}
+
 .tournament-hero {
     display: grid;
     grid-template-columns: minmax(0, 1.4fr) minmax(280px, 0.9fr);
@@ -3221,11 +3226,16 @@ h6 { font-size: 1rem; line-height: 1.5; }
     padding: 28px;
     border-radius: 28px;
     background:
-        radial-gradient(circle at top left, rgba(124, 58, 237, 0.18), transparent 34%),
-        radial-gradient(circle at bottom right, rgba(14, 165, 233, 0.16), transparent 32%),
-        linear-gradient(180deg, rgba(15, 23, 42, 0.96), rgba(15, 23, 42, 0.88));
-    border: 1px solid rgba(148, 163, 184, 0.12);
-    box-shadow: 0 24px 48px rgba(15, 23, 42, 0.22);
+        radial-gradient(circle at top left, rgba(14, 165, 233, 0.14), transparent 32%),
+        radial-gradient(circle at bottom right, rgba(124, 58, 237, 0.1), transparent 30%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(245, 247, 250, 0.98));
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    box-shadow: 0 24px 48px rgba(15, 23, 42, 0.12);
+    color: var(--text-color);
+}
+
+.tournament-hero .home-eyebrow {
+    color: var(--primary-color);
 }
 
 .tournament-hero-copy h1 {
@@ -3233,10 +3243,12 @@ h6 { font-size: 1rem; line-height: 1.5; }
     line-height: 1.05;
     margin-top: 8px;
     margin-bottom: 12px;
+    color: var(--text-color);
 }
 
 .tournament-hero .page-subtitle {
     max-width: 60ch;
+    color: var(--muted-color);
 }
 
 .tournament-hero-actions {
@@ -3266,21 +3278,22 @@ h6 { font-size: 1rem; line-height: 1.5; }
 .hero-stat {
     padding: 16px;
     border-radius: 18px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.78);
+    border: 1px solid rgba(148, 163, 184, 0.16);
+    box-shadow: var(--shadow);
 }
 
 .hero-stat-value {
     display: block;
     font-size: 28px;
     font-weight: 800;
-    color: #fff;
+    color: var(--text-color);
 }
 
 .hero-stat-label {
     display: block;
     font-size: 13px;
-    color: rgba(255, 255, 255, 0.72);
+    color: var(--muted-color);
     margin-top: 4px;
 }
 
@@ -3293,12 +3306,13 @@ h6 { font-size: 1rem; line-height: 1.5; }
     width: 100%;
     border-radius: 24px;
     padding: 22px;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03));
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(239, 246, 255, 0.92));
+    border: 1px solid rgba(14, 165, 233, 0.16);
     display: flex;
     flex-direction: column;
     justify-content: space-between;
     min-height: 240px;
+    box-shadow: var(--shadow-lg);
 }
 
 .hero-racket-badge,
@@ -3308,8 +3322,8 @@ h6 { font-size: 1rem; line-height: 1.5; }
     gap: 6px;
     padding: 7px 12px;
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.14);
-    color: #fff;
+    background: rgba(14, 165, 233, 0.12);
+    color: #0369a1;
     font-size: 12px;
     font-weight: 700;
     letter-spacing: 0.04em;
@@ -3319,11 +3333,11 @@ h6 { font-size: 1rem; line-height: 1.5; }
 .hero-racket-card h3 {
     font-size: 1.6rem;
     margin-top: 18px;
-    color: #fff;
+    color: var(--text-color);
 }
 
 .hero-racket-card p {
-    color: rgba(255, 255, 255, 0.76);
+    color: var(--muted-color);
     margin-top: 8px;
 }
 
@@ -3337,8 +3351,8 @@ h6 { font-size: 1rem; line-height: 1.5; }
 .hero-racket-bars span {
     height: 64px;
     border-radius: 999px;
-    background: linear-gradient(180deg, rgba(14, 165, 233, 0.9), rgba(124, 58, 237, 0.75));
-    opacity: 0.9;
+    background: linear-gradient(180deg, rgba(14, 165, 233, 0.92), rgba(34, 197, 94, 0.78));
+    opacity: 0.95;
 }
 
 .hero-racket-bars span:nth-child(2) { height: 88px; opacity: 0.75; }
@@ -3352,9 +3366,17 @@ h6 { font-size: 1rem; line-height: 1.5; }
 .featured-tournament-card {
     padding: 24px;
     border-radius: 28px;
-    color: #fff;
-    box-shadow: 0 30px 60px rgba(15, 23, 42, 0.28);
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: var(--text-color);
+    box-shadow: 0 30px 60px rgba(15, 23, 42, 0.12);
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    background:
+        radial-gradient(circle at top left, rgba(14, 165, 233, 0.14), transparent 34%),
+        radial-gradient(circle at bottom right, rgba(124, 58, 237, 0.1), transparent 30%),
+        linear-gradient(135deg, var(--featured-tournament-start, #6366f1), rgba(255, 255, 255, 0.94));
+    background:
+        radial-gradient(circle at top left, rgba(14, 165, 233, 0.14), transparent 34%),
+        radial-gradient(circle at bottom right, rgba(124, 58, 237, 0.1), transparent 30%),
+        linear-gradient(135deg, color-mix(in srgb, var(--featured-tournament-start, #6366f1) 18%, white), rgba(239, 246, 255, 0.94));
 }
 
 .featured-tournament-grid {
@@ -3374,12 +3396,13 @@ h6 { font-size: 1rem; line-height: 1.5; }
 .featured-tournament-card h2 {
     font-size: clamp(1.8rem, 3vw, 2.8rem);
     margin-bottom: 10px;
+    color: var(--text-color);
 }
 
 .featured-description,
 .featured-side-card,
 .deadline-text {
-    color: rgba(255, 255, 255, 0.82);
+    color: var(--muted-color);
 }
 
 .featured-meta-row {
@@ -3394,8 +3417,8 @@ h6 { font-size: 1rem; line-height: 1.5; }
     gap: 10px;
     padding: 14px;
     border-radius: 18px;
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.78);
+    border: 1px solid rgba(148, 163, 184, 0.16);
 }
 
 .meta-icon {
@@ -3459,10 +3482,10 @@ h6 { font-size: 1rem; line-height: 1.5; }
     margin-top: 16px;
     padding: 12px 14px;
     border-radius: 16px;
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.82);
+    border: 1px solid rgba(148, 163, 184, 0.16);
     font-weight: 700;
-    color: #fff;
+    color: var(--text-color);
 }
 
 .featured-actions {
@@ -3476,8 +3499,8 @@ h6 { font-size: 1rem; line-height: 1.5; }
 .featured-side-card {
     padding: 16px;
     border-radius: 18px;
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.76);
+    border: 1px solid rgba(148, 163, 184, 0.16);
     margin-bottom: 12px;
 }
 
@@ -3507,6 +3530,9 @@ h6 { font-size: 1rem; line-height: 1.5; }
     align-items: flex-start;
     gap: 12px;
     padding: 16px;
+    border-radius: 20px 20px 0 0;
+    background:
+        linear-gradient(135deg, color-mix(in srgb, var(--tournament-banner-start, #6366f1) 78%, white), rgba(255, 255, 255, 0.9));
 }
 
 .tournament-card-content-modern {
@@ -3543,9 +3569,9 @@ h6 { font-size: 1rem; line-height: 1.5; }
 .tournament-status-badge.status-registration-closed { background: rgba(249, 115, 22, 0.16); color: #fdba74; }
 
 .countdown-pill {
-    background: rgba(17, 24, 39, 0.78);
-    color: #fff;
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.8);
+    color: var(--text-color);
+    border: 1px solid rgba(148, 163, 184, 0.18);
 }
 
 .tournament-meta-list {
@@ -3704,8 +3730,56 @@ h6 { font-size: 1rem; line-height: 1.5; }
     color: var(--text-color);
 }
 
+:root[data-theme="dark"] .tournament-hero {
+    background:
+        radial-gradient(circle at top left, rgba(14, 165, 233, 0.16), transparent 34%),
+        radial-gradient(circle at bottom right, rgba(124, 58, 237, 0.14), transparent 32%),
+        linear-gradient(180deg, rgba(17, 24, 39, 0.98), rgba(17, 24, 39, 0.9));
+    border-color: rgba(148, 163, 184, 0.12);
+}
+
+:root[data-theme="dark"] .tournament-hero .home-eyebrow {
+    color: #7dd3fc;
+}
+
+:root[data-theme="dark"] .hero-stat,
+:root[data-theme="dark"] .hero-racket-card,
+:root[data-theme="dark"] .featured-meta-block,
+:root[data-theme="dark"] .featured-side-card,
+:root[data-theme="dark"] .featured-countdown,
+:root[data-theme="dark"] .countdown-pill {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.08);
+    color: var(--text-color);
+}
+
+:root[data-theme="dark"] .hero-stat-value,
+:root[data-theme="dark"] .hero-racket-card h3,
+:root[data-theme="dark"] .featured-tournament-card h2 {
+    color: #fff;
+}
+
+:root[data-theme="dark"] .hero-stat-label,
+:root[data-theme="dark"] .hero-racket-card p,
+:root[data-theme="dark"] .featured-description,
+:root[data-theme="dark"] .featured-side-card,
+:root[data-theme="dark"] .deadline-text,
+:root[data-theme="dark"] .slots-label,
+:root[data-theme="dark"] .slots-text,
+:root[data-theme="dark"] .tournament-browser-meta,
+:root[data-theme="dark"] .browser-tip,
+:root[data-theme="dark"] .tournament-organizer,
+:root[data-theme="dark"] .tournament-description,
+:root[data-theme="dark"] .countdown-pill {
+    color: var(--muted-color);
+}
+
 :root[data-theme="dark"] .tournament-filter-btn span {
     background: rgba(14, 165, 233, 0.2);
+}
+
+:root[data-theme="dark"] .tournament-banner-modern {
+    background: linear-gradient(135deg, var(--tournament-banner-start, #6366f1), rgba(17, 24, 39, 0.94));
 }
 
 :root[data-theme="dark"] .tournament-banner-modern .countdown-pill,
