@@ -6,11 +6,11 @@
 <div class="page-shell">
     <div class="posts-header">
         <div>
-            <p class="home-eyebrow">Community Archive</p>
-            <h1>Social</h1>
-            <p class="page-subtitle">The live feed now sits on the dashboard. Use this page as an archive, comment lane, and quick posting surface.</p>
+            <p class="home-eyebrow">{{ __('ui.home.community') }}</p>
+            <h1>{{ __('ui.nav.home') }}</h1>
+            <p class="page-subtitle">{{ __('ui.post.archive_intro') }}</p>
         </div>
-        <a href="{{ route('dashboard') }}" class="btn btn-secondary">Go to Dashboard Feed</a>
+        <a href="{{ route('dashboard') }}" class="btn btn-secondary">{{ __('ui.home.dashboard_feed') }}</a>
     </div>
 
     <div class="dashboard-section">
@@ -20,8 +20,8 @@
                     <div class="creator-avatar">{{ strtoupper(substr(auth()->user()->name, 0, 1)) }}</div>
                     <form action="{{ route('posts.store') }}" method="POST" class="creator-form">
                         @csrf
-                        <textarea name="content" placeholder="Share a recap, highlight, or invite..." maxlength="500" required></textarea>
-                        <button type="submit" class="btn btn-primary">Post</button>
+                        <textarea name="content" placeholder="{{ __('ui.post.share_placeholder') }}" maxlength="500" required></textarea>
+                        <button type="submit" class="btn btn-primary">{{ __('ui.post.publish') }}</button>
                     </form>
                 </div>
             </section>
@@ -30,7 +30,7 @@
         <section class="posts-feed">
             @if($posts->isEmpty())
                 <div class="empty-panel">
-                    <p class="empty-message">No posts yet. Be the first to share!</p>
+                    <p class="empty-message">{{ __('ui.post.no_posts') }}</p>
                 </div>
             @else
                 @foreach($posts as $post)
@@ -55,7 +55,7 @@
                                 @if(auth()->id() === $post->user->id)
                                     <form action="{{ route('posts.delete', $post->id) }}" method="POST" class="delete-form">
                                         @csrf
-                                        <button type="submit" class="delete-btn" onclick="return confirm('Delete this post?')">Delete</button>
+                                        <button type="submit" class="delete-btn" onclick="return confirm('{{ __('ui.post.delete_post_confirm') }}')">{{ __('ui.post.delete') }}</button>
                                     </form>
                                 @endif
                             @endauth
@@ -83,8 +83,8 @@
                         @endif
 
                         <div class="post-stats">
-                            <span data-post-like-stat>❤️ {{ $post->likes_count }} Likes</span>
-                            <span data-post-comment-stat>💬 {{ $post->comments->count() }} Comments</span>
+                            <span data-post-like-stat>❤️ {{ $post->likes_count }} {{ __('ui.post.likes') }}</span>
+                            <span data-post-comment-stat>💬 {{ $post->comments->count() }} {{ __('ui.post.comments') }}</span>
                         </div>
 
                         <div class="post-actions post-actions-fb">
@@ -93,21 +93,21 @@
                                     @csrf
                                     <button type="submit" class="action-btn fb-action-btn @if($post->isLikedBy(auth()->id())) liked @endif">
                                         <span class="action-icon" aria-hidden="true">👍</span>
-                                        <span class="action-label">Like</span>
+                                        <span class="action-label">{{ __('ui.post.like') }}</span>
                                         <span class="action-count" data-like-count>{{ $post->likes_count }}</span>
                                     </button>
                                 </form>
                             @else
                                 <button class="action-btn fb-action-btn" disabled>
                                     <span class="action-icon" aria-hidden="true">👍</span>
-                                    <span class="action-label">Like</span>
+                                    <span class="action-label">{{ __('ui.post.like') }}</span>
                                     <span class="action-count" data-like-count>{{ $post->likes_count }}</span>
                                 </button>
                             @endauth
 
                             <a href="{{ route('posts.show', $post->id) }}#comments-section" class="action-btn fb-action-btn">
                                 <span class="action-icon" aria-hidden="true">💬</span>
-                                <span class="action-label">Comment</span>
+                                <span class="action-label">{{ __('ui.post.comment') }}</span>
                                 <span class="action-count" data-comment-count>{{ $post->comments->count() }}</span>
                             </a>
                         </div>

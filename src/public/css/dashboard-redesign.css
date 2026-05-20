@@ -430,30 +430,35 @@
 }
 
 .feed-card .post-image {
-    width: 100%;
+    /* Show full image without cropping; scale down to fit card */
+    width: auto;
+    max-width: 100%;
     height: auto;
     max-height: 400px;
     display: block;
-    object-fit: cover;
+    object-fit: contain;
+    margin: 0 auto;
     background: var(--surface-alt-bg);
 }
 
 .post-detail .post-media {
+    /* Match feed behaviour so images align with post content */
     margin-top: 12px;
-    display: flex;
-    justify-content: center;
-    overflow: visible;
+    margin-bottom: 12px;
+    border-radius: 8px;
+    overflow: hidden;
 }
 
 .post-detail .post-image {
+    /* Ensure detail images are fully visible (no cropping) */
     width: auto;
     max-width: 100%;
-    max-height: 60vh;
     height: auto;
+    max-height: 60vh;
     object-fit: contain;
     display: block;
     margin: 0 auto;
-    background: transparent;
+    background: var(--surface-alt-bg);
 }
 
 @media (max-width: 1200px) {

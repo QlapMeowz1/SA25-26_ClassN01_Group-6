@@ -6,36 +6,36 @@
 <div class="page-shell tournament-circuit-shell tournament-index-shell">
     <section class="tournament-hero">
         <div class="tournament-hero-copy">
-            <p class="home-eyebrow">Tournament Circuit</p>
-            <h1>Compete & Conquer</h1>
-            <p class="page-subtitle">Track the most competitive badminton events, register in seconds, and rise through the circuit with every match.</p>
+            <p class="home-eyebrow">{{ __('ui.tournament.live_circuit') }}</p>
+            <h1>{{ __('ui.tournament.find_next_battle') }}</h1>
+            <p class="page-subtitle">{{ __('ui.tournament.live_circuit_body') }}</p>
 
             <div class="tournament-hero-actions">
-                <a href="#tournament-browser" class="btn btn-primary btn-large">Browse Events</a>
-                <a href="{{ route('tournaments.create') }}" class="btn btn-secondary btn-large">Create Tournament</a>
+                <a href="#tournament-browser" class="btn btn-primary btn-large">{{ __('ui.tournament.browse') }}</a>
+                <a href="{{ route('tournaments.create') }}" class="btn btn-secondary btn-large">{{ __('ui.tournament.create') }}</a>
             </div>
 
             <div class="tournament-hero-stats">
                 <div class="hero-stat">
                     <span class="hero-stat-value">{{ $allTournaments->count() }}</span>
-                    <span class="hero-stat-label">Total events</span>
+                    <span class="hero-stat-label">{{ __('ui.tournament.total_events') }}</span>
                 </div>
                 <div class="hero-stat">
                     <span class="hero-stat-value">{{ $upcomingTournaments->count() }}</span>
-                    <span class="hero-stat-label">Upcoming</span>
+                    <span class="hero-stat-label">{{ __('ui.tournament.upcoming') }}</span>
                 </div>
                 <div class="hero-stat">
                     <span class="hero-stat-value">{{ $myTournaments->count() }}</span>
-                    <span class="hero-stat-label">My registrations</span>
+                    <span class="hero-stat-label">{{ __('ui.tournament.my_registrations') }}</span>
                 </div>
             </div>
         </div>
 
         <div class="tournament-hero-visual">
             <div class="hero-racket-card">
-                <span class="hero-racket-badge">Live Circuit</span>
-                <h3>Climb the ladder. Win the badge.</h3>
-                <p>Join upcoming battles, follow the bracket, and stay ready for your next showdown.</p>
+                <span class="hero-racket-badge">{{ __('ui.tournament.live_circuit') }}</span>
+                <h3>{{ __('ui.tournament.find_next_battle') }}</h3>
+                <p>{{ __('ui.tournament.live_circuit_body') }}</p>
                 <div class="hero-racket-bars">
                     <span></span><span></span><span></span><span></span>
                 </div>
@@ -49,7 +49,7 @@
                 <div class="featured-tournament-grid">
                     <div class="featured-tournament-copy">
                         <div class="featured-topline">
-                            <span class="featured-badge">⭐ Featured Tournament</span>
+                            <span class="featured-badge">⭐ {{ __('ui.tournament.featured') }}</span>
                             <span class="tournament-status-badge status-{{ $featuredTournament->status_class }}">{{ $featuredTournament->status_label }}</span>
                         </div>
 
@@ -60,32 +60,32 @@
                             <div class="featured-meta-block">
                                 <span class="meta-icon">💰</span>
                                 <div class="meta-text">
-                                    <span class="meta-label">Prize Pool</span>
+                                    <span class="meta-label">{{ __('ui.tournament.prize_pool') }}</span>
                                     <span class="meta-value">{{ $featuredTournament->prize_details }}</span>
                                 </div>
                             </div>
                             <div class="featured-meta-block">
                                 <span class="meta-icon">👥</span>
                                 <div class="meta-text">
-                                    <span class="meta-label">Slots</span>
+                                    <span class="meta-label">{{ __('ui.tournament.slots') }}</span>
                                     <span class="meta-value">{{ $featuredTournament->slots_filled }} / {{ $featuredTournament->slots_total }}</span>
                                 </div>
                             </div>
                             <div class="featured-meta-block">
                                 <span class="meta-icon">📅</span>
                                 <div class="meta-text">
-                                    <span class="meta-label">Starts</span>
+                                    <span class="meta-label">{{ __('ui.tournament.starts') }}</span>
                                     <span class="meta-value">{{ $featuredTournament->starts_text }}</span>
                                 </div>
                             </div>
                         </div>
 
                         <div class="featured-slots-bar">
-                            <div class="slots-label">Registration Progress</div>
+                            <div class="slots-label">{{ __('ui.tournament.registration_progress') }}</div>
                             <div class="progress-bar-large">
                                 <div class="progress-fill" style="width: {{ $featuredTournament->slots_percentage }}%"></div>
                             </div>
-                            <div class="slots-text">{{ $featuredTournament->slots_filled }} of {{ $featuredTournament->slots_total }} filled</div>
+                            <div class="slots-text">{{ $featuredTournament->slots_filled }} / {{ $featuredTournament->slots_total }} {{ __('ui.tournament.filled') }}</div>
                         </div>
 
                         <div class="featured-countdown" data-countdown data-status="{{ $featuredTournament->display_status }}" data-start-date="{{ optional($featuredTournament->start_date)->toIso8601String() }}">
@@ -94,21 +94,21 @@
 
                         <div class="featured-actions">
                             <a href="{{ route('tournaments.show', $featuredTournament->id) }}" class="btn btn-primary btn-large">{{ $featuredTournament->action_label }}</a>
-                            <span class="deadline-text">Registration closes before the opening round.</span>
+                            <span class="deadline-text">{{ __('ui.tournament.registration_progress') }}.</span>
                         </div>
                     </div>
 
                     <div class="featured-tournament-side">
                         <div class="featured-side-card">
-                            <span class="featured-side-label">Organizer</span>
-                            <strong>{{ $featuredTournament->organizer?->name ?? 'Community' }}</strong>
+                            <span class="featured-side-label">{{ __('ui.tournament.organizer') }}</span>
+                            <strong>{{ $featuredTournament->organizer?->name ?? __('ui.tournament.community') }}</strong>
                         </div>
                         <div class="featured-side-card">
-                            <span class="featured-side-label">Format</span>
+                            <span class="featured-side-label">{{ __('ui.tournament.format') ?? 'Format' }}</span>
                             <strong>{{ ucfirst($featuredTournament->tournament_type ?? 'Standard') }}</strong>
                         </div>
                         <div class="featured-side-card">
-                            <span class="featured-side-label">Status</span>
+                            <span class="featured-side-label">{{ __('ui.tournament.status') ?? 'Status' }}</span>
                             <strong>{{ $featuredTournament->status_label }}</strong>
                         </div>
                     </div>
@@ -120,15 +120,15 @@
     <section class="tournament-section tournament-summary-section" id="my-tournaments">
         <div class="feed-heading">
             <div>
-                <p class="home-eyebrow">My Registrations</p>
-                <h2>Your Tournaments</h2>
+                <p class="home-eyebrow">{{ __('ui.tournament.my_registrations_title') }}</p>
+                <h2>{{ __('ui.tournament.your_tournaments') }}</h2>
             </div>
         </div>
 
         @if($myTournaments->isEmpty())
             <div class="empty-panel tournament-empty-panel">
-                @include('partials.empty-illustration', ['title' => "You haven't registered for any tournament yet", 'message' => 'Browse the open events below and jump in.'])
-                <a href="#tournament-browser" class="btn btn-primary">Browse Tournaments</a>
+                @include('partials.empty-illustration', ['title' => __('ui.tournament.no_registered') ?? "You haven't registered for any tournament yet", 'message' => __('ui.tournament.open_events_message') ?? 'Browse the open events below and jump in.'])
+                <a href="#tournament-browser" class="btn btn-primary">{{ __('ui.tournament.browse') }}</a>
             </div>
         @else
             <div class="tournament-card-grid tournament-card-grid-tight">
@@ -145,7 +145,7 @@
                                 <span class="tournament-type-badge" data-type="{{ $tournament->tournament_type ?? 'standard' }}">{{ ucfirst($tournament->tournament_type ?? 'Tournament') }}</span>
                             </div>
 
-                            <p class="tournament-organizer">Organized by: {{ $tournament->organizer?->name ?? 'Community' }}</p>
+                            <p class="tournament-organizer">{{ __('ui.tournament.organizer') }} {{ $tournament->organizer?->name ?? __('ui.tournament.community') }}</p>
 
                             <div class="tournament-meta-list">
                                 <div class="tournament-meta-item">💰 {{ $tournament->prize_details }}</div>
@@ -154,7 +154,7 @@
 
                             <div class="tournament-slots">
                                 <div class="slots-row">
-                                    <span class="slots-label">Slots</span>
+                                    <span class="slots-label">{{ __('ui.tournament.slots') }}</span>
                                     <span class="slots-value">{{ $tournament->slots_filled }}/{{ $tournament->slots_total }}</span>
                                 </div>
                                 <div class="progress-bar-small">
@@ -173,32 +173,32 @@
     <section class="tournament-section tournament-browser-section" id="tournament-browser" data-tournament-browser>
         <div class="feed-heading tournament-browser-heading">
             <div>
-                <p class="home-eyebrow">Open Events / All Tournaments</p>
-                <h2>Find Your Next Battle</h2>
+                <p class="home-eyebrow">{{ __('ui.tournament.all_filter') }} / {{ __('ui.tournament.all_filter') }}</p>
+                <h2>{{ __('ui.tournament.find_next_battle') }}</h2>
             </div>
 
             <div class="tournament-search-shell">
                 <span class="tournament-search-icon">🔎</span>
-                <input type="search" class="tournament-search-input" placeholder="Search tournaments..." data-tournament-search>
+                <input type="search" class="tournament-search-input" placeholder="{{ __('ui.tournament.search_placeholder') }}" data-tournament-search>
             </div>
         </div>
 
         <div class="tournament-filter-bar" role="tablist" aria-label="Tournament filters">
-            <button type="button" class="tournament-filter-btn is-active" data-filter="all">All <span>{{ $allTournaments->count() }}</span></button>
-            <button type="button" class="tournament-filter-btn" data-filter="upcoming">Upcoming <span>{{ $upcomingTournaments->count() }}</span></button>
-            <button type="button" class="tournament-filter-btn" data-filter="ongoing">Ongoing <span>{{ $ongoingTournaments->count() }}</span></button>
-            <button type="button" class="tournament-filter-btn" data-filter="completed">Completed <span>{{ $completedTournaments->count() }}</span></button>
+            <button type="button" class="tournament-filter-btn is-active" data-filter="all">{{ __('ui.tournament.all_filter') }} <span>{{ $allTournaments->count() }}</span></button>
+            <button type="button" class="tournament-filter-btn" data-filter="upcoming">{{ __('ui.tournament.upcoming_filter') }} <span>{{ $upcomingTournaments->count() }}</span></button>
+            <button type="button" class="tournament-filter-btn" data-filter="ongoing">{{ __('ui.tournament.ongoing_filter') }} <span>{{ $ongoingTournaments->count() }}</span></button>
+            <button type="button" class="tournament-filter-btn" data-filter="completed">{{ __('ui.tournament.completed_filter') }} <span>{{ $completedTournaments->count() }}</span></button>
         </div>
 
         <div class="tournament-browser-meta">
-            <span data-tournament-results>{{ $allTournaments->count() }} tournaments</span>
-            <span class="browser-tip">Tip: click a tab or search by name to narrow the list.</span>
+            <span data-tournament-results>{{ $allTournaments->count() }} {{ __('ui.tournament.results_plural') }}</span>
+            <span class="browser-tip">{{ __('ui.tournament.browser_tip') }}</span>
         </div>
 
         @if($allTournaments->isEmpty())
             <div class="empty-panel tournament-empty-panel">
-                @include('partials.empty-illustration', ['title' => 'No tournaments available yet', 'message' => 'Create the first competition and get the circuit started.'])
-                <a href="{{ route('tournaments.create') }}" class="btn btn-primary">Create Tournament</a>
+                @include('partials.empty-illustration', ['title' => __('ui.tournament.no_available') ?? 'No tournaments available yet', 'message' => __('ui.tournament.create_first')])
+                <a href="{{ route('tournaments.create') }}" class="btn btn-primary">{{ __('ui.tournament.create') }}</a>
             </div>
         @else
             <div class="tournament-card-grid tournament-browser-grid" data-tournament-grid>
@@ -241,8 +241,8 @@
 
             <div class="tournament-empty-state is-hidden" data-tournament-empty-state>
                 <div class="comment-empty-icon">🏸</div>
-                <h3>No tournaments match your filter</h3>
-                <p>Try a different tab or search term.</p>
+                <h3>{{ __('ui.tournament.no_match') }}</h3>
+                <p>{{ __('ui.tournament.try_other') ?? 'Try a different tab or search term.' }}</p>
             </div>
         @endif
     </section>
@@ -266,9 +266,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const now = new Date();
         const diffMs = startDate.getTime() - now.getTime();
-        if (status === 'completed') return 'Completed';
-        if (status === 'ongoing') return 'Ongoing now';
-        if (diffMs <= 0) return 'Starting soon';
+        if (status === 'completed') return @json(__('ui.tournament.completed'));
+        if (status === 'ongoing') return @json(__('ui.tournament.ongoing_now'));
+        if (diffMs <= 0) return @json(__('ui.tournament.starting_soon'));
 
         const totalMinutes = Math.floor(diffMs / 60000);
         const days = Math.floor(totalMinutes / 1440);
@@ -278,7 +278,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (days > 0) parts.push(days + 'd');
         if (hours > 0) parts.push(hours + 'h');
         if (minutes > 0) parts.push(minutes + 'm');
-        return 'Starts in ' + (parts.length ? parts.slice(0, 3).join(' ') : 'less than 1m');
+        return @json(__('ui.tournament.starts_in')) + ' ' + (parts.length ? parts.slice(0, 3).join(' ') : @json(__('ui.tournament.less_than_1m')));
     }
 
     function updateCards() {
@@ -297,7 +297,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
 
         if (resultsLabel) {
-            resultsLabel.textContent = visible + ' tournament' + (visible === 1 ? '' : 's');
+            resultsLabel.textContent = visible + ' ' + (visible === 1 ? @json(__('ui.tournament.results_singular')) : @json(__('ui.tournament.results_plural')));
         }
 
         if (emptyState) {

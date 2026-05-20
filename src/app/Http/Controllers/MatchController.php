@@ -9,6 +9,7 @@ use App\Models\Notification;
 use App\Models\User;
 use App\Services\EloService;
 use Illuminate\Http\Request;
+use App\Http\Requests\PlaceBetRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Carbon;
@@ -425,15 +426,8 @@ class MatchController extends Controller
 
             EloService::updatePlayerRatings($match);
 
-            $bets = Bet::where('match_id', $match->id)->get();
-            foreach ($bets as $bet) {
-                $bet->settle();
-                if ($bet->status === 'won') {
-                    $betUser = $bet->user;
-                    $betUser->virtual_coins += $bet->payout;
-                    $betUser->save();
-                }
-            }
+            // Settle bets using BetService
+            app(\App\Services\BetService::class)->settleBetsAfterMatch($match);
 
             Notification::create([
                 'user_id' => $match->player1_id === Auth::id() ? $match->player2_id : $match->player1_id,
@@ -447,28 +441,15 @@ class MatchController extends Controller
         return redirect()->route('matches.show', $match->id)->with('success', 'Match result submitted!');
     }
 
-    public function placeBet(GameMatch $match, Request $request)
+    public function placeBet(GameMatch $match, PlaceBetRequest $request)
     {
-        $user = Auth::user();
+        $validated = $request->validated();
 
-        $validated = $request->validate([
-            'bet_on_user_id' => 'required|in:' . $match->player1_id . ',' . $match->player2_id,
-            'amount' => 'required|integer|min:10|max:' . $user->virtual_coins,
-        ]);
-
-        if ($user->virtual_coins < $validated['amount']) {
-            return back()->withErrors(['amount' => 'Insufficient virtual coins!']);
+        try {
+            app(\App\Services\BetService::class)->placeBet(Auth::user(), $match, (int)$validated['amount'], (int)$validated['bet_on_user_id']);
+        } catch (\Exception $e) {
+            return back()->withErrors(['amount' => $e->getMessage()]);
         }
-
-        $bet = Bet::create([
-            'user_id' => $user->id,
-            'match_id' => $match->id,
-            'bet_on_user_id' => $validated['bet_on_user_id'],
-            'amount' => $validated['amount'],
-        ]);
-
-        $user->virtual_coins -= $validated['amount'];
-        $user->save();
 
         return back()->with('success', 'Bet placed!');
     }

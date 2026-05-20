@@ -25,7 +25,7 @@
                 @if(auth()->id() === $post->user->id)
                     <form action="{{ route('posts.delete', $post->id) }}" method="POST" class="delete-form">
                         @csrf
-                        <button type="submit" class="delete-btn" onclick="return confirm('Delete this post?')">Delete</button>
+                        <button type="submit" class="delete-btn" onclick="return confirm('{{ __('ui.post.delete_post_confirm') }}')">{{ __('ui.post.delete') }}</button>
                     </form>
                 @endif
             @endauth
@@ -53,8 +53,8 @@
         @endif
 
         <div class="post-stats">
-            <span data-post-like-stat>❤️ {{ $post->likes_count }} Likes</span>
-            <span data-post-comment-stat>💬 {{ $post->comments->count() }} Comments</span>
+            <span data-post-like-stat>❤️ {{ $post->likes_count }} {{ __('ui.post.likes') }}</span>
+            <span data-post-comment-stat>💬 {{ $post->comments->count() }} {{ __('ui.post.comments') }}</span>
         </div>
 
         <div class="post-actions post-actions-fb">
@@ -63,21 +63,21 @@
                     @csrf
                     <button type="submit" class="action-btn fb-action-btn @if($post->isLikedBy(auth()->id())) liked @endif">
                         <span class="action-icon" aria-hidden="true">👍</span>
-                        <span class="action-label">Like</span>
+                        <span class="action-label">{{ __('ui.post.like') }}</span>
                         <span class="action-count" data-like-count>{{ $post->likes_count }}</span>
                     </button>
                 </form>
             @else
                 <button class="action-btn fb-action-btn" disabled>
                     <span class="action-icon" aria-hidden="true">👍</span>
-                    <span class="action-label">Like</span>
+                    <span class="action-label">{{ __('ui.post.like') }}</span>
                     <span class="action-count" data-like-count>{{ $post->likes_count }}</span>
                 </button>
             @endauth
 
             <a href="#comments-section" class="action-btn fb-action-btn">
                 <span class="action-icon" aria-hidden="true">💬</span>
-                <span class="action-label">Comment</span>
+                <span class="action-label">{{ __('ui.post.comment') }}</span>
                 <span class="action-count" data-comment-count>{{ $post->comments->count() }}</span>
             </a>
         </div>
@@ -86,10 +86,10 @@
     <section class="comments-section modern-comments" id="comments-section" data-comments-modern data-mention-users='@json($mentionUsers)'>
         <div class="comments-section-header">
             <div>
-                <p class="section-kicker">Conversation</p>
-                <h2>Comments</h2>
+                <p class="section-kicker">{{ __('ui.post.view_comments') }}</p>
+                <h2>{{ __('ui.post.comments') }}</h2>
             </div>
-            <div class="comments-meta">{{ $comments->total() }} comments</div>
+            <div class="comments-meta">{{ $comments->total() }} {{ __('ui.post.comments') }}</div>
         </div>
 
         @auth
@@ -108,14 +108,14 @@
                         <textarea
                             name="content"
                             class="comment-textarea js-comment-textarea"
-                            placeholder="Write a public comment..."
+                            placeholder="{{ __('ui.post.comment_placeholder') ?? 'Write a public comment...' }}"
                             maxlength="300"
                             rows="2"
                             required
                             data-mention-input></textarea>
 
                         <div class="comment-composer-tools">
-                            <button type="button" class="composer-icon-btn" data-emoji-toggle aria-label="Add emoji">😊</button>
+                            <button type="button" class="composer-icon-btn" data-emoji-toggle aria-label="{{ __('ui.post.add_emoji') ?? 'Add emoji' }}">😊</button>
                             <label class="composer-icon-btn composer-file-btn">
                                 📷
                                 <input type="file" name="image" accept="image/*" class="comment-image-input js-comment-file-input" hidden>
@@ -153,8 +153,8 @@
                     </div>
 
                     <div class="comment-composer-footer">
-                        <div class="composer-hint">Type @ to mention someone.</div>
-                        <button type="submit" class="btn btn-primary comment-submit-btn">Post</button>
+                        <div class="composer-hint">{{ __('ui.post.mention_hint') ?? 'Type @ to mention someone.' }}</div>
+                        <button type="submit" class="btn btn-primary comment-submit-btn">{{ __('ui.post.comment') }}</button>
                     </div>
 
                     <div class="selected-file" hidden data-selected-file></div>
@@ -165,8 +165,8 @@
         @if($comments->isEmpty())
             <div class="comment-empty-state">
                 <div class="comment-empty-icon">💬</div>
-                <h3>Be the first to comment on this post</h3>
-                <p>Start the conversation with a quick thought, emoji, or photo.</p>
+                <h3>{{ __('ui.post.no_comments_title') ?? 'Be the first to comment on this post' }}</h3>
+                <p>{{ __('ui.post.no_comments_body') ?? 'Start the conversation with a quick thought, emoji, or photo.' }}</p>
             </div>
         @else
             <div class="comment-thread">
@@ -203,17 +203,17 @@
                                             @csrf
                                             <button type="submit" class="action-btn comment-like-btn @if($comment->isLikedBy(auth()->id())) liked @endif">
                                                 <span class="action-icon" aria-hidden="true">❤️</span>
-                                                <span class="action-label">Like</span>
+                                                <span class="action-label">{{ __('ui.post.like') }}</span>
                                                 <span class="comment-like-count" data-like-count>{{ $comment->likes_count ?? $comment->likes->count() }}</span>
                                             </button>
                                         </form>
 
-                                        <button type="button" class="action-btn comment-reply-toggle" data-reply-toggle="reply-form-{{ $comment->id }}">Reply</button>
+                                        <button type="button" class="action-btn comment-reply-toggle" data-reply-toggle="reply-form-{{ $comment->id }}">{{ __('ui.post.reply') }}</button>
 
                                         @if(auth()->id() === $comment->user->id)
                                             <form action="{{ route('comments.delete', $comment->id) }}" method="POST" class="delete-form comment-delete-form">
                                                 @csrf
-                                                <button type="submit" class="delete-btn comment-delete-btn" onclick="return confirm('Delete comment?')">Delete</button>
+                                                <button type="submit" class="delete-btn comment-delete-btn" onclick="return confirm('{{ __('ui.post.delete_comment_confirm') ?? 'Delete comment?' }}')">{{ __('ui.nav.logout') ?? 'Delete' }}</button>
                                             </form>
                                         @endif
                                     @else
@@ -224,13 +224,13 @@
                                 @auth
                                     <form action="{{ route('comments.reply', $comment->id) }}" method="POST" enctype="multipart/form-data" class="comment-reply-form is-hidden" id="reply-form-{{ $comment->id }}" data-comment-reply-form>
                                         @csrf
-                                        <textarea name="content" placeholder="Reply to {{ $comment->user->name }}..." maxlength="300" required></textarea>
+                                        <textarea name="content" placeholder="{{ __('ui.post.reply_to') }} {{ $comment->user->name }}..." maxlength="300" required></textarea>
                                         <div class="comment-reply-tools">
                                             <label class="composer-icon-btn composer-file-btn small">
                                                 📷
                                                 <input type="file" name="image" accept="image/*" class="comment-image-input" hidden>
                                             </label>
-                                            <button type="submit" class="btn btn-secondary btn-small">Reply</button>
+                                                <button type="submit" class="btn btn-secondary btn-small">{{ __('ui.post.reply') }}</button>
                                         </div>
                                     </form>
                                 @endauth
@@ -270,7 +270,7 @@
                                                                     @csrf
                                                                     <button type="submit" class="action-btn comment-like-btn @if($reply->isLikedBy(auth()->id())) liked @endif">
                                                                         <span class="action-icon" aria-hidden="true">❤️</span>
-                                                                        <span class="action-label">Like</span>
+                                                                        <span class="action-label">{{ __('ui.post.like') }}</span>
                                                                         <span class="comment-like-count" data-like-count>{{ $reply->likes_count ?? $reply->likes->count() }}</span>
                                                                     </button>
                                                                 </form>
@@ -278,7 +278,7 @@
                                                                 @if(auth()->id() === $reply->user->id)
                                                                     <form action="{{ route('comments.delete', $reply->id) }}" method="POST" class="delete-form comment-delete-form">
                                                                         @csrf
-                                                                        <button type="submit" class="delete-btn comment-delete-btn" onclick="return confirm('Delete reply?')">Delete</button>
+                                                                        <button type="submit" class="delete-btn comment-delete-btn" onclick="return confirm('{{ __('ui.post.delete_reply_confirm') ?? 'Delete reply?' }}')">{{ __('ui.nav.logout') ?? 'Delete' }}</button>
                                                                     </form>
                                                                 @endif
                                                             @else

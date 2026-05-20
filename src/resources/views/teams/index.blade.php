@@ -6,26 +6,26 @@
 <div class="page-shell team-locker-shell">
     <div class="teams-header">
         <div>
-            <p class="home-eyebrow">Team Locker Room</p>
-            <h1>Find Your Squad</h1>
-            <p class="page-subtitle">Browse teams, join the action, or create your own roster.</p>
+            <p class="home-eyebrow">{{ __('ui.team.my_teams') }}</p>
+            <h1>{{ __('ui.team.title') }}</h1>
+            <p class="page-subtitle">{{ __('ui.team.subtitle') }}</p>
         </div>
-        <a href="{{ route('teams.create') }}" class="btn btn-primary">Create Team</a>
+        <a href="{{ route('teams.create') }}" class="btn btn-primary">{{ __('ui.team.create') }}</a>
     </div>
 
     <section class="team-section-block" id="my-teams">
         <div class="feed-heading">
             <div>
-                <p class="home-eyebrow">My Teams</p>
-                <h2>Active Squads</h2>
+                <p class="home-eyebrow">{{ __('ui.team.my_teams') }}</p>
+                <h2>{{ __('ui.team.active') }}</h2>
             </div>
         </div>
         @if($myTeams->isEmpty())
             <div class="empty-panel team-empty-panel">
-                @include('partials.empty-illustration', ['title' => "You're not in any team yet", 'message' => 'Create one or browse teams to join!'])
+                @include('partials.empty-illustration', ['title' => __('ui.team.no_team_yet'), 'message' => __('ui.team.create_or_browse')])
                 <div class="empty-panel-actions">
-                    <a href="{{ route('teams.create') }}" class="btn btn-primary">Create Team</a>
-                    <a href="#all-teams" class="btn btn-secondary">Browse Teams</a>
+                    <a href="{{ route('teams.create') }}" class="btn btn-primary">{{ __('ui.team.create') }}</a>
+                    <a href="#all-teams" class="btn btn-secondary">{{ __('ui.team.browse') }}</a>
                 </div>
             </div>
         @else
@@ -55,14 +55,14 @@
                             
                             <div class="team-meta-grid">
                                 <div class="team-meta-item">
-                                    <span class="meta-label">Members</span>
+                                    <span class="meta-label">{{ __('ui.team.members') }}</span>
                                     <div class="progress-bar-small">
                                         <div class="progress-fill" style="width: {{ min(100, ($team->members_count ?? 0) * 5) }}%"></div>
                                     </div>
                                     <span class="meta-value">{{ $team->members_count ?? 0 }}/{{ $team->max_members ?? 20 }}</span>
                                 </div>
                                 <div class="team-meta-item">
-                                    <span class="meta-label">Location</span>
+                                    <span class="meta-label">{{ __('ui.team.location') }}</span>
                                     <span class="meta-value">{{ $team->location ?? 'TBD' }}</span>
                                 </div>
                             </div>
@@ -75,7 +75,7 @@
                                 </div>
                             @endif
 
-                            <a href="{{ route('teams.show', $team->id) }}" class="btn btn-primary btn-block">View Team</a>
+                            <a href="{{ route('teams.show', $team->id) }}" class="btn btn-primary btn-block">{{ __('ui.team.view_team') }}</a>
                         </div>
                     </article>
                 @endforeach
@@ -86,13 +86,13 @@
     <section class="team-section-block" id="suggested-teams">
         <div class="feed-heading">
             <div>
-                <p class="home-eyebrow">For You</p>
-                <h2>Suggested Teams</h2>
+                <p class="home-eyebrow">{{ __('ui.team.for_you') }}</p>
+                <h2>{{ __('ui.team.suggested') }}</h2>
             </div>
         </div>
         @if($suggestedTeams->isEmpty())
             <div class="empty-panel team-empty-panel">
-                @include('partials.empty-illustration', ['title' => 'No suggestions right now', 'message' => 'We will recommend teams based on your activity.'])
+                @include('partials.empty-illustration', ['title' => __('ui.team.no_suggestions'), 'message' => __('ui.team.recommendation_note')])
             </div>
         @else
             <div class="team-grid">
@@ -121,14 +121,14 @@
                             
                             <div class="team-meta-grid">
                                 <div class="team-meta-item">
-                                    <span class="meta-label">Members</span>
+                                    <span class="meta-label">{{ __('ui.team.members') }}</span>
                                     <div class="progress-bar-small">
                                         <div class="progress-fill" style="width: {{ min(100, ($team->members_count ?? 0) * 5) }}%"></div>
                                     </div>
                                     <span class="meta-value">{{ $team->members_count }}/{{ $team->max_members }}</span>
                                 </div>
                                 <div class="team-meta-item">
-                                    <span class="meta-label">Location</span>
+                                    <span class="meta-label">{{ __('ui.team.location') }}</span>
                                     <span class="meta-value">{{ $team->location }}</span>
                                 </div>
                             </div>
@@ -140,9 +140,9 @@
                             </div>
 
                             @if($team->is_sample ?? false)
-                                <button type="button" class="btn btn-primary btn-block sample-team-btn" data-team-id="{{ $team->id }}" data-team-name="{{ $team->name }}" data-team-level="{{ $team->level }}" data-team-location="{{ $team->location }}" data-team-members="{{ $team->members_count }}" data-team-max="{{ $team->max_members }}" data-team-slogan="{{ $team->slogan }}" data-team-description="{{ $team->description }}">View Team</button>
+                                <button type="button" class="btn btn-primary btn-block sample-team-btn" data-team-id="{{ $team->id }}" data-team-name="{{ $team->name }}" data-team-level="{{ $team->level }}" data-team-location="{{ $team->location }}" data-team-members="{{ $team->members_count }}" data-team-max="{{ $team->max_members }}" data-team-slogan="{{ $team->slogan }}" data-team-description="{{ $team->description }}">{{ __('ui.team.view_team') }}</button>
                             @else
-                                <a href="{{ route('teams.show', $team->id) }}" class="btn btn-primary btn-block">View Team</a>
+                                <a href="{{ route('teams.show', $team->id) }}" class="btn btn-primary btn-block">{{ __('ui.team.view_team') }}</a>
                             @endif
                         </div>
                     </article>
@@ -154,37 +154,37 @@
     <section class="team-section-block" id="all-teams">
         <div class="feed-heading">
             <div>
-                <p class="home-eyebrow">All Teams</p>
-                <h2>Find a Roster</h2>
+                <p class="home-eyebrow">{{ __('ui.team.all_teams') }}</p>
+                <h2>{{ __('ui.team.find_roster') }}</h2>
             </div>
         </div>
 
         <form method="GET" action="{{ route('teams.index') }}" class="team-search-bar">
             <div class="search-input-wrapper">
-                <input type="text" name="search" value="{{ $search }}" placeholder="🔍 Search teams by name...">
+                <input type="text" name="search" value="{{ $search }}" placeholder="🔍 {{ __('ui.team.search_placeholder') }}">
             </div>
             <div class="team-filter-controls">
                 <select name="level">
-                    <option value="">All Levels</option>
-                    @foreach(['Beginner', 'Intermediate', 'Advanced', 'Professional'] as $level)
-                        <option value="{{ $level }}" @selected($levelFilter === $level)>{{ $level }}</option>
+                    <option value="">{{ __('ui.team.all_levels') }}</option>
+                    @foreach(['Beginner' => __('ui.match.beginner'), 'Intermediate' => __('ui.match.intermediate'), 'Advanced' => __('ui.match.advanced'), 'Professional' => __('ui.match.professional')] as $levelValue => $levelLabel)
+                        <option value="{{ $levelValue }}" @selected($levelFilter === $levelValue)>{{ $levelLabel }}</option>
                     @endforeach
                 </select>
                 <select name="location">
-                    <option value="">All Locations</option>
+                    <option value="">{{ __('ui.team.all_locations') }}</option>
                     @foreach(['Saigon', 'Hanoi', 'Da Nang'] as $city)
                         <option value="{{ $city }}" @selected($locationFilter === $city)>{{ $city }}</option>
                     @endforeach
                 </select>
-                <button type="submit" class="btn btn-primary btn-small">Search</button>
-                <a href="{{ route('teams.index') }}" class="btn btn-secondary btn-small">Reset</a>
+                <button type="submit" class="btn btn-primary btn-small">{{ __('ui.team.search') }}</button>
+                <a href="{{ route('teams.index') }}" class="btn btn-secondary btn-small">{{ __('ui.team.reset') }}</a>
             </div>
         </form>
 
         @if($allTeams->isEmpty())
             <div class="empty-panel team-empty-panel">
-                @include('partials.empty-illustration', ['title' => 'No teams match your search', 'message' => 'Try adjusting your filters or create a new team.'])
-                <a href="{{ route('teams.create') }}" class="btn btn-primary">Create Team</a>
+                @include('partials.empty-illustration', ['title' => __('ui.team.no_match'), 'message' => __('ui.team.adjust_filters')])
+                <a href="{{ route('teams.create') }}" class="btn btn-primary">{{ __('ui.team.create') }}</a>
             </div>
         @else
             <div class="team-grid">
@@ -233,7 +233,7 @@
                                 </div>
                             @endif
 
-                            <a href="{{ route('teams.show', $team->id) }}" class="btn btn-secondary btn-block">View Team</a>
+                            <a href="{{ route('teams.show', $team->id) }}" class="btn btn-secondary btn-block">{{ __('ui.team.view_team') }}</a>
                         </div>
                     </article>
                 @endforeach
@@ -252,7 +252,7 @@
 <div id="sampleTeamModal" class="modal-overlay" style="display: none;">
     <div class="modal-content sample-team-modal">
         <div class="modal-header">
-            <h2>Learn More About This Team</h2>
+            <h2>{{ __('ui.team.learn_more') }}</h2>
             <button type="button" class="modal-close" id="closeModal">&times;</button>
         </div>
         
@@ -265,37 +265,37 @@
             
             <div class="modal-team-info">
                 <div class="modal-team-header">
-                    <h1 id="modalTeamName">Team Name</h1>
-                    <span class="team-badge" id="modalTeamLevel">Level</span>
+                    <h1 id="modalTeamName">{{ __('ui.team.team_name') }}</h1>
+                    <span class="team-badge" id="modalTeamLevel">{{ __('ui.team.level') }}</span>
                 </div>
                 
-                <p class="modal-team-slogan" id="modalTeamSlogan">Team slogan</p>
-                <p class="modal-team-description" id="modalTeamDescription">Team description</p>
+                <p class="modal-team-slogan" id="modalTeamSlogan">{{ __('ui.team.slogan') }}</p>
+                <p class="modal-team-description" id="modalTeamDescription">{{ __('ui.team.description') }}</p>
                 
                 <div class="modal-team-meta">
                     <div class="meta-item">
-                        <span class="meta-label">Members</span>
+                        <span class="meta-label">{{ __('ui.team.members') }}</span>
                         <span class="meta-value" id="modalTeamMembers">0/0</span>
                         <div class="progress-bar-small">
                             <div class="progress-fill" id="modalTeamProgress" style="width: 0%"></div>
                         </div>
                     </div>
                     <div class="meta-item">
-                        <span class="meta-label">Location</span>
-                        <span class="meta-value" id="modalTeamLocation">Location</span>
+                        <span class="meta-label">{{ __('ui.team.location') }}</span>
+                        <span class="meta-value" id="modalTeamLocation">{{ __('ui.team.location') }}</span>
                     </div>
                 </div>
                 
                 <div class="sample-team-notice">
                     <p class="notice-icon">ℹ️</p>
-                    <p class="notice-text">This is a <strong>sample team</strong>. Click "Join Team" to request membership or explore real teams in the directory.</p>
+                    <p class="notice-text">{{ __('ui.team.sample_notice') }}</p>
                 </div>
             </div>
         </div>
         
         <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" id="closeModalBtn">Close</button>
-            <button type="button" class="btn btn-primary">Join Team</button>
+            <button type="button" class="btn btn-secondary" id="closeModalBtn">{{ __('ui.team.close') }}</button>
+            <button type="button" class="btn btn-primary">{{ __('ui.team.join_team') }}</button>
         </div>
     </div>
 </div>

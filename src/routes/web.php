@@ -9,6 +9,7 @@ use App\Http\Controllers\MatchController;
 use App\Http\Controllers\TeamController;
 use App\Http\Controllers\TournamentController;
 use App\Http\Controllers\PostController;
+use App\Http\Controllers\LocaleController;
 use App\Models\GameMatch;
 use App\Models\Challenge;
 use App\Models\Post;
@@ -50,6 +51,8 @@ Route::get('/', function () {
 
     return view('home', compact('posts', 'openMatches', 'isFirstRun'));
 })->name('home');
+
+Route::get('/locale/{locale}', [LocaleController::class, 'switch'])->name('locale.switch');
 
 // Auth Routes
 Route::middleware('guest')->group(function () {
@@ -123,6 +126,10 @@ Route::middleware('auth')->group(function () {
 Route::middleware('auth')->group(function () {
     Route::get('/notifications/recent', [\App\Http\Controllers\NotificationsController::class, 'recent'])->name('notifications.recent');
     Route::post('/notifications/mark-all-read', [\App\Http\Controllers\NotificationsController::class, 'markAllRead'])->name('notifications.markAll');
+    
+    // Betting routes
+    Route::get('/bets', [\App\Http\Controllers\BetController::class, 'index'])->name('bets.index');
+    Route::get('/bets/{bet}', [\App\Http\Controllers\BetController::class, 'show'])->name('bets.show');
 });
 
 // Public Post Routes (index/show should be accessible to guests)

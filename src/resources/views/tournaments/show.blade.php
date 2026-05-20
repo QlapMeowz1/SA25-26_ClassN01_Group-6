@@ -20,7 +20,7 @@
             <span>👤 Organizer: {{ $tournament->organizer->name }}</span>
             <span>👥 Participants: {{ $tournament->tournamentParticipants->count() }}/{{ $tournament->max_participants }}</span>
             @if($tournament->prize_pool > 0)
-                <span>💰 Prize Pool: {{ $tournament->prize_pool }}</span>
+                <span>💰 {{ __('ui.tournament.prize_pool') }}: {{ $tournament->prize_pool }}</span>
             @endif
         </div>
 

@@ -1,5 +1,5 @@
 /* Typography imports */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap');
 
 * {
     margin: 0;
@@ -45,6 +45,9 @@
 
 
 :root {
+    /* Font stacks */
+    --font-heading: 'Be Vietnam Pro', 'Poppins', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    --font-body: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Roboto, Arial, sans-serif;
     --primary-color: #0EA5E9;
     --primary-hover: #0284C7;
     --secondary-color: #7C3AED;
@@ -131,7 +134,7 @@
 }
 
 body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
+    font-family: var(--font-body);
     color: var(--text-color);
     background:
         radial-gradient(circle at top left, rgba(14, 165, 233, 0.12), transparent 32%),
@@ -142,7 +145,7 @@ body {
 }
 
 h1, h2, h3, h4, h5, h6 {
-    font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-family: var(--font-heading);
     font-weight: 700;
     letter-spacing: -0.02em;
 }
@@ -182,6 +185,7 @@ h6 { font-size: 1rem; line-height: 1.5; }
 .nav-brand a {
     font-size: 23px;
     font-weight: bold;
+    font-family: var(--font-heading);
     color: #ffffff;
     text-decoration: none;
     letter-spacing: -0.03em;
@@ -239,6 +243,36 @@ h6 { font-size: 1rem; line-height: 1.5; }
     display: flex;
     align-items: center;
     gap: 12px;
+}
+
+.locale-switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.locale-switch-btn {
+    min-width: 38px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    text-align: center;
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    color: rgba(255, 255, 255, 0.88);
+    transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.locale-switch-btn:hover,
+.locale-switch-btn.is-active {
+    background: rgba(255, 255, 255, 0.16);
+    color: #ffffff;
+    transform: translateY(-1px);
 }
 
 .nav-bell {
@@ -319,6 +353,13 @@ h6 { font-size: 1rem; line-height: 1.5; }
     font-weight: 700;
 }
 
+.nav-coins {
+    font-size: 13px;
+    color: var(--muted-color);
+    margin-left: 8px;
+    font-weight: 600;
+}
+
 .nav-dropdown {
     position: absolute;
     top: calc(100% + 12px);
@@ -369,6 +410,21 @@ h6 { font-size: 1rem; line-height: 1.5; }
 .theme-toggle:hover {
     transform: translateY(-1px);
     box-shadow: 0 12px 24px rgba(15, 23, 42, 0.12);
+}
+
+:root[data-theme="dark"] .locale-switch {
+    border-color: rgba(148, 163, 184, 0.22);
+    background: rgba(15, 23, 42, 0.48);
+}
+
+:root[data-theme="dark"] .locale-switch-btn {
+    color: var(--muted-color);
+}
+
+:root[data-theme="dark"] .locale-switch-btn:hover,
+:root[data-theme="dark"] .locale-switch-btn.is-active {
+    background: rgba(14, 165, 233, 0.18);
+    color: #ffffff;
 }
 
 .btn-primary {
@@ -3959,6 +4015,7 @@ h6 { font-size: 1rem; line-height: 1.5; }
 
 .author-name {
     font-weight: 600;
+    font-family: var(--font-heading);
     text-decoration: none;
     color: var(--text-color);
 }

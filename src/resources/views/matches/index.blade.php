@@ -6,42 +6,42 @@
 <div class="page-shell match-arena-shell">
     <div class="matches-header">
         <div>
-            <p class="home-eyebrow">Match Arena</p>
-            <h1>Find Your Next Match</h1>
-            <p class="page-subtitle">Browse open matches, manage your schedule, and climb the ranks.</p>
+            <p class="home-eyebrow">{{ __('ui.match.open') }}</p>
+            <h1>{{ __('ui.match.title') }}</h1>
+            <p class="page-subtitle">{{ __('ui.match.subtitle') }}</p>
         </div>
         <div class="matches-header-actions">
             <form action="{{ route('matches.quick') }}" method="POST" class="inline">
                 @csrf
-                <button type="submit" class="btn btn-primary">Quick Match</button>
+                <button type="submit" class="btn btn-primary">{{ __('ui.match.quick') }}</button>
             </form>
-            <a href="{{ route('matches.create') }}" class="btn btn-secondary">Create Match</a>
+            <a href="{{ route('matches.create') }}" class="btn btn-secondary">{{ __('ui.match.create') }}</a>
         </div>
     </div>
 
     <form method="GET" action="{{ route('matches.index') }}" class="filter-bar-simplified">
         <div class="filter-controls">
             <div class="filter-input-group">
-                <input type="text" id="location" name="location" value="{{ $filters['location'] ?? '' }}" placeholder="📍 Location">
+                <input type="text" id="location" name="location" value="{{ $filters['location'] ?? '' }}" placeholder="📍 {{ __('ui.challenge.location') }}">
             </div>
             <div class="filter-chips">
-                @foreach(['Beginner', 'Intermediate', 'Advanced', 'Professional'] as $level)
+                @foreach(['Beginner' => __('ui.match.beginner'), 'Intermediate' => __('ui.match.intermediate'), 'Advanced' => __('ui.match.advanced'), 'Professional' => __('ui.match.professional')] as $levelValue => $levelLabel)
                     <label class="chip">
-                        <input type="radio" name="skill_level" value="{{ $level }}" @checked(($filters['skill_level'] ?? '') === $level)>
-                        <span>{{ $level }}</span>
+                        <input type="radio" name="skill_level" value="{{ $levelValue }}" @checked(($filters['skill_level'] ?? '') === $levelValue)>
+                        <span>{{ $levelLabel }}</span>
                     </label>
                 @endforeach
             </div>
             <div class="filter-date-picker">
                 <select id="date" name="date">
-                    <option value="">📅 Any time</option>
-                    <option value="today" @selected(($filters['date'] ?? '') === 'today')>Today</option>
-                    <option value="tomorrow" @selected(($filters['date'] ?? '') === 'tomorrow')>Tomorrow</option>
-                    <option value="weekend" @selected(($filters['date'] ?? '') === 'weekend')>This Weekend</option>
+                    <option value="">📅 {{ __('ui.match.any_time') }}</option>
+                    <option value="today" @selected(($filters['date'] ?? '') === 'today')>{{ __('ui.match.today') }}</option>
+                    <option value="tomorrow" @selected(($filters['date'] ?? '') === 'tomorrow')>{{ __('ui.match.tomorrow') }}</option>
+                    <option value="weekend" @selected(($filters['date'] ?? '') === 'weekend')>{{ __('ui.match.this_weekend') }}</option>
                 </select>
             </div>
-            <button type="submit" class="btn btn-small btn-primary">Filter</button>
-            <a href="{{ route('matches.index') }}" class="btn btn-small btn-secondary">Reset</a>
+            <button type="submit" class="btn btn-small btn-primary">{{ __('ui.match.filter') }}</button>
+            <a href="{{ route('matches.index') }}" class="btn btn-small btn-secondary">{{ __('ui.match.reset') }}</a>
         </div>
     </form>
 
@@ -49,16 +49,16 @@
         <section class="match-section" id="open-matches">
             <div class="feed-heading">
                 <div>
-                    <p class="home-eyebrow">Open Matches</p>
-                    <h2>Available Invitations</h2>
+                    <p class="home-eyebrow">{{ __('ui.match.open') }}</p>
+                    <h2>{{ __('ui.match.available') }}</h2>
                 </div>
             </div>
 
             @if($openMatches->isEmpty())
                 <div class="empty-state-block match-empty-cta">
-                    <h3>Be the first to create a match!</h3>
-                    <p>No open matches yet. Challenge someone to a game and get started.</p>
-                    <a href="{{ route('matches.create') }}" class="btn btn-primary">Create Match</a>
+                    <h3>{{ __('ui.match.first_match') }}</h3>
+                    <p>{{ __('ui.match.open_none') }}</p>
+                    <a href="{{ route('matches.create') }}" class="btn btn-primary">{{ __('ui.match.create_match') }}</a>
                 </div>
             @else
                 <div class="match-ticket-grid">
@@ -70,7 +70,7 @@
                                 <div class="ticket-badge" data-rank="{{ $match->arena_badge_class ?? 'beginner' }}">
                                     {{ $match->arena_skill ?? 'Beginner' }}
                                 </div>
-                                <span class="ticket-status">{{ $match->status === 'open' ? 'OPEN' : 'AVAILABLE' }}</span>
+                                <span class="ticket-status">{{ $match->status === 'open' ? __('ui.match.open') : __('ui.match.available') }}</span>
                             </div>
 
                             <div class="ticket-players">
@@ -81,7 +81,7 @@
                                 <div class="vs-center">VS</div>
                                 <div class="player-stack">
                                     <div class="match-avatar-waiting">?</div>
-                                    <span class="player-name-ticket">Find opponent</span>
+                                    <span class="player-name-ticket">{{ __('ui.match.find_opponent') }}</span>
                                 </div>
                             </div>
 
@@ -92,12 +92,12 @@
 
                             @if(!($match->is_sample ?? false) && $match->joinRequests && $match->joinRequests->count() > 0)
                                 <div class="ticket-requests">
-                                    <p class="ticket-requests-header">{{ $match->joinRequests->count() }} join request{{ $match->joinRequests->count() !== 1 ? 's' : '' }}</p>
+                                    <p class="ticket-requests-header">{{ __('ui.match.join_requests', ['count' => $match->joinRequests->count()]) }}</p>
                                 </div>
                             @endif
 
                             <div class="ticket-footer">
-                                <a href="{{ route('matches.show', $match->id) }}" class="btn btn-primary btn-small">View Match</a>
+                                <a href="{{ route('matches.show', $match->id) }}" class="btn btn-primary btn-small">{{ __('ui.match.view_match') }}</a>
                             </div>
                         </article>
                     @endforeach
@@ -108,16 +108,16 @@
         <section class="match-section" id="upcoming-matches">
             <div class="feed-heading">
                 <div>
-                    <p class="home-eyebrow">My Upcoming Matches</p>
-                    <h2>Scheduled Fixtures</h2>
+                    <p class="home-eyebrow">{{ __('ui.match.my_upcoming') }}</p>
+                    <h2>{{ __('ui.match.scheduled') }}</h2>
                 </div>
             </div>
 
             @if($upcomingMatches->isEmpty())
                 <div class="empty-state-block match-empty-cta">
-                    <h3>No upcoming matches yet</h3>
-                    <p>No upcoming matches yet. Create or join a match to get started!</p>
-                    <a href="{{ route('matches.create') }}" class="btn btn-primary">Create Match</a>
+                    <h3>{{ __('ui.match.no_upcoming') }}</h3>
+                    <p>{{ __('ui.match.upcoming_none') }}</p>
+                    <a href="{{ route('matches.create') }}" class="btn btn-primary">{{ __('ui.match.create_match') }}</a>
                 </div>
             @else
                 <div class="match-ticket-grid">
@@ -140,17 +140,17 @@
                                 <div class="vs-center">VS</div>
                                 <div class="player-stack">
                                     <div class="match-avatar">{{ $match->player2 ? strtoupper(substr($match->player2->name, 0, 1)) : '?' }}</div>
-                                    <span class="player-name-ticket">{{ $match->player2?->name ?? 'TBD' }}</span>
+                                    <span class="player-name-ticket">{{ $match->player2?->name ?? __('ui.dashboard.tbd') }}</span>
                                 </div>
                             </div>
 
                             <div class="ticket-meta-row">
-                                <span class="ticket-meta-item">📍 {{ $match->location ?? 'Court TBD' }}</span>
+                                <span class="ticket-meta-item">📍 {{ $match->location ?? __('ui.match.court_tbd') }}</span>
                                 <span class="ticket-meta-item">🕒 {{ $match->match_date->format('M d, g\A') }}</span>
                             </div>
 
                             <div class="ticket-footer">
-                                <a href="{{ route('matches.show', $match->id) }}" class="btn btn-primary btn-small">View Match</a>
+                                <a href="{{ route('matches.show', $match->id) }}" class="btn btn-primary btn-small">{{ __('ui.match.view_match') }}</a>
                             </div>
                         </article>
                     @endforeach
@@ -161,14 +161,14 @@
         <section class="match-section" id="completed-matches">
             <div class="feed-heading">
                 <div>
-                    <p class="home-eyebrow">Completed Matches</p>
-                    <h2>Match History</h2>
+                    <p class="home-eyebrow">{{ __('ui.match.completed') }}</p>
+                    <h2>{{ __('ui.match.history') }}</h2>
                 </div>
             </div>
 
             @if($completedMatches->isEmpty())
                 <div class="empty-state-block">
-                    <p>No completed matches yet. Start playing to build your record.</p>
+                    <p>{{ __('ui.match.no_completed') }}</p>
                 </div>
             @else
                 <div class="match-ticket-grid">
@@ -177,7 +177,7 @@
                             <div class="ticket-perforated"></div>
                             
                             <div class="ticket-header">
-                                <div class="ticket-badge" data-rank="completed">Completed</div>
+                                <div class="ticket-badge" data-rank="completed">{{ __('ui.match.completed') }}</div>
                                 <span class="ticket-status">🏆 RESULT</span>
                             </div>
 
@@ -200,7 +200,7 @@
                             </div>
 
                             <div class="ticket-footer">
-                                <a href="{{ route('matches.show', $match->id) }}" class="btn btn-primary btn-small">Details</a>
+                                <a href="{{ route('matches.show', $match->id) }}" class="btn btn-primary btn-small">{{ __('ui.match.details') }}</a>
                             </div>
                         </article>
                     @endforeach

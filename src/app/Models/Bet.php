@@ -44,12 +44,23 @@ class Bet extends Model
         if ($this->gameMatch->isCompleted()) {
             if ($this->gameMatch->winner_id === $this->bet_on_user_id) {
                 $this->status = 'won';
-                $this->payout = (int)($this->amount * 2);
+                $this->payout = $this->calculatePayout();
             } else {
                 $this->status = 'lost';
                 $this->payout = 0;
             }
             $this->save();
         }
+    }
+
+    public function isWon()
+    {
+        return $this->status === 'won';
+    }
+
+    public function calculatePayout()
+    {
+        // simple payout: amount * 2 (placeholder). Could extend to use odds.
+        return (float) ($this->amount * 2);
     }
 }

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,6 +12,26 @@
             document.documentElement.style.colorScheme = savedTheme;
         })();
     </script>
+    <script>
+        window.tailwind = window.tailwind || {};
+        window.tailwind.config = {
+            darkMode: ['class', '[data-theme="dark"]'],
+            theme: {
+                extend: {
+                    fontFamily: {
+                        heading: ['"Be Vietnam Pro"', 'sans-serif'],
+                        body: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        court: '#0A5C0A',
+                        energy: '#FF6200',
+                        amber: '#F59E0B',
+                    },
+                },
+            },
+        };
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
     <link rel="stylesheet" href="{{ asset('css/dashboard-redesign.css') }}">
 </head>
@@ -28,15 +48,20 @@
 
             @auth
                 <div class="nav-menu nav-menu-primary">
-                    <a href="{{ route('dashboard') }}" class="nav-link {{ request()->routeIs('dashboard') ? 'nav-link-active' : '' }}">Dashboard</a>
-                    <a href="{{ route('challenges.index') }}" class="nav-link {{ request()->routeIs('challenges.*') ? 'nav-link-active' : '' }}">Challenges</a>
-                    <a href="{{ route('matches.index') }}" class="nav-link {{ request()->routeIs('matches.*') ? 'nav-link-active' : '' }}">Matches</a>
-                    <a href="{{ route('teams.index') }}" class="nav-link {{ request()->routeIs('teams.*') ? 'nav-link-active' : '' }}">Teams</a>
-                    <a href="{{ route('tournaments.index') }}" class="nav-link {{ request()->routeIs('tournaments.*') ? 'nav-link-active' : '' }}">Tournaments</a>
+                    <a href="{{ route('dashboard') }}" class="nav-link {{ request()->routeIs('dashboard') ? 'nav-link-active' : '' }}">{{ __('ui.nav.dashboard') }}</a>
+                    <a href="{{ route('challenges.index') }}" class="nav-link {{ request()->routeIs('challenges.*') ? 'nav-link-active' : '' }}">{{ __('ui.nav.challenges') }}</a>
+                    <a href="{{ route('matches.index') }}" class="nav-link {{ request()->routeIs('matches.*') ? 'nav-link-active' : '' }}">{{ __('ui.nav.matches') }}</a>
+                    <a href="{{ route('teams.index') }}" class="nav-link {{ request()->routeIs('teams.*') ? 'nav-link-active' : '' }}">{{ __('ui.nav.teams') }}</a>
+                    <a href="{{ route('tournaments.index') }}" class="nav-link {{ request()->routeIs('tournaments.*') ? 'nav-link-active' : '' }}">{{ __('ui.nav.tournaments') }}</a>
                 </div>
 
                 <div class="nav-actions">
-                    <button type="button" class="theme-toggle" id="themeToggle" aria-label="Toggle theme">Toggle Theme</button>
+                    <div class="locale-switch" aria-label="{{ __('ui.locale.label') }}">
+                        <a href="{{ route('locale.switch', 'en') }}" class="locale-switch-btn {{ app()->getLocale() === 'en' ? 'is-active' : '' }}">EN</a>
+                        <a href="{{ route('locale.switch', 'vi') }}" class="locale-switch-btn {{ app()->getLocale() === 'vi' ? 'is-active' : '' }}">VI</a>
+                    </div>
+
+                    <button type="button" class="theme-toggle" id="themeToggle" aria-label="{{ __('ui.theme.dark') }}">{{ __('ui.theme.dark') }}</button>
 
                     @php
                         $unreadNotifications = auth()->user()->notifications()->where('is_read', false)->count();
@@ -51,14 +76,14 @@
 
                         <div class="nav-bell-dropdown" id="navBellDropdown" hidden>
                             <div class="nav-bell-header">
-                                <strong>Notifications</strong>
-                                <button type="button" id="markAllReadBtn" class="btn btn-link">Mark all read</button>
+                                <strong>{{ __('ui.notifications.title') }}</strong>
+                                <button type="button" id="markAllReadBtn" class="btn btn-link">{{ __('ui.notifications.mark_all_read') }}</button>
                             </div>
                             <div class="nav-bell-list" id="navBellList">
                                 <p class="muted">Loading…</p>
                             </div>
                             <div class="nav-bell-footer">
-                                <a href="{{ route('dashboard') }}#notifications">View all</a>
+                                <a href="{{ route('dashboard') }}#notifications">{{ __('ui.notifications.view_all') }}</a>
                             </div>
                         </div>
                     </div>
@@ -71,23 +96,29 @@
                                 <span class="nav-avatar nav-avatar-fallback">{{ strtoupper(substr(auth()->user()->name, 0, 1)) }}</span>
                             @endif
                             <span class="nav-user-name">{{ auth()->user()->name }}</span>
+                            <span class="nav-coins">{{ number_format(auth()->user()->virtual_coins ?? 0) }} 🪙</span>
                         </summary>
 
                         <div class="nav-dropdown">
-                            <a href="{{ route('profile.show', auth()->id()) }}" class="nav-dropdown-link">Profile</a>
-                            <a href="{{ route('profile.edit') }}" class="nav-dropdown-link">Settings</a>
+                            <a href="{{ route('profile.show', auth()->id()) }}" class="nav-dropdown-link">{{ __('ui.nav.profile') }}</a>
+                            <a href="{{ route('profile.edit') }}" class="nav-dropdown-link">{{ __('ui.nav.settings') }}</a>
                             <form action="{{ route('logout') }}" method="POST">
                                 @csrf
-                                <button type="submit" class="nav-dropdown-link nav-dropdown-button">Logout</button>
+                                <button type="submit" class="nav-dropdown-link nav-dropdown-button">{{ __('ui.nav.logout') }}</button>
                             </form>
                         </div>
                     </details>
                 </div>
             @else
                 <div class="nav-menu nav-menu-guest">
-                    <button type="button" class="theme-toggle" id="themeToggle" aria-label="Toggle theme">Toggle Theme</button>
-                    <a href="{{ route('login') }}" class="nav-link">Login</a>
-                    <a href="{{ route('register') }}" class="nav-link nav-link-accent">Register</a>
+                    <div class="locale-switch" aria-label="{{ __('ui.locale.label') }}">
+                        <a href="{{ route('locale.switch', 'en') }}" class="locale-switch-btn {{ app()->getLocale() === 'en' ? 'is-active' : '' }}">EN</a>
+                        <a href="{{ route('locale.switch', 'vi') }}" class="locale-switch-btn {{ app()->getLocale() === 'vi' ? 'is-active' : '' }}">VI</a>
+                    </div>
+
+                    <button type="button" class="theme-toggle" id="themeToggle" aria-label="{{ __('ui.theme.dark') }}">{{ __('ui.theme.dark') }}</button>
+                    <a href="{{ route('login') }}" class="nav-link">{{ __('ui.nav.login') }}</a>
+                    <a href="{{ route('register') }}" class="nav-link nav-link-accent">{{ __('ui.nav.register') }}</a>
                 </div>
             @endauth
         </div>
@@ -122,31 +153,31 @@
     <!-- Mobile Bottom Navigation -->
     @auth
     <nav class="mobile-bottom-nav">
-        <a href="{{ route('dashboard') }}" class="mobile-nav-item {{ request()->routeIs('dashboard') ? 'mobile-nav-active' : '' }}" title="Dashboard">
+        <a href="{{ route('dashboard') }}" class="mobile-nav-item {{ request()->routeIs('dashboard') ? 'mobile-nav-active' : '' }}" title="{{ __('ui.nav.home') }}">
             <span class="mobile-nav-icon">📊</span>
-            <span class="mobile-nav-label">Home</span>
+            <span class="mobile-nav-label">{{ __('ui.nav.home') }}</span>
         </a>
-        <a href="{{ route('challenges.index') }}" class="mobile-nav-item {{ request()->routeIs('challenges.*') ? 'mobile-nav-active' : '' }}" title="Challenges">
+        <a href="{{ route('challenges.index') }}" class="mobile-nav-item {{ request()->routeIs('challenges.*') ? 'mobile-nav-active' : '' }}" title="{{ __('ui.nav.challenges') }}">
             <span class="mobile-nav-icon">⚔️</span>
-            <span class="mobile-nav-label">Challenges</span>
+            <span class="mobile-nav-label">{{ __('ui.nav.challenges') }}</span>
         </a>
-        <a href="{{ route('matches.index') }}" class="mobile-nav-item {{ request()->routeIs('matches.*') ? 'mobile-nav-active' : '' }}" title="Matches">
+        <a href="{{ route('matches.index') }}" class="mobile-nav-item {{ request()->routeIs('matches.*') ? 'mobile-nav-active' : '' }}" title="{{ __('ui.nav.matches') }}">
             <span class="mobile-nav-icon">🎾</span>
-            <span class="mobile-nav-label">Matches</span>
+            <span class="mobile-nav-label">{{ __('ui.nav.matches') }}</span>
         </a>
-        <a href="{{ route('teams.index') }}" class="mobile-nav-item {{ request()->routeIs('teams.*') ? 'mobile-nav-active' : '' }}" title="Teams">
+        <a href="{{ route('teams.index') }}" class="mobile-nav-item {{ request()->routeIs('teams.*') ? 'mobile-nav-active' : '' }}" title="{{ __('ui.nav.teams') }}">
             <span class="mobile-nav-icon">👥</span>
-            <span class="mobile-nav-label">Teams</span>
+            <span class="mobile-nav-label">{{ __('ui.nav.teams') }}</span>
         </a>
-        <a href="{{ route('tournaments.index') }}" class="mobile-nav-item {{ request()->routeIs('tournaments.*') ? 'mobile-nav-active' : '' }}" title="Tournaments">
+        <a href="{{ route('tournaments.index') }}" class="mobile-nav-item {{ request()->routeIs('tournaments.*') ? 'mobile-nav-active' : '' }}" title="{{ __('ui.nav.tournaments') }}">
             <span class="mobile-nav-icon">🏆</span>
-            <span class="mobile-nav-label">Tournaments</span>
+            <span class="mobile-nav-label">{{ __('ui.nav.tournaments') }}</span>
         </a>
     </nav>
     @endauth
 
     <footer class="footer">
-        <p>&copy; demo by melmuop.</p>
+        <p>&copy; {{ __('ui.footer.copyright') }}</p>
     </footer>
 
     <script>
@@ -157,7 +188,8 @@
             function updateThemeButton() {
                 if (!themeToggle) return;
                 const currentTheme = root.dataset.theme || 'light';
-                themeToggle.textContent = currentTheme === 'dark' ? 'Light Mode' : 'Dark Mode';
+                themeToggle.textContent = currentTheme === 'dark' ? '{{ __('ui.theme.light') }}' : '{{ __('ui.theme.dark') }}';
+                themeToggle.setAttribute('aria-label', currentTheme === 'dark' ? '{{ __('ui.theme.light') }}' : '{{ __('ui.theme.dark') }}');
             }
 
             if (themeToggle) {
