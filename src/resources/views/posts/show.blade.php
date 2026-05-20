@@ -33,9 +33,10 @@
 
         <div class="post-content">{!! nl2br(e($post->display_content)) !!}</div>
 
-        @if($post->image || $post->embedded_image_url)
+        @php $postImage = $post->image_url ?? $post->embedded_image_url; @endphp
+        @if($postImage)
             <div class="post-media">
-                <img src="{{ $post->image ?? $post->embedded_image_url }}" alt="Post image" class="post-image" loading="lazy" />
+                <img src="{{ $postImage }}" alt="Post image" class="post-image" loading="lazy" />
             </div>
         @endif
 

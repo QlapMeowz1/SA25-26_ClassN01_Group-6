@@ -13,7 +13,8 @@ class PostController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('auth');
+        // Allow public access to index and show so guests can view the feed and post details
+        $this->middleware('auth')->except(['index', 'show']);
     }
 
     public function index()

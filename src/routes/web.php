@@ -125,11 +125,13 @@ Route::middleware('auth')->group(function () {
     Route::post('/notifications/mark-all-read', [\App\Http\Controllers\NotificationsController::class, 'markAllRead'])->name('notifications.markAll');
 });
 
-// Post Routes
+// Public Post Routes (index/show should be accessible to guests)
+Route::get('/posts', [PostController::class, 'index'])->name('posts.index');
+Route::get('/posts/load-more', [PostController::class, 'loadMore'])->name('posts.loadMore');
+Route::get('/posts/{post}', [PostController::class, 'show'])->name('posts.show');
+
+// Protected Post Routes
 Route::middleware('auth')->group(function () {
-    Route::get('/posts', [PostController::class, 'index'])->name('posts.index');
-        Route::get('/posts/load-more', [PostController::class, 'loadMore'])->name('posts.loadMore');
-    Route::get('/posts/{post}', [PostController::class, 'show'])->name('posts.show');
     Route::post('/posts', [PostController::class, 'store'])->name('posts.store');
     Route::post('/posts/{post}/delete', [PostController::class, 'delete'])->name('posts.delete');
     Route::post('/posts/{post}/like', [PostController::class, 'like'])->name('posts.like');

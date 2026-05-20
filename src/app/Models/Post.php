@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 
 class Post extends Model
 {
@@ -80,6 +81,31 @@ class Post extends Model
         return array_values(array_map(function ($u) {
             return rtrim($u, '.,)\]\'"');
         }, $urls));
+    }
+
+    /**
+     * Return a usable image URL for the post's primary image field.
+     * If the `image` value is already an absolute URL, return it directly.
+     * Otherwise, generate a storage URL via `Storage::url()`.
+     */
+    public function getImageUrlAttribute(): ?string
+    {
+        $img = $this->image;
+
+        if (! $img) {
+            return null;
+        }
+
+        // If already an absolute URL, return as-is
+        if (preg_match('/^https?:\/\//i', $img)) {
+            return $img;
+        }
+
+        try {
+            return Storage::url($img);
+        } catch (\Throwable $e) {
+            return $img;
+        }
     }
 
     public function getDisplayContentAttribute(): string
