@@ -8,8 +8,10 @@
     <script>
         (function () {
             const savedTheme = localStorage.getItem('badnet-theme') || 'light';
-            document.documentElement.dataset.theme = savedTheme;
-            document.documentElement.style.colorScheme = savedTheme;
+            const root = document.documentElement;
+            root.dataset.theme = savedTheme;
+            root.classList.toggle('dark', savedTheme === 'dark');
+            root.style.colorScheme = savedTheme;
         })();
     </script>
     <script>
@@ -196,6 +198,7 @@
                 themeToggle.addEventListener('click', function() {
                     const nextTheme = (root.dataset.theme === 'dark') ? 'light' : 'dark';
                     root.dataset.theme = nextTheme;
+                    root.classList.toggle('dark', nextTheme === 'dark');
                     root.style.colorScheme = nextTheme;
                     localStorage.setItem('badnet-theme', nextTheme);
                     updateThemeButton();

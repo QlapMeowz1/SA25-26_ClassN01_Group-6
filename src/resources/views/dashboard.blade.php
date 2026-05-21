@@ -66,7 +66,7 @@
 
                         <div>
                             <h3 class="font-heading text-2xl font-extrabold text-slate-950 dark:text-white">{{ $user->name }}</h3>
-                            <div class="mt-2 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-sm font-semibold text-emerald-800 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-300">
+                            <div class="mt-2 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-sm font-semibold text-emerald-800 dark:border-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
                                 <span>🔥</span> {{ $user->rank }}
                             </div>
                         </div>
@@ -261,8 +261,8 @@
                             @foreach($upcomingMatches->take(2) as $match)
                                 @php
                                     $statusTone = $match->status === 'in_progress'
-                                        ? 'border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-300'
-                                        : 'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-300';
+                                        ? 'border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-300'
+                                        : 'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-700 dark:bg-emerald-950 dark:text-emerald-300';
                                     $statusDot = $match->status === 'in_progress' ? 'bg-amber-500' : 'bg-emerald-500';
                                 @endphp
                                 <article class="rounded-3xl border border-slate-200 bg-slate-50 p-4 shadow-sm transition duration-300 hover:-translate-y-0.5 hover:shadow-lg dark:border-slate-700 dark:bg-zinc-900">
@@ -333,7 +333,7 @@
                                     {{ $player->name }}
                                 </a>
 
-                                <span class="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-300">
+                                <span class="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
                                     {{ $player->elo_rating }}
                                 </span>
                             </div>
@@ -396,12 +396,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
         imageFiles.forEach((file) => {
             const url = URL.createObjectURL(file);
-            cards.push(`<div class="h-20 w-20 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-slate-800"><img src="${url}" alt="Selected image" class="h-full w-full object-cover" /></div>`);
+            cards.push(`<div class="h-20 w-20 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-zinc-900"><img src="${url}" alt="Selected image" class="h-full w-full object-cover" /></div>`);
         });
 
         videoFiles.forEach((file) => {
             const url = URL.createObjectURL(file);
-            cards.push(`<div class="h-20 w-20 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-slate-800"><video src="${url}" muted playsinline class="h-full w-full object-cover"></video></div>`);
+            cards.push(`<div class="h-20 w-20 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-zinc-900"><video src="${url}" muted playsinline class="h-full w-full object-cover"></video></div>`);
         });
 
         preview.innerHTML = cards.join('');
