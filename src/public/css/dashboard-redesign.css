@@ -430,7 +430,7 @@
 }
 
 .feed-card .post-image {
-    /* Show full image without cropping; scale down to fit card */
+    
     width: auto;
     max-width: 100%;
     height: auto;
@@ -442,7 +442,7 @@
 }
 
 .post-detail .post-media {
-    /* Match feed behaviour so images align with post content */
+  
     margin-top: 12px;
     margin-bottom: 12px;
     border-radius: 8px;
@@ -450,7 +450,7 @@
 }
 
 .post-detail .post-image {
-    /* Ensure detail images are fully visible (no cropping) */
+    
     width: auto;
     max-width: 100%;
     height: auto;
@@ -851,3 +851,82 @@
 }
 
 .view-all-comments:hover { text-decoration: underline; }
+/* ===================== DASHBOARD LIGHT MODE - FINAL FIX ===================== */
+:root[data-theme="light"],
+:root:not([data-theme="dark"]) {
+    --surface-bg: #ffffff;
+    --surface-alt-bg: #f8fafc;
+    --text-color: #1e2937;
+    --muted-color: #64748b;
+    --border-color: #e2e8f0;
+}
+
+/* Main cards */
+:root[data-theme="light"] .compact-user-card,
+:root[data-theme="light"] .match-mini-card,
+:root[data-theme="light"] .leaderboard-mini-row,
+:root[data-theme="light"] .feed-card,
+:root[data-theme="light"] .post-card,
+:root[data-theme="light"] .dashboard-section,
+:root[data-theme="light"] #status-update,
+:root[data-theme="light"] #live-feed {
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    color: #1e2937 !important;
+}
+
+/* Text colors */
+:root[data-theme="light"] .greeting-text,
+:root[data-theme="light"] .user-card-name,
+:root[data-theme="light"] .online-player-name,
+:root[data-theme="light"] .leaderboard-player-name,
+:root[data-theme="light"] .section-header-compact {
+    color: #1e2937 !important;
+}
+
+:root[data-theme="light"] .greeting-subtitle,
+:root[data-theme="light"] .user-card-elo,
+:root[data-theme="light"] .match-datetime,
+:root[data-theme="light"] .match-location {
+    color: #64748b !important;
+}
+
+/* Special elements */
+:root[data-theme="light"] .rank-badge-compact {
+    background: #e0f2fe;
+    color: #0369a1;
+}
+
+:root[data-theme="light"] .ELO-RATING-BAR {
+    background: #1e2937 !important;
+    color: #ffffff !important;
+}
+
+/* Composer */
+:root[data-theme="light"] .composer-input {
+    background: #f8fafc !important;
+    border-color: #cbd5e1 !important;
+    color: #1e2937 !important;
+}
+
+/* Buttons & chips */
+:root[data-theme="light"] .btn-compact,
+:root[data-theme="light"] .composer-tool,
+:root[data-theme="light"] .composer-upload-chip {
+    background: #f1f5f9 !important;
+    color: #1e2937 !important;
+    border-color: #cbd5e1 !important;
+}
+
+/* Hover */
+:root[data-theme="light"] .online-player-row:hover,
+:root[data-theme="light"] .leaderboard-mini-row:hover {
+    background: #f1f5f9 !important;
+}
+
+/* Fix remaining dark spots */
+:root[data-theme="light"] .dark\\:bg-zinc-900,
+:root[data-theme="light"] .bg-zinc-900,
+:root[data-theme="light"] .bg-slate-900 {
+    background: #ffffff !important;
+}
