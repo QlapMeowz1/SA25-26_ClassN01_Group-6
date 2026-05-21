@@ -851,82 +851,141 @@
 }
 
 .view-all-comments:hover { text-decoration: underline; }
-/* ===================== DASHBOARD LIGHT MODE - FINAL FIX ===================== */
+/* ===================== ULTIMATE DASHBOARD LIGHT MODE FIX ===================== */
 :root[data-theme="light"],
 :root:not([data-theme="dark"]) {
-    --surface-bg: #ffffff;
-    --surface-alt-bg: #f8fafc;
-    --text-color: #1e2937;
-    --muted-color: #64748b;
-    --border-color: #e2e8f0;
+    --surface-bg: #ffffff !important;
+    --surface-alt-bg: #f8fafc !important;
 }
 
-/* Main cards */
-:root[data-theme="light"] .compact-user-card,
-:root[data-theme="light"] .match-mini-card,
-:root[data-theme="light"] .leaderboard-mini-row,
-:root[data-theme="light"] .feed-card,
-:root[data-theme="light"] .post-card,
-:root[data-theme="light"] .dashboard-section,
-:root[data-theme="light"] #status-update,
-:root[data-theme="light"] #live-feed {
-    background: #ffffff !important;
-    border: 1px solid #e2e8f0 !important;
-    color: #1e2937 !important;
+/* Main containers */
+:root[data-theme="light"] .bg-white,
+:root[data-theme="light"] .dark\\:bg-zinc-900,
+:root[data-theme="light"] section,
+:root[data-theme="light"] .rounded-3xl {
+    background-color: #ffffff !important;
+}
+
+/* Text */
+:root[data-theme="light"] .text-slate-950,
+:root[data-theme="light"] .dark\\:text-white {
+    color: #0f172a !important;
+}
+
+:root[data-theme="light"] .text-slate-600,
+:root[data-theme="light"] .dark\\:text-slate-300,
+:root[data-theme="light"] .text-slate-500 {
+    color: #475569 !important;
+}
+
+/* Borders */
+:root[data-theme="light"] .border-emerald-200,
+:root[data-theme="light"] .dark\\:border-emerald-700 {
+    border-color: #a1a1aa !important;
+}
+
+/* Stat cards */
+:root[data-theme="light"] .bg-emerald-50,
+:root[data-theme="light"] .dark\\:bg-emerald-900\\/20 {
+    background-color: #ecfdf5 !important;
+}
+
+:root[data-theme="light"] .bg-orange-50,
+:root[data-theme="light"] .dark\\:bg-orange-900\\/20 {
+    background-color: #fff7ed !important;
+}
+
+:root[data-theme="light"] .bg-amber-50,
+:root[data-theme="light"] .dark\\:bg-amber-900\\/20 {
+    background-color: #fefce8 !important;
+}
+
+/* Composer textarea */
+:root[data-theme="light"] #status-update textarea {
+    background-color: #ffffff !important;
+    border-color: #cbd5e1 !important;
+    color: #0f172a !important;
+}
+
+/* User profile card */
+:root[data-theme="light"] .bg-slate-50,
+:root[data-theme="light"] .dark\\:bg-zinc-900 {
+    background-color: #f8fafc !important;
+}
+
+/* Force all remaining dark backgrounds */
+:root[data-theme="light"] .bg-zinc-900,
+:root[data-theme="light"] .dark\\:bg-zinc-900,
+:root[data-theme="light"] .bg-slate-900 {
+    background-color: #ffffff !important;
+}
+/* ===================== ULTIMATE LIGHT MODE FIX - DASHBOARD ===================== */
+:root[data-theme="light"],
+:root:not([data-theme="dark"]) {
+    /* intentionally empty - selectors below apply the rules per-light theme */
+}
+
+/* Main background & cards */
+:root[data-theme="light"] .bg-white,
+:root[data-theme="light"] .dark\\:bg-zinc-900,
+:root[data-theme="light"] .bg-zinc-900,
+:root[data-theme="light"] section,
+:root[data-theme="light"] .rounded-3xl {
+    background-color: #ffffff !important;
 }
 
 /* Text colors */
-:root[data-theme="light"] .greeting-text,
-:root[data-theme="light"] .user-card-name,
-:root[data-theme="light"] .online-player-name,
-:root[data-theme="light"] .leaderboard-player-name,
-:root[data-theme="light"] .section-header-compact {
-    color: #1e2937 !important;
+:root[data-theme="light"] .text-slate-950,
+:root[data-theme="light"] .dark\\:text-white,
+:root[data-theme="light"] .font-extrabold {
+    color: #0f172a !important;
 }
 
-:root[data-theme="light"] .greeting-subtitle,
-:root[data-theme="light"] .user-card-elo,
-:root[data-theme="light"] .match-datetime,
-:root[data-theme="light"] .match-location {
-    color: #64748b !important;
+:root[data-theme="light"] .text-slate-600,
+:root[data-theme="light"] .text-slate-500,
+:root[data-theme="light"] .dark\\:text-slate-300,
+:root[data-theme="light"] .dark\\:text-slate-400 {
+    color: #475569 !important;
 }
 
-/* Special elements */
-:root[data-theme="light"] .rank-badge-compact {
-    background: #e0f2fe;
-    color: #0369a1;
+/* Borders */
+:root[data-theme="light"] .border-emerald-200,
+:root[data-theme="light"] .dark\\:border-emerald-700,
+:root[data-theme="light"] .border-slate-200,
+:root[data-theme="light"] .dark\\:border-slate-700 {
+    border-color: #e2e8f0 !important;
 }
 
-:root[data-theme="light"] .ELO-RATING-BAR {
-    background: #1e2937 !important;
-    color: #ffffff !important;
+/* Stat boxes */
+:root[data-theme="light"] .bg-emerald-50,
+:root[data-theme="light"] .dark\\:bg-emerald-900\\/20 {
+    background-color: #ecfdf5 !important;
+}
+:root[data-theme="light"] .bg-orange-50,
+:root[data-theme="light"] .dark\\:bg-orange-900\\/20 {
+    background-color: #fff7ed !important;
+}
+:root[data-theme="light"] .bg-amber-50,
+:root[data-theme="light"] .dark\\:bg-amber-900\\/20 {
+    background-color: #fefce8 !important;
 }
 
-/* Composer */
-:root[data-theme="light"] .composer-input {
-    background: #f8fafc !important;
+/* Composer textarea */
+:root[data-theme="light"] #status-update textarea {
+    background-color: #ffffff !important;
     border-color: #cbd5e1 !important;
-    color: #1e2937 !important;
+    color: #0f172a !important;
 }
 
-/* Buttons & chips */
-:root[data-theme="light"] .btn-compact,
-:root[data-theme="light"] .composer-tool,
-:root[data-theme="light"] .composer-upload-chip {
-    background: #f1f5f9 !important;
-    color: #1e2937 !important;
-    border-color: #cbd5e1 !important;
+/* Online now & other small cards */
+:root[data-theme="light"] .bg-slate-50,
+:root[data-theme="light"] .dark\\:bg-zinc-900 {
+    background-color: #f8fafc !important;
 }
 
-/* Hover */
-:root[data-theme="light"] .online-player-row:hover,
-:root[data-theme="light"] .leaderboard-mini-row:hover {
-    background: #f1f5f9 !important;
-}
-
-/* Fix remaining dark spots */
-:root[data-theme="light"] .dark\\:bg-zinc-900,
+/* Force everything else */
 :root[data-theme="light"] .bg-zinc-900,
-:root[data-theme="light"] .bg-slate-900 {
-    background: #ffffff !important;
+:root[data-theme="light"] .dark\\:bg-zinc-900,
+:root[data-theme="light"] .dark\\:bg-slate-900 {
+    background-color: #ffffff !important;
 }
