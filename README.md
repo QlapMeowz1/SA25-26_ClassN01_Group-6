@@ -10,8 +10,6 @@ Dự án sử dụng Laravel (PHP) kết hợp Blade, TypeScript, PLpgSQL và ki
 
 **src/**
 - `app/`              : Logic ứng dụng (Models, Controllers, Services,...)
-- `backend/`          : Mã nguồn backend, xử lý nghiệp vụ, cung cấp API
-- `frontend/`         : Mã nguồn front-end, assets, JS/TS, CSS
 - `resources/`        : Blade templates, layout giao diện HTML/CSS
 - `routes/`           : Định nghĩa route cho web/API
 - `config/`           : File cấu hình ứng dụng, môi trường
