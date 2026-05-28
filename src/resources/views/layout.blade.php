@@ -6,13 +6,27 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'BadNet')</title>
     <script>
+        // Bootstrap theme on page load (before content renders)
         (function () {
-            const savedTheme = localStorage.getItem('badnet-theme') || 'light';
+            const userTheme = @json(auth()->user()?->theme ?? 'dark');
+            const savedTheme = localStorage.getItem('badnet-theme') || userTheme || 'dark';
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            
+            // Resolve theme
+            let themeToApply = savedTheme;
+            if (savedTheme === 'system') {
+                themeToApply = prefersDark ? 'dark' : 'light';
+            }
+            
+            // Apply immediately
             const root = document.documentElement;
             root.dataset.theme = savedTheme;
-            root.classList.toggle('dark', savedTheme === 'dark');
-            root.style.colorScheme = savedTheme;
+            root.classList.toggle('dark', themeToApply === 'dark');
+            root.style.colorScheme = themeToApply === 'dark' ? 'dark' : 'light';
         })();
+        
+        // Store current user ID for theme sync
+        window.currentUserId = @json(auth()->id());
     </script>
     <script>
         window.tailwind = window.tailwind || {};
@@ -36,6 +50,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
     <link rel="stylesheet" href="{{ asset('css/dashboard-redesign.css') }}">
+    <script src="{{ asset('js/theme-manager.js') }}"></script>
 </head>
 <body>
     <nav class="navbar">
@@ -188,22 +203,27 @@
             const root = document.documentElement;
 
             function updateThemeButton() {
-                if (!themeToggle) return;
-                const currentTheme = root.dataset.theme || 'light';
-                themeToggle.textContent = currentTheme === 'dark' ? '{{ __('ui.theme.light') }}' : '{{ __('ui.theme.dark') }}';
-                themeToggle.setAttribute('aria-label', currentTheme === 'dark' ? '{{ __('ui.theme.light') }}' : '{{ __('ui.theme.dark') }}');
+                if (!themeToggle || !window.themeManager) return;
+                const currentTheme = window.themeManager.getSavedTheme();
+                const icon = currentTheme === 'dark' ? '🌙' : '☀️';
+                const label = currentTheme === 'dark' ? '{{ __('ui.theme.light') }}' : '{{ __('ui.theme.dark') }}';
+                
+                if (currentTheme === 'system') {
+                    themeToggle.textContent = '🌐 System';
+                } else {
+                    themeToggle.textContent = icon + ' ' + label;
+                }
+                themeToggle.setAttribute('aria-label', label);
             }
 
-            if (themeToggle) {
+            if (themeToggle && window.themeManager) {
                 themeToggle.addEventListener('click', function() {
-                    const nextTheme = (root.dataset.theme === 'dark') ? 'light' : 'dark';
-                    root.dataset.theme = nextTheme;
-                    root.classList.toggle('dark', nextTheme === 'dark');
-                    root.style.colorScheme = nextTheme;
-                    localStorage.setItem('badnet-theme', nextTheme);
+                    window.themeManager.toggleTheme();
                     updateThemeButton();
                 });
 
+                // Listen for theme changes
+                window.addEventListener('themeChange', updateThemeButton);
                 updateThemeButton();
             }
 

@@ -23,6 +23,7 @@ class User extends Authenticatable
         'losses',
         'bio',
         'avatar',
+        'theme',
     ];
 
     protected $hidden = [
@@ -34,6 +35,7 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
+        'theme' => 'string',
     ];
 
     public function challenges()

@@ -10,6 +10,7 @@ use App\Http\Controllers\TeamController;
 use App\Http\Controllers\TournamentController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\LocaleController;
+use App\Http\Controllers\ThemeController;
 use App\Models\GameMatch;
 use App\Models\Challenge;
 use App\Models\Post;
@@ -130,6 +131,10 @@ Route::middleware('auth')->group(function () {
     // Betting routes
     Route::get('/bets', [\App\Http\Controllers\BetController::class, 'index'])->name('bets.index');
     Route::get('/bets/{bet}', [\App\Http\Controllers\BetController::class, 'show'])->name('bets.show');
+    
+    // Theme routes
+    Route::post('/api/theme/update', [ThemeController::class, 'update'])->name('theme.update');
+    Route::get('/api/theme/get', [ThemeController::class, 'get'])->name('theme.get');
 });
 
 // Public Post Routes (index/show should be accessible to guests)
