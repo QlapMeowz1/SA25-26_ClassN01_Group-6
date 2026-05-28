@@ -6,7 +6,10 @@
 @php
     $user = auth()->user();
     $winRate = $user->getWinRate();
-    $winRateLabel = $winRate > 0 ? $winRate . '%' : 'Rookie 🏸';
+    // Keep win rate strictly numeric; show 0% when none so rank stays separate
+    $winRateLabel = $winRate > 0 ? $winRate . '%' : '0%';
+    // Unified rank string sourced from the User model (controller should ensure accuracy)
+    $rank = $user->rank ?? 'Unranked';
     $newPostCount = $communityPosts
         ->filter(function ($post) {
             return $post->created_at->greaterThan(now()->subHours(3));
@@ -67,7 +70,7 @@
                         <div>
                             <h3 class="font-heading text-2xl font-extrabold text-slate-950 dark:text-white">{{ $user->name }}</h3>
                             <div class="mt-2 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-sm font-semibold text-emerald-800 dark:border-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
-                                <span>🔥</span> {{ $user->rank }}
+                                <span>🔥</span> {{ $rank }}
                             </div>
                         </div>
 
@@ -83,7 +86,11 @@
                         <span class="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300">●</span>
                         <div>
                             <h4 class="font-heading text-xl font-bold text-slate-950 dark:text-white">{{ __('ui.dashboard.online_now') }}</h4>
-                            <p class="text-sm text-slate-500 dark:text-slate-400">{{ __('ui.dashboard.no_friends_online') }}</p>
+                            @if($onlinePlayers->isEmpty())
+                                <p class="text-sm text-slate-500 dark:text-slate-400">{{ __('ui.dashboard.no_friends_online') }}</p>
+                            @else
+                                <p class="text-sm text-slate-500 dark:text-slate-400">Friends Online ({{ $onlinePlayers->count() }})</p>
+                            @endif
                         </div>
                     </div>
 

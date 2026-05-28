@@ -4,6 +4,35 @@
     border-bottom: 1px solid rgba(148, 163, 184, 0.1);
 }
 
+/* Dashboard theme variables (light/dark) - managed via data-theme on :root */
+:root, :root[data-theme="light"] {
+    --dashboard-bg-main: #f8f9fa;
+    --dashboard-card-bg: #ffffff;
+    --dashboard-card-darken: #ffffff;
+    --dashboard-text-primary: #111827;
+    --dashboard-text-secondary: #4b5563;
+    --dashboard-text-muted: #9ca3af;
+    --dashboard-input-bg: #ffffff;
+    --dashboard-input-border: #cbd5e1;
+}
+
+:root[data-theme="dark"] {
+    --dashboard-bg-main: #111111;
+    --dashboard-card-bg: #1f2937;
+    --dashboard-card-darken: #000000;
+    --dashboard-text-primary: #ffffff;
+    --dashboard-text-secondary: #d1d5db;
+    --dashboard-text-muted: #6b7280;
+    --dashboard-input-bg: #27272a;
+    --dashboard-input-border: #3f3f46;
+}
+
+/* Apply dashboard-level background & default text color using variables */
+.dashboard-page {
+    background: var(--dashboard-bg-main) !important;
+    color: var(--dashboard-text-primary);
+}
+
 .greeting-text {
     font-family: var(--font-heading);
     font-size: 24px;
@@ -14,7 +43,7 @@
 
 .greeting-subtitle {
     font-size: 14px;
-    color: var(--muted-color);
+    color: var(--dashboard-text-secondary);
 }
 
 .dashboard-grid-three {
@@ -231,13 +260,13 @@
 .composer-input {
     width: 100%;
     padding: 12px;
-    border: 1px solid rgba(148, 163, 184, 0.2);
-    border-radius: 8px;
+    border: 1px solid var(--dashboard-input-border);
+    border-radius: 16px; /* increased for smoother proportion */
     font-family: var(--font-body);
     font-size: 14px;
-    color: var(--text-color);
+    color: var(--dashboard-text-primary);
     resize: vertical;
-    background: var(--surface-alt-bg);
+    background: var(--dashboard-input-bg);
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -253,6 +282,7 @@
     align-items: center;
     margin-top: 12px;
     gap: 8px;
+    padding-bottom: 10px; /* prevent action buttons sticking to bottom */
 }
 
 .composer-upload-row {
@@ -260,6 +290,7 @@
     gap: 8px;
     margin-top: 12px;
     flex-wrap: wrap;
+    margin-bottom: 6px; /* extra spacing from bottom */
 }
 
 .composer-media-preview {
@@ -321,11 +352,11 @@
     gap: 4px;
     padding: 6px 12px;
     background: transparent;
-    border: 1px solid rgba(148, 163, 184, 0.2);
-    border-radius: 6px;
+    border: 1px solid var(--dashboard-input-border);
+    border-radius: 8px;
     font-size: 12px;
     font-weight: 500;
-    color: var(--text-color);
+    color: var(--dashboard-text-primary);
     cursor: pointer;
     transition: all 0.2s ease;
 }
@@ -550,9 +581,18 @@
 
 .match-mini-card {
     padding: 12px;
-    background: var(--surface-alt-bg);
+    background: var(--dashboard-card-bg);
     border-radius: 8px;
     border: 1px solid rgba(148, 163, 184, 0.12);
+    color: var(--dashboard-text-primary);
+}
+
+/* Ensure the create-post box and right-sidebar sections use dashboard variables */
+.dashboard-page #status-update,
+.dashboard-page aside section.rounded-3xl {
+    background: var(--dashboard-card-bg) !important;
+    color: var(--dashboard-text-primary);
+    border-color: var(--border-color);
 }
 
 .match-vs {
@@ -775,24 +815,26 @@
     }
 }
 
-:root[data-theme="dark"] .dashboard-header-minimal {
-    border-bottom-color: rgba(255, 255, 255, 0.06);
+
+/* Use theme variables rather than theme-scoped hardcoded colors */
+.dashboard-header-minimal {
+    border-bottom-color: var(--border-color);
 }
 
-:root[data-theme="dark"] .section-header-compact {
-    color: #e6eef8;
+.section-header-compact {
+    color: var(--dashboard-text-secondary);
 }
 
-:root[data-theme="dark"] .online-player-row:hover {
+.online-player-row:hover {
     background: rgba(79, 216, 197, 0.06);
 }
 
-:root[data-theme="dark"] .action-btn {
-    background: rgba(255, 255, 255, 0.06);
-    color: #e6eef8;
+.action-btn {
+    background: var(--dashboard-card-darken);
+    color: var(--dashboard-text-primary);
 }
 
-:root[data-theme="dark"] .action-btn:hover {
+.action-btn:hover {
     background: rgba(79, 216, 197, 0.1);
 }
 
@@ -808,6 +850,12 @@
     object-fit: cover;
     display: block;
     border-radius: 6px;
+}
+
+/* Align icons such as calendar with their headings in sidebars */
+.dashboard-page aside .mb-4 .text-2xl {
+    display: inline-flex;
+    align-items: center;
 }
 
 .post-video-media {
@@ -851,120 +899,35 @@
 }
 
 .view-all-comments:hover { text-decoration: underline; }
-:root[data-theme="light"] .min-h-screen,
-:root:not([data-theme="dark"]) .min-h-screen,
-:root[data-theme="light"] .main-content,
-:root:not([data-theme="dark"]) .main-content,
-:root[data-theme="light"] body,
-:root:not([data-theme="dark"]) body,
-:root[data-theme="light"] .app-shell,
-:root:not([data-theme="dark"]) .app-shell {
-    background: #f8fafc !important;
-}
 
-/* All dashboard cards */
-:root[data-theme="light"] .rounded-3xl,
-:root:not([data-theme="dark"]) .rounded-3xl,
-:root[data-theme="light"] section.rounded-3xl,
-:root:not([data-theme="dark"]) section.rounded-3xl,
-:root[data-theme="light"] .bg-white,
-:root:not([data-theme="dark"]) .bg-white,
-:root[data-theme="light"] .dark\\:bg-zinc-900,
-:root:not([data-theme="dark"]) .dark\\:bg-zinc-900,
-:root[data-theme="light"] .bg-zinc-900,
-:root:not([data-theme="dark"]) .bg-zinc-900,
-:root[data-theme="light"] .bg-slate-50,
-:root:not([data-theme="dark"]) .bg-slate-50,
-:root[data-theme="light"] .post-card,
-:root:not([data-theme="dark"]) .post-card,
-:root[data-theme="light"] .feed-card,
-:root:not([data-theme="dark"]) .feed-card,
-:root[data-theme="light"] .compact-user-card,
-:root:not([data-theme="dark"]) .compact-user-card,
-:root[data-theme="light"] .match-mini-card,
-:root:not([data-theme="dark"]) .match-mini-card,
-:root[data-theme="light"] .dashboard-section,
-:root:not([data-theme="dark"]) .dashboard-section {
-    background-color: #ffffff !important;
-    border-color: #e2e8f0 !important;
-}
-
-/* Dashboard-specific containers and cards */
+/* Light-theme dashboard overrides now use variables instead of hardcoded colors/!important */
 :root[data-theme="light"] .dashboard-page,
-:root:not([data-theme="dark"]) .dashboard-page,
-:root[data-theme="light"] .dashboard-page > .mx-auto > section,
-:root:not([data-theme="dark"]) .dashboard-page > .mx-auto > section,
-:root[data-theme="light"] .dashboard-page > .mx-auto > div > aside > section,
-:root:not([data-theme="dark"]) .dashboard-page > .mx-auto > div > aside > section,
-:root[data-theme="light"] .dashboard-page > .mx-auto > div > section,
-:root:not([data-theme="dark"]) .dashboard-page > .mx-auto > div > section {
-    background: #ffffff !important;
-    border-color: #dbe4ee !important;
-    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08) !important;
+:root:not([data-theme="dark"]) .dashboard-page {
+    background: var(--dashboard-bg-main);
+    color: var(--dashboard-text-primary);
 }
 
-:root[data-theme="light"] .dashboard-page > .mx-auto > section .text-white,
-:root:not([data-theme="dark"]) .dashboard-page > .mx-auto > section .text-white,
-:root[data-theme="light"] .dashboard-page > .mx-auto > div > aside > section .text-white,
-:root:not([data-theme="dark"]) .dashboard-page > .mx-auto > div > aside > section .text-white,
-:root[data-theme="light"] .dashboard-page > .mx-auto > div > section .text-white,
-:root:not([data-theme="dark"]) .dashboard-page > .mx-auto > div > section .text-white {
-    color: #0f172a !important;
+:root[data-theme="light"] .dashboard-page .rounded-3xl,
+:root:not([data-theme="dark"]) .dashboard-page .rounded-3xl,
+:root[data-theme="light"] .dashboard-page section.rounded-3xl,
+:root:not([data-theme="dark"]) .dashboard-page section.rounded-3xl {
+    background-color: var(--dashboard-card-bg);
+    border-color: var(--border-color);
+    color: var(--dashboard-text-primary);
+    box-shadow: var(--shadow);
 }
 
-:root[data-theme="light"] .dashboard-page .bg-zinc-900,
-:root:not([data-theme="dark"]) .dashboard-page .bg-zinc-900,
-:root[data-theme="light"] .dashboard-page .dark\\:bg-zinc-900,
-:root:not([data-theme="dark"]) .dashboard-page .dark\\:bg-zinc-900,
-:root[data-theme="light"] .dashboard-page .dark\\:bg-slate-900,
-:root:not([data-theme="dark"]) .dashboard-page .dark\\:bg-slate-900,
-:root[data-theme="light"] .dashboard-page .dark\\:from-slate-950,
-:root:not([data-theme="dark"]) .dashboard-page .dark\\:from-slate-950,
-:root[data-theme="light"] .dashboard-page .dark\\:via-slate-900,
-:root:not([data-theme="dark"]) .dashboard-page .dark\\:via-slate-900,
-:root[data-theme="light"] .dashboard-page .dark\\:to-slate-950,
-:root:not([data-theme="dark"]) .dashboard-page .dark\\:to-slate-950 {
-    background: #ffffff !important;
-    background-image: none !important;
-}
-
+/* Ensure Tailwind dark: utility fallbacks render correctly in light mode by mapping text/border to variables */
 :root[data-theme="light"] .dashboard-page .dark\\:text-white,
-:root:not([data-theme="dark"]) .dashboard-page .dark\\:text-white {
-    color: #0f172a !important;
-}
-
+:root:not([data-theme="dark"]) .dashboard-page .dark\\:text-white,
 :root[data-theme="light"] .dashboard-page .dark\\:text-slate-300,
-:root:not([data-theme="dark"]) .dashboard-page .dark\\:text-slate-300,
-:root[data-theme="light"] .dashboard-page .dark\\:text-slate-400,
-:root:not([data-theme="dark"]) .dashboard-page .dark\\:text-slate-400 {
-    color: #64748b !important;
+:root:not([data-theme="dark"]) .dashboard-page .dark\\:text-slate-300 {
+    color: var(--dashboard-text-primary);
 }
 
 :root[data-theme="light"] .dashboard-page .dark\\:border-emerald-700,
-:root:not([data-theme="dark"]) .dashboard-page .dark\\:border-emerald-700,
-:root[data-theme="light"] .dashboard-page .dark\\:border-orange-700,
-:root:not([data-theme="dark"]) .dashboard-page .dark\\:border-orange-700,
-:root[data-theme="light"] .dashboard-page .dark\\:border-amber-700,
-:root:not([data-theme="dark"]) .dashboard-page .dark\\:border-amber-700,
-:root[data-theme="light"] .dashboard-page .dark\\:border-slate-700,
-:root:not([data-theme="dark"]) .dashboard-page .dark\\:border-slate-700 {
-    border-color: #dbe4ee !important;
-}
-
-:root[data-theme="light"] .dashboard-page .dark\\:bg-emerald-900\/20,
-:root:not([data-theme="dark"]) .dashboard-page .dark\\:bg-emerald-900\/20,
-:root[data-theme="light"] .dashboard-page .dark\\:bg-orange-900\/20,
-:root:not([data-theme="dark"]) .dashboard-page .dark\\:bg-orange-900\/20,
-:root[data-theme="light"] .dashboard-page .dark\\:bg-amber-900\/20,
-:root:not([data-theme="dark"]) .dashboard-page .dark\\:bg-amber-900\/20,
-:root[data-theme="light"] .dashboard-page .dark\\:bg-slate-900,
-:root:not([data-theme="dark"]) .dashboard-page .dark\\:bg-slate-900 {
-    background-color: #f8fafc !important;
-}
-
-:root[data-theme="light"] .dashboard-page .dark\\:shadow-2xl,
-:root:not([data-theme="dark"]) .dashboard-page .dark\\:shadow-2xl {
-    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08) !important;
+:root:not([data-theme="dark"]) .dashboard-page .dark\\:border-emerald-700 {
+    border-color: var(--border-color);
 }
 
 /* Text */
