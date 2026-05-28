@@ -1,6 +1,9 @@
 /**
- * Theme Management System
+ * Theme Management System - FIXED VERSION
  * Handles dark/light/system mode with localStorage and database persistence
+ * 
+ * KEY FIX: Clarified the distinction between SAVED theme (user preference) 
+ * and APPLIED theme (what's actually visible on the page)
  */
 
 class ThemeManager {
@@ -18,24 +21,29 @@ class ThemeManager {
      * Initialize theme on page load
      */
     init() {
+        // Get what was previously saved
         const savedTheme = this.getSavedTheme();
-        const systemTheme = this.getSystemTheme();
-        const themeToApply = this.resolveTheme(savedTheme, systemTheme);
         
-        this.applyTheme(themeToApply);
+        // Apply it immediately
+        this.setTheme(savedTheme, true);
+        
+        // Setup listeners for system preference changes
         this.setupListeners();
+        
+        // Sync with database
         this.syncWithDatabase();
     }
 
     /**
-     * Get saved theme from localStorage
+     * Get the theme the user has CHOSEN (light, dark, or system)
+     * This is what's stored in localStorage
      */
     getSavedTheme() {
         return localStorage.getItem(this.STORAGE_KEY) || this.THEMES.DARK;
     }
 
     /**
-     * Get system preference theme
+     * Get the system preference (what the OS prefers)
      */
     getSystemTheme() {
         return window.matchMedia('(prefers-color-scheme: dark)').matches 
@@ -44,110 +52,144 @@ class ThemeManager {
     }
 
     /**
-     * Resolve which theme to apply
+     * Get what theme is ACTUALLY APPLIED to the page right now
+     * If user chose "system", this resolves it to dark or light
      */
-    resolveTheme(savedTheme, systemTheme) {
-        if (savedTheme === this.THEMES.SYSTEM) {
-            return systemTheme;
+    getAppliedTheme() {
+        const saved = this.getSavedTheme();
+        
+        if (saved === this.THEMES.SYSTEM) {
+            return this.getSystemTheme();
         }
-        return savedTheme;
+        
+        return saved;
     }
 
     /**
-     * Apply theme to the page
+     * Apply a theme to the DOM - this is what makes the page look dark or light
      */
-    applyTheme(theme) {
-        const isDark = theme === this.THEMES.DARK;
-        const htmlElement = document.documentElement;
+    applyThemeToDOM(appliedTheme) {
+        const isDark = appliedTheme === this.THEMES.DARK;
+        const html = document.documentElement;
 
-        // Set data attribute
-        htmlElement.setAttribute('data-theme', theme);
+        // Set Tailwind's dark class - this activates all .dark\:* utilities
+        html.classList.toggle('dark', isDark);
         
-        // Toggle dark class for Tailwind
-        htmlElement.classList.toggle('dark', isDark);
+        // Set data attribute for CSS-based styling (e.g., :root[data-theme="light"])
+        html.setAttribute('data-theme', appliedTheme);
         
-        // Set color-scheme for inputs and scrollbars
-        htmlElement.style.colorScheme = isDark ? 'dark' : 'light';
+        // Set color-scheme for native elements (inputs, scrollbars, etc.)
+        html.style.colorScheme = isDark ? 'dark' : 'light';
         
-        // Store the actual theme applied
-        localStorage.setItem(this.STORAGE_KEY, this.getSavedTheme());
-        
-        // Dispatch custom event
-        window.dispatchEvent(new CustomEvent('themeChange', { detail: { theme } }));
+        // Dispatch event so other code knows theme changed
+        window.dispatchEvent(new CustomEvent('themeChange', { 
+            detail: { 
+                saved: this.getSavedTheme(),
+                applied: appliedTheme 
+            } 
+        }));
+    }
+
+    /**
+     * Set a specific theme and update everything
+     */
+    setTheme(theme, skipSync = false) {
+        // Validate the theme value
+        if (!Object.values(this.THEMES).includes(theme)) {
+            console.warn(`Invalid theme: ${theme}. Using 'dark' instead.`);
+            theme = this.THEMES.DARK;
+        }
+
+        // Save the CHOICE (could be "system")
+        localStorage.setItem(this.STORAGE_KEY, theme);
+
+        // Figure out what to APPLY (resolve "system" to actual dark/light)
+        const appliedTheme = this.getAppliedTheme();
+
+        // Make it actually happen on the page
+        this.applyThemeToDOM(appliedTheme);
+
+        // Tell the server
+        if (!skipSync) {
+            this.syncWithDatabase();
+        }
     }
 
     /**
      * Toggle between themes
+     * Cycles: dark → light → system → dark
      */
     toggleTheme() {
         const current = this.getSavedTheme();
         let next;
 
-        // Cycle: dark -> light -> system -> dark
-        switch (current) {
-            case this.THEMES.DARK:
-                next = this.THEMES.LIGHT;
-                break;
-            case this.THEMES.LIGHT:
-                next = this.THEMES.SYSTEM;
-                break;
-            case this.THEMES.SYSTEM:
-                next = this.THEMES.DARK;
-                break;
-            default:
-                next = this.THEMES.DARK;
+        if (current === this.THEMES.DARK) {
+            next = this.THEMES.LIGHT;
+        } else if (current === this.THEMES.LIGHT) {
+            next = this.THEMES.SYSTEM;
+        } else {
+            // current === SYSTEM or anything else
+            next = this.THEMES.DARK;
         }
 
         this.setTheme(next);
     }
 
     /**
-     * Set a specific theme
+     * Get button display state based on SAVED theme (not applied)
+     * This shows what the button should display
      */
-    setTheme(theme) {
-        if (!Object.values(this.THEMES).includes(theme)) {
-            console.warn(`Invalid theme: ${theme}`);
-            return;
+    getButtonState() {
+        const saved = this.getSavedTheme();
+        
+        if (saved === this.THEMES.DARK) {
+            return {
+                icon: '🌙',
+                label: 'Light',
+                nextTheme: this.THEMES.LIGHT
+            };
+        } else if (saved === this.THEMES.LIGHT) {
+            return {
+                icon: '☀️',
+                label: 'Dark',
+                nextTheme: this.THEMES.SYSTEM
+            };
+        } else {
+            // SYSTEM mode
+            return {
+                icon: '🌐',
+                label: 'System',
+                nextTheme: this.THEMES.DARK
+            };
         }
-
-        localStorage.setItem(this.STORAGE_KEY, theme);
-        
-        const systemTheme = this.getSystemTheme();
-        const themeToApply = this.resolveTheme(theme, systemTheme);
-        
-        this.applyTheme(themeToApply);
-        this.syncWithDatabase();
     }
 
     /**
-     * Get current active theme
-     */
-    getCurrentTheme() {
-        return document.documentElement.getAttribute('data-theme') || this.THEMES.DARK;
-    }
-
-    /**
-     * Setup event listeners
+     * Setup event listeners for system preference changes
      */
     setupListeners() {
-        // Listen for system preference changes
+        // Listen when OS changes dark mode preference
         window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-            const current = this.getSavedTheme();
-            if (current === this.THEMES.SYSTEM) {
-                const systemTheme = e.matches ? this.THEMES.DARK : this.THEMES.LIGHT;
-                this.applyTheme(systemTheme);
+            const saved = this.getSavedTheme();
+            
+            // Only re-apply if user has "system" mode selected
+            if (saved === this.THEMES.SYSTEM) {
+                const newSystemTheme = e.matches ? this.THEMES.DARK : this.THEMES.LIGHT;
+                this.applyThemeToDOM(newSystemTheme);
             }
         });
     }
 
     /**
-     * Sync theme with database
+     * Sync theme preference with the server database
      */
     syncWithDatabase() {
         const theme = this.getSavedTheme();
         const userId = this.getCurrentUserId();
 
-        if (!userId) return;
+        if (!userId) {
+            return; // Not logged in, skip sync
+        }
 
         fetch('/api/theme/update', {
             method: 'POST',
@@ -160,10 +202,9 @@ class ThemeManager {
     }
 
     /**
-     * Get current user ID from page data
+     * Get the current user ID from the page
      */
     getCurrentUserId() {
-        // Try to get from window object, data attribute, or hidden input
         return window.currentUserId 
             || document.documentElement.getAttribute('data-user-id')
             || document.querySelector('[name="user_id"]')?.value
@@ -171,16 +212,14 @@ class ThemeManager {
     }
 
     /**
-     * Get CSRF token from meta tag or hidden input
+     * Get CSRF token from meta tag
      */
     getCsrfToken() {
-        return document.querySelector('meta[name="csrf-token"]')?.content
-            || document.querySelector('[name="_token"]')?.value
-            || '';
+        return document.querySelector('meta[name="csrf-token"]')?.content || '';
     }
 }
 
-// Initialize theme manager when DOM is ready
+// Initialize when DOM is ready
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
         window.themeManager = new ThemeManager();

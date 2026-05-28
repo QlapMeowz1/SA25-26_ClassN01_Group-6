@@ -6,26 +6,26 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'BadNet')</title>
     <script>
-        // Bootstrap theme on page load (before content renders)
+        // Bootstrap theme BEFORE page renders (prevents flash)
         (function () {
             const userTheme = @json(auth()->user()?->theme ?? 'dark');
             const savedTheme = localStorage.getItem('badnet-theme') || userTheme || 'dark';
             const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
             
-            // Resolve theme
-            let themeToApply = savedTheme;
+            // Determine what to APPLY (resolve system to actual dark/light)
+            let appliedTheme = savedTheme;
             if (savedTheme === 'system') {
-                themeToApply = prefersDark ? 'dark' : 'light';
+                appliedTheme = prefersDark ? 'dark' : 'light';
             }
             
-            // Apply immediately
-            const root = document.documentElement;
-            root.dataset.theme = savedTheme;
-            root.classList.toggle('dark', themeToApply === 'dark');
-            root.style.colorScheme = themeToApply === 'dark' ? 'dark' : 'light';
+            // Apply to DOM immediately
+            const html = document.documentElement;
+            html.classList.toggle('dark', appliedTheme === 'dark');
+            html.setAttribute('data-theme', appliedTheme);
+            html.style.colorScheme = appliedTheme === 'dark' ? 'dark' : 'light';
         })();
         
-        // Store current user ID for theme sync
+        // Store current user ID for theme API sync
         window.currentUserId = @json(auth()->id());
     </script>
     <script>
@@ -78,7 +78,26 @@
                         <a href="{{ route('locale.switch', 'vi') }}" class="locale-switch-btn {{ app()->getLocale() === 'vi' ? 'is-active' : '' }}">VI</a>
                     </div>
 
-                    <button type="button" class="theme-toggle" id="themeToggle" aria-label="{{ __('ui.theme.dark') }}">{{ __('ui.theme.dark') }}</button>
+                    <!-- Theme Dropdown Menu -->
+                    <div class="theme-dropdown" id="themeDropdown">
+                        <button type="button" class="theme-dropdown-btn" id="themeDropdownBtn" aria-label="Select theme" aria-expanded="false">
+                            <span id="themeDropdownIcon">🌙</span>
+                        </button>
+                        <div class="theme-dropdown-menu" id="themeDropdownMenu" role="menu">
+                            <button type="button" class="theme-option" data-theme="light" role="menuitem">
+                                <span class="theme-icon">🌙</span>
+                                <span class="theme-label">Light Mode</span>
+                            </button>
+                            <button type="button" class="theme-option" data-theme="dark" role="menuitem">
+                                <span class="theme-icon">☀️</span>
+                                <span class="theme-label">Dark Mode</span>
+                            </button>
+                            <button type="button" class="theme-option" data-theme="system" role="menuitem">
+                                <span class="theme-icon">🌐</span>
+                                <span class="theme-label">System</span>
+                            </button>
+                        </div>
+                    </div>
 
                     @php
                         $unreadNotifications = auth()->user()->notifications()->where('is_read', false)->count();
@@ -198,42 +217,110 @@
     </footer>
 
     <script>
+        /**
+         * Theme dropdown menu handler
+         * Allows users to directly select their preferred theme
+         */
         document.addEventListener('DOMContentLoaded', function() {
-            const themeToggle = document.getElementById('themeToggle');
-            const root = document.documentElement;
+            const themeDropdown = document.getElementById('themeDropdown');
+            const themeDropdownBtn = document.getElementById('themeDropdownBtn');
+            const themeDropdownMenu = document.getElementById('themeDropdownMenu');
+            const themeOptions = document.querySelectorAll('.theme-option');
+            const themeDropdownIcon = document.getElementById('themeDropdownIcon');
 
-            function updateThemeButton() {
-                if (!themeToggle || !window.themeManager) return;
-                const currentTheme = window.themeManager.getSavedTheme();
-                const icon = currentTheme === 'dark' ? '🌙' : '☀️';
-                const label = currentTheme === 'dark' ? '{{ __('ui.theme.light') }}' : '{{ __('ui.theme.dark') }}';
+            if (!themeDropdownBtn || !window.themeManager) return;
+
+            /**
+             * Update dropdown button to show current theme icon
+             */
+            function updateDropdownButton() {
+                const saved = window.themeManager.getSavedTheme();
+                const iconMap = {
+                    'light': '☀️',
+                    'dark': '🌙',
+                    'system': '🌐'
+                };
+                themeDropdownIcon.textContent = iconMap[saved] || '🌙';
                 
-                if (currentTheme === 'system') {
-                    themeToggle.textContent = '🌐 System';
-                } else {
-                    themeToggle.textContent = icon + ' ' + label;
-                }
-                themeToggle.setAttribute('aria-label', label);
-            }
-
-            if (themeToggle && window.themeManager) {
-                themeToggle.addEventListener('click', function() {
-                    window.themeManager.toggleTheme();
-                    updateThemeButton();
+                // Update active state on menu items
+                themeOptions.forEach(option => {
+                    const optionTheme = option.getAttribute('data-theme');
+                    option.classList.toggle('is-active', optionTheme === saved);
                 });
-
-                // Listen for theme changes
-                window.addEventListener('themeChange', updateThemeButton);
-                updateThemeButton();
             }
 
+            /**
+             * Open/close dropdown menu
+             */
+            function toggleDropdown() {
+                const isOpen = themeDropdownMenu.classList.contains('is-open');
+                if (isOpen) {
+                    themeDropdownMenu.classList.remove('is-open');
+                    themeDropdownBtn.setAttribute('aria-expanded', 'false');
+                } else {
+                    themeDropdownMenu.classList.add('is-open');
+                    themeDropdownBtn.setAttribute('aria-expanded', 'true');
+                }
+            }
+
+            /**
+             * Close dropdown menu
+             */
+            function closeDropdown() {
+                themeDropdownMenu.classList.remove('is-open');
+                themeDropdownBtn.setAttribute('aria-expanded', 'false');
+            }
+
+            /**
+             * Handle theme option selection
+             */
+            themeOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    const theme = this.getAttribute('data-theme');
+                    window.themeManager.setTheme(theme);
+                    updateDropdownButton();
+                    closeDropdown();
+                });
+            });
+
+            /**
+             * Toggle dropdown on button click
+             */
+            themeDropdownBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                toggleDropdown();
+            });
+
+            /**
+             * Close dropdown when clicking outside
+             */
+            document.addEventListener('click', function(e) {
+                if (!themeDropdown.contains(e.target)) {
+                    closeDropdown();
+                }
+            });
+
+            /**
+             * Update dropdown when theme changes via other means
+             */
+            window.addEventListener('themeChange', updateDropdownButton);
+
+            /**
+             * Initial button state
+             */
+            updateDropdownButton();
+
+            // Fade out alerts after 3 seconds
             const alerts = document.querySelectorAll('.alert');
             alerts.forEach(alert => {
                 setTimeout(() => {
                     alert.classList.add('fade-out');
                 }, 3000);
             });
+        });
+        </script>
 
+        <script>
             // Notifications dropdown behavior
             const navBell = document.getElementById('navBell');
             const navBellDropdown = document.getElementById('navBellDropdown');

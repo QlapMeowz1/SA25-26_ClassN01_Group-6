@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Str;
 use App\Models\GameMatch;
 
 class User extends Authenticatable
@@ -100,5 +101,19 @@ class User extends Authenticatable
     {
         $total = $this->wins + $this->losses;
         return $total > 0 ? (int) round(($this->wins / $total) * 100) : 0;
+    }
+
+    public function getAvatarUrlAttribute(): string
+    {
+        if (empty($this->avatar)) {
+            $svg = '<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 160 160"><rect width="160" height="160" rx="80" fill="#e2e8f0"/><path d="M80 76c16.6 0 30-13.4 30-30S96.6 16 80 16 50 29.4 50 46s13.4 30 30 30zm0 12c-24.8 0-44 12.4-44 28v10h88v-10c0-15.6-19.2-28-44-28z" fill="#94a3b8"/></svg>';
+            return 'data:image/svg+xml;charset=UTF-8,' . rawurlencode($svg);
+        }
+
+        if (Str::startsWith($this->avatar, ['http://', 'https://'])) {
+            return $this->avatar;
+        }
+
+        return asset('avatars/' . $this->avatar);
     }
 }

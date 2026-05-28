@@ -3,7 +3,7 @@
         <div class="post-author">
             <a href="{{ route('profile.show', $post->user->id) }}" class="author-avatar">
                 @if($post->user->avatar)
-                    <img src="{{ asset('avatars/' . $post->user->avatar) }}" alt="{{ $post->user->name }}" class="h-full w-full object-cover">
+                    <img src="{{ $post->user->avatar_url }}" alt="{{ $post->user->name }}" class="h-full w-full object-cover">
                 @else
                     <span class="author-avatar-system">{{ strtoupper(substr($post->user->name, 0, 1)) }}</span>
                 @endif

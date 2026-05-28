@@ -14,7 +14,7 @@
         ->count();
 @endphp
 
-<div class="min-h-screen bg-gradient-to-br from-lime-50 via-white to-orange-50 px-4 py-6 text-slate-900 transition-colors duration-300 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 sm:px-6 lg:px-8">
+<div class="dashboard-page min-h-screen bg-gradient-to-br from-lime-50 via-white to-orange-50 px-4 py-6 text-slate-900 transition-colors duration-300 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 sm:px-6 lg:px-8">
     <div class="mx-auto flex max-w-7xl flex-col gap-6 font-body">
         <section class="overflow-hidden rounded-3xl border border-emerald-200 bg-white p-6 shadow-md dark:border-emerald-700 dark:bg-zinc-900 dark:shadow-2xl sm:p-8">
             <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
@@ -54,7 +54,7 @@
                         <div class="relative">
                             <div class="flex h-24 w-24 items-center justify-center rounded-full border-4 border-white bg-gradient-to-br from-court via-emerald-700 to-energy text-3xl font-bold text-white shadow-[0_18px_40px_rgba(10,92,10,0.28)] ring-8 ring-amber-100/80 dark:border-slate-900 dark:ring-emerald-500/10">
                                 @if($user->avatar)
-                                    <img src="{{ asset('avatars/' . $user->avatar) }}" alt="{{ $user->name }}" class="h-full w-full rounded-full object-cover">
+                                    <img src="{{ $user->avatar_url }}" alt="{{ $user->name }}" class="h-full w-full rounded-full object-cover">
                                 @else
                                     {{ strtoupper(substr($user->name, 0, 1)) }}
                                 @endif

@@ -851,68 +851,183 @@
 }
 
 .view-all-comments:hover { text-decoration: underline; }
-:root[data-theme="light"],
-:root:not([data-theme="dark"]) {
+:root[data-theme="light"] .min-h-screen,
+:root:not([data-theme="dark"]) .min-h-screen,
+:root[data-theme="light"] .main-content,
+:root:not([data-theme="dark"]) .main-content,
+:root[data-theme="light"] body,
+:root:not([data-theme="dark"]) body,
+:root[data-theme="light"] .app-shell,
+:root:not([data-theme="dark"]) .app-shell {
+    background: #f8fafc !important;
+}
 
-    /* Outer background */
-    .min-h-screen,
-    .main-content,
-    body,
-    .app-shell {
-        background: #f8fafc !important;
-    }
+/* All dashboard cards */
+:root[data-theme="light"] .rounded-3xl,
+:root:not([data-theme="dark"]) .rounded-3xl,
+:root[data-theme="light"] section.rounded-3xl,
+:root:not([data-theme="dark"]) section.rounded-3xl,
+:root[data-theme="light"] .bg-white,
+:root:not([data-theme="dark"]) .bg-white,
+:root[data-theme="light"] .dark\\:bg-zinc-900,
+:root:not([data-theme="dark"]) .dark\\:bg-zinc-900,
+:root[data-theme="light"] .bg-zinc-900,
+:root:not([data-theme="dark"]) .bg-zinc-900,
+:root[data-theme="light"] .bg-slate-50,
+:root:not([data-theme="dark"]) .bg-slate-50,
+:root[data-theme="light"] .post-card,
+:root:not([data-theme="dark"]) .post-card,
+:root[data-theme="light"] .feed-card,
+:root:not([data-theme="dark"]) .feed-card,
+:root[data-theme="light"] .compact-user-card,
+:root:not([data-theme="dark"]) .compact-user-card,
+:root[data-theme="light"] .match-mini-card,
+:root:not([data-theme="dark"]) .match-mini-card,
+:root[data-theme="light"] .dashboard-section,
+:root:not([data-theme="dark"]) .dashboard-section {
+    background-color: #ffffff !important;
+    border-color: #e2e8f0 !important;
+}
 
-    /* All dashboard cards */
-    .rounded-3xl,
-    section.rounded-3xl,
-    .bg-white,
-    .dark\\:bg-zinc-900,
-    .bg-zinc-900,
-    .bg-slate-50,
-    .post-card,
-    .feed-card,
-    .compact-user-card,
-    .match-mini-card,
-    .dashboard-section {
-        background-color: #ffffff !important;
-        border-color: #e2e8f0 !important;
-    }
+/* Dashboard-specific containers and cards */
+:root[data-theme="light"] .dashboard-page,
+:root:not([data-theme="dark"]) .dashboard-page,
+:root[data-theme="light"] .dashboard-page > .mx-auto > section,
+:root:not([data-theme="dark"]) .dashboard-page > .mx-auto > section,
+:root[data-theme="light"] .dashboard-page > .mx-auto > div > aside > section,
+:root:not([data-theme="dark"]) .dashboard-page > .mx-auto > div > aside > section,
+:root[data-theme="light"] .dashboard-page > .mx-auto > div > section,
+:root:not([data-theme="dark"]) .dashboard-page > .mx-auto > div > section {
+    background: #ffffff !important;
+    border-color: #dbe4ee !important;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08) !important;
+}
 
-    /* Text */
-    .text-slate-950,
-    .dark\\:text-white,
-    h1, h2, h3, h4, .font-extrabold, .font-heading {
-        color: #0f172a !important;
-    }
+:root[data-theme="light"] .dashboard-page > .mx-auto > section .text-white,
+:root:not([data-theme="dark"]) .dashboard-page > .mx-auto > section .text-white,
+:root[data-theme="light"] .dashboard-page > .mx-auto > div > aside > section .text-white,
+:root:not([data-theme="dark"]) .dashboard-page > .mx-auto > div > aside > section .text-white,
+:root[data-theme="light"] .dashboard-page > .mx-auto > div > section .text-white,
+:root:not([data-theme="dark"]) .dashboard-page > .mx-auto > div > section .text-white {
+    color: #0f172a !important;
+}
 
-    .text-slate-600,
-    .text-slate-500,
-    .dark\\:text-slate-300,
-    .dark\\:text-slate-400 {
-        color: #475569 !important;
-    }
+:root[data-theme="light"] .dashboard-page .bg-zinc-900,
+:root:not([data-theme="dark"]) .dashboard-page .bg-zinc-900,
+:root[data-theme="light"] .dashboard-page .dark\\:bg-zinc-900,
+:root:not([data-theme="dark"]) .dashboard-page .dark\\:bg-zinc-900,
+:root[data-theme="light"] .dashboard-page .dark\\:bg-slate-900,
+:root:not([data-theme="dark"]) .dashboard-page .dark\\:bg-slate-900,
+:root[data-theme="light"] .dashboard-page .dark\\:from-slate-950,
+:root:not([data-theme="dark"]) .dashboard-page .dark\\:from-slate-950,
+:root[data-theme="light"] .dashboard-page .dark\\:via-slate-900,
+:root:not([data-theme="dark"]) .dashboard-page .dark\\:via-slate-900,
+:root[data-theme="light"] .dashboard-page .dark\\:to-slate-950,
+:root:not([data-theme="dark"]) .dashboard-page .dark\\:to-slate-950 {
+    background: #ffffff !important;
+    background-image: none !important;
+}
 
-    /* Stat boxes */
-    .bg-emerald-50,
-    .bg-orange-50,
-    .bg-amber-50 {
-        background-color: #ecfdf5 !important;
-    }
+:root[data-theme="light"] .dashboard-page .dark\\:text-white,
+:root:not([data-theme="dark"]) .dashboard-page .dark\\:text-white {
+    color: #0f172a !important;
+}
 
-    /* Composer */
-    #status-update textarea {
-        background: #ffffff !important;
-        border-color: #cbd5e1 !important;
-        color: #0f172a !important;
-    }
+:root[data-theme="light"] .dashboard-page .dark\\:text-slate-300,
+:root:not([data-theme="dark"]) .dashboard-page .dark\\:text-slate-300,
+:root[data-theme="light"] .dashboard-page .dark\\:text-slate-400,
+:root:not([data-theme="dark"]) .dashboard-page .dark\\:text-slate-400 {
+    color: #64748b !important;
+}
 
-    /* Force kill dark backgrounds */
-    .dark\\:bg-zinc-900,
-    .bg-zinc-900,
-    .dark\\:bg-slate-900,
-    .dark\\:from-slate-950,
-    .dark\\:via-slate-900,
-    .dark\\:to-slate-950 {
-        background-color: #ffffff !important;
-    }
+:root[data-theme="light"] .dashboard-page .dark\\:border-emerald-700,
+:root:not([data-theme="dark"]) .dashboard-page .dark\\:border-emerald-700,
+:root[data-theme="light"] .dashboard-page .dark\\:border-orange-700,
+:root:not([data-theme="dark"]) .dashboard-page .dark\\:border-orange-700,
+:root[data-theme="light"] .dashboard-page .dark\\:border-amber-700,
+:root:not([data-theme="dark"]) .dashboard-page .dark\\:border-amber-700,
+:root[data-theme="light"] .dashboard-page .dark\\:border-slate-700,
+:root:not([data-theme="dark"]) .dashboard-page .dark\\:border-slate-700 {
+    border-color: #dbe4ee !important;
+}
+
+:root[data-theme="light"] .dashboard-page .dark\\:bg-emerald-900\/20,
+:root:not([data-theme="dark"]) .dashboard-page .dark\\:bg-emerald-900\/20,
+:root[data-theme="light"] .dashboard-page .dark\\:bg-orange-900\/20,
+:root:not([data-theme="dark"]) .dashboard-page .dark\\:bg-orange-900\/20,
+:root[data-theme="light"] .dashboard-page .dark\\:bg-amber-900\/20,
+:root:not([data-theme="dark"]) .dashboard-page .dark\\:bg-amber-900\/20,
+:root[data-theme="light"] .dashboard-page .dark\\:bg-slate-900,
+:root:not([data-theme="dark"]) .dashboard-page .dark\\:bg-slate-900 {
+    background-color: #f8fafc !important;
+}
+
+:root[data-theme="light"] .dashboard-page .dark\\:shadow-2xl,
+:root:not([data-theme="dark"]) .dashboard-page .dark\\:shadow-2xl {
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08) !important;
+}
+
+/* Text */
+:root[data-theme="light"] .text-slate-950,
+:root:not([data-theme="dark"]) .text-slate-950,
+:root[data-theme="light"] .dark\\:text-white,
+:root:not([data-theme="dark"]) .dark\\:text-white,
+:root[data-theme="light"] h1,
+:root:not([data-theme="dark"]) h1,
+:root[data-theme="light"] h2,
+:root:not([data-theme="dark"]) h2,
+:root[data-theme="light"] h3,
+:root:not([data-theme="dark"]) h3,
+:root[data-theme="light"] h4,
+:root:not([data-theme="dark"]) h4,
+:root[data-theme="light"] .font-extrabold,
+:root:not([data-theme="dark"]) .font-extrabold,
+:root[data-theme="light"] .font-heading,
+:root:not([data-theme="dark"]) .font-heading {
+    color: #0f172a !important;
+}
+
+:root[data-theme="light"] .text-slate-600,
+:root:not([data-theme="dark"]) .text-slate-600,
+:root[data-theme="light"] .text-slate-500,
+:root:not([data-theme="dark"]) .text-slate-500,
+:root[data-theme="light"] .dark\\:text-slate-300,
+:root:not([data-theme="dark"]) .dark\\:text-slate-300,
+:root[data-theme="light"] .dark\\:text-slate-400,
+:root:not([data-theme="dark"]) .dark\\:text-slate-400 {
+    color: #475569 !important;
+}
+
+/* Stat boxes */
+:root[data-theme="light"] .bg-emerald-50,
+:root:not([data-theme="dark"]) .bg-emerald-50,
+:root[data-theme="light"] .bg-orange-50,
+:root:not([data-theme="dark"]) .bg-orange-50,
+:root[data-theme="light"] .bg-amber-50,
+:root:not([data-theme="dark"]) .bg-amber-50 {
+    background-color: #ecfdf5 !important;
+}
+
+/* Composer */
+:root[data-theme="light"] #status-update textarea,
+:root:not([data-theme="dark"]) #status-update textarea {
+    background: #ffffff !important;
+    border-color: #cbd5e1 !important;
+    color: #0f172a !important;
+}
+
+/* Force kill dark backgrounds */
+:root[data-theme="light"] .dark\\:bg-zinc-900,
+:root:not([data-theme="dark"]) .dark\\:bg-zinc-900,
+:root[data-theme="light"] .bg-zinc-900,
+:root:not([data-theme="dark"]) .bg-zinc-900,
+:root[data-theme="light"] .dark\\:bg-slate-900,
+:root:not([data-theme="dark"]) .dark\\:bg-slate-900,
+:root[data-theme="light"] .dark\\:from-slate-950,
+:root:not([data-theme="dark"]) .dark\\:from-slate-950,
+:root[data-theme="light"] .dark\\:via-slate-900,
+:root:not([data-theme="dark"]) .dark\\:via-slate-900,
+:root[data-theme="light"] .dark\\:to-slate-950,
+:root:not([data-theme="dark"]) .dark\\:to-slate-950 {
+    background-color: #ffffff !important;
 }
