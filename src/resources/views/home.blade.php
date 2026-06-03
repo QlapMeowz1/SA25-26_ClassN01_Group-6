@@ -87,66 +87,7 @@
         @else
             <div class="posts-feed">
                 @foreach($posts as $post)
-                    <article class="post-card feed-card" data-post-id="{{ $post->id }}">
-                        <div class="post-header">
-                            <div class="post-author">
-                                <a href="{{ route('profile.show', $post->user->id) }}" class="author-avatar">
-                                    @if($post->user->avatar)
-                                        <img src="{{ asset('avatars/' . $post->user->avatar) }}" alt="{{ $post->user->name }}">
-                                    @else
-                                        {{ strtoupper(substr($post->user->name, 0, 1)) }}
-                                    @endif
-                                </a>
-                                <div class="author-info">
-                                    <a href="{{ route('profile.show', $post->user->id) }}" class="author-name">
-                                        {{ $post->user->name }}
-                                    </a>
-                                    <span class="post-time">{{ $post->created_at->diffForHumans() }}</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="post-content" data-full-content="{{ e($post->display_content ?? $post->content) }}">
-                            {!! nl2br(e($post->display_content ?? $post->content)) !!}
-                        </div>
-
-                        @php $postImage = $post->image_url ?? $post->embedded_image_url; @endphp
-                        @if($postImage)
-                            <div class="post-media">
-                                <img src="{{ $postImage }}" alt="Post image" class="post-image" loading="lazy" />
-                            </div>
-                        @endif
-
-                        <div class="post-stats">
-                            <span data-post-like-stat>❤️ {{ $post->likes_count }} {{ __('ui.post.likes') }}</span>
-                            <span data-post-comment-stat>💬 {{ $post->comments->count() }} {{ __('ui.post.comments') }}</span>
-                        </div>
-
-                        <div class="post-actions post-actions-fb">
-                            @auth
-                                <form action="{{ route('posts.like', $post->id) }}" method="POST" class="action-form">
-                                    @csrf
-                                    <button type="submit" class="action-btn fb-action-btn @if($post->isLikedBy(auth()->id())) liked @endif">
-                                        <span class="action-icon" aria-hidden="true">👍</span>
-                                        <span class="action-label">{{ __('ui.post.like') }}</span>
-                                        <span class="action-count" data-like-count>{{ $post->likes_count }}</span>
-                                    </button>
-                                </form>
-                            @else
-                                <button class="action-btn fb-action-btn" disabled>
-                                    <span class="action-icon" aria-hidden="true">👍</span>
-                                    <span class="action-label">{{ __('ui.post.like') }}</span>
-                                    <span class="action-count" data-like-count>{{ $post->likes_count }}</span>
-                                </button>
-                            @endauth
-
-                            <a href="{{ route('posts.show', $post->id) }}#comments-section" class="action-btn fb-action-btn">
-                                <span class="action-icon" aria-hidden="true">💬</span>
-                                <span class="action-label">{{ __('ui.post.comment') }}</span>
-                                <span class="action-count" data-comment-count>{{ $post->comments->count() }}</span>
-                            </a>
-                        </div>
-                    </article>
+                    @include('partials.post_card', ['post' => $post])
                 @endforeach
             </div>
         @endif

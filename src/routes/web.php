@@ -17,7 +17,7 @@ use App\Models\Post;
 
 // Home
 Route::get('/', function () {
-    $posts = Post::with(['user', 'comments'])
+    $posts = Post::with(['user', 'comments.user'])
         ->latest()
         ->limit(3)
         ->get();

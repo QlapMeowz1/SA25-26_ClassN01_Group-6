@@ -61,7 +61,7 @@
             @auth
                 <form action="{{ route('posts.like', $post->id) }}" method="POST" class="action-form">
                     @csrf
-                    <button type="submit" class="action-btn fb-action-btn @if($post->isLikedBy(auth()->id())) liked @endif">
+                    <button type="button" class="action-btn fb-action-btn @if($post->isLikedBy(auth()->id())) liked @endif" data-like-trigger data-like-url="{{ route('posts.like', $post->id) }}">
                         <span class="action-icon" aria-hidden="true">👍</span>
                         <span class="action-label">{{ __('ui.post.like') }}</span>
                         <span class="action-count" data-like-count>{{ $post->likes_count }}</span>
@@ -163,140 +163,18 @@
         @endauth
 
         @if($comments->isEmpty())
-            <div class="comment-empty-state">
+            <div class="comment-empty-state" data-comment-empty-state>
                 <div class="comment-empty-icon">💬</div>
                 <h3>{{ __('ui.post.no_comments_title') ?? 'Be the first to comment on this post' }}</h3>
                 <p>{{ __('ui.post.no_comments_body') ?? 'Start the conversation with a quick thought, emoji, or photo.' }}</p>
             </div>
-        @else
-            <div class="comment-thread">
-                @foreach($comments as $comment)
-                    <article class="comment-card modern-comment-card" data-comment-id="{{ $comment->id }}">
-                        <div class="comment-card-main">
-                            <a href="{{ route('profile.show', $comment->user->id) }}" class="comment-avatar-link">
-                                @if($comment->user->avatar)
-                                    <img src="{{ asset('avatars/' . $comment->user->avatar) }}" alt="{{ $comment->user->name }}" class="comment-avatar">
-                                @else
-                                    <span class="comment-avatar comment-avatar-fallback">{{ strtoupper(substr($comment->user->name, 0, 1)) }}</span>
-                                @endif
-                            </a>
-
-                            <div class="comment-body">
-                                <div class="comment-bubble">
-                                    <div class="comment-bubble-header">
-                                        <a href="{{ route('profile.show', $comment->user->id) }}" class="comment-author">{{ $comment->user->name }}</a>
-                                        <span class="comment-time">{{ $comment->created_at->diffForHumans() }}</span>
-                                    </div>
-
-                                    <div class="comment-content">{!! nl2br(e($comment->content)) !!}</div>
-
-                                    @if($comment->image)
-                                        <div class="comment-media">
-                                            <img src="{{ $comment->image }}" alt="Comment image" class="comment-image" loading="lazy">
-                                        </div>
-                                    @endif
-                                </div>
-
-                                <div class="comment-action-bar">
-                                    @auth
-                                        <form action="{{ route('comments.like', $comment->id) }}" method="POST" class="action-form">
-                                            @csrf
-                                            <button type="submit" class="action-btn comment-like-btn @if($comment->isLikedBy(auth()->id())) liked @endif">
-                                                <span class="action-icon" aria-hidden="true">❤️</span>
-                                                <span class="action-label">{{ __('ui.post.like') }}</span>
-                                                <span class="comment-like-count" data-like-count>{{ $comment->likes_count ?? $comment->likes->count() }}</span>
-                                            </button>
-                                        </form>
-
-                                        <button type="button" class="action-btn comment-reply-toggle" data-reply-toggle="reply-form-{{ $comment->id }}">{{ __('ui.post.reply') }}</button>
-
-                                        @if(auth()->id() === $comment->user->id)
-                                            <form action="{{ route('comments.delete', $comment->id) }}" method="POST" class="delete-form comment-delete-form">
-                                                @csrf
-                                                <button type="submit" class="delete-btn comment-delete-btn" onclick="return confirm('{{ __('ui.post.delete_comment_confirm') ?? 'Delete comment?' }}')">{{ __('ui.nav.logout') ?? 'Delete' }}</button>
-                                            </form>
-                                        @endif
-                                    @else
-                                        <span class="comment-like-count">❤️ {{ $comment->likes_count ?? $comment->likes->count() }}</span>
-                                    @endauth
-                                </div>
-
-                                @auth
-                                    <form action="{{ route('comments.reply', $comment->id) }}" method="POST" enctype="multipart/form-data" class="comment-reply-form is-hidden" id="reply-form-{{ $comment->id }}" data-comment-reply-form>
-                                        @csrf
-                                        <textarea name="content" placeholder="{{ __('ui.post.reply_to') }} {{ $comment->user->name }}..." maxlength="300" required></textarea>
-                                        <div class="comment-reply-tools">
-                                            <label class="composer-icon-btn composer-file-btn small">
-                                                📷
-                                                <input type="file" name="image" accept="image/*" class="comment-image-input" hidden>
-                                            </label>
-                                                <button type="submit" class="btn btn-secondary btn-small">{{ __('ui.post.reply') }}</button>
-                                        </div>
-                                    </form>
-                                @endauth
-
-                                @if($comment->replies->isNotEmpty())
-                                    <div class="comment-replies">
-                                        @foreach($comment->replies as $reply)
-                                            <article class="comment-card modern-comment-card comment-reply-card" data-comment-id="{{ $reply->id }}">
-                                                <div class="comment-card-main">
-                                                    <a href="{{ route('profile.show', $reply->user->id) }}" class="comment-avatar-link">
-                                                        @if($reply->user->avatar)
-                                                            <img src="{{ asset('avatars/' . $reply->user->avatar) }}" alt="{{ $reply->user->name }}" class="comment-avatar">
-                                                        @else
-                                                            <span class="comment-avatar comment-avatar-fallback">{{ strtoupper(substr($reply->user->name, 0, 1)) }}</span>
-                                                        @endif
-                                                    </a>
-
-                                                    <div class="comment-body">
-                                                        <div class="comment-bubble">
-                                                            <div class="comment-bubble-header">
-                                                                <a href="{{ route('profile.show', $reply->user->id) }}" class="comment-author">{{ $reply->user->name }}</a>
-                                                                <span class="comment-time">{{ $reply->created_at->diffForHumans() }}</span>
-                                                            </div>
-
-                                                            <div class="comment-content">{!! nl2br(e($reply->content)) !!}</div>
-
-                                                            @if($reply->image)
-                                                                <div class="comment-media">
-                                                                    <img src="{{ $reply->image }}" alt="Reply image" class="comment-image" loading="lazy">
-                                                                </div>
-                                                            @endif
-                                                        </div>
-
-                                                        <div class="comment-action-bar">
-                                                            @auth
-                                                                <form action="{{ route('comments.like', $reply->id) }}" method="POST" class="action-form">
-                                                                    @csrf
-                                                                    <button type="submit" class="action-btn comment-like-btn @if($reply->isLikedBy(auth()->id())) liked @endif">
-                                                                        <span class="action-icon" aria-hidden="true">❤️</span>
-                                                                        <span class="action-label">{{ __('ui.post.like') }}</span>
-                                                                        <span class="comment-like-count" data-like-count>{{ $reply->likes_count ?? $reply->likes->count() }}</span>
-                                                                    </button>
-                                                                </form>
-
-                                                                @if(auth()->id() === $reply->user->id)
-                                                                    <form action="{{ route('comments.delete', $reply->id) }}" method="POST" class="delete-form comment-delete-form">
-                                                                        @csrf
-                                                                        <button type="submit" class="delete-btn comment-delete-btn" onclick="return confirm('{{ __('ui.post.delete_reply_confirm') ?? 'Delete reply?' }}')">{{ __('ui.nav.logout') ?? 'Delete' }}</button>
-                                                                    </form>
-                                                                @endif
-                                                            @else
-                                                                <span class="comment-like-count">❤️ {{ $reply->likes_count ?? $reply->likes->count() }}</span>
-                                                            @endauth
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </article>
-                                        @endforeach
-                                    </div>
-                                @endif
-                            </div>
-                        </div>
-                    </article>
-                @endforeach
-            </div>
         @endif
+
+        <div class="comment-thread" data-comment-thread @if($comments->isEmpty()) hidden @endif>
+            @foreach($comments as $comment)
+                @include('posts.partials.comment_item', ['comment' => $comment, 'isReply' => false, 'showReplyForm' => true])
+            @endforeach
+        </div>
     </section>
 
     @if($comments->hasPages())
@@ -319,6 +197,11 @@
         const textarea = section.querySelector('[data-mention-input]');
         const mentionDropdown = section.querySelector('[data-mention-dropdown]');
         const selectedFile = section.querySelector('[data-selected-file]');
+        const thread = section.querySelector('[data-comment-thread]');
+        const emptyState = section.querySelector('[data-comment-empty-state]');
+        const commentsMeta = section.querySelector('.comments-meta');
+        const postCommentStat = section.querySelector('[data-post-comment-stat]');
+        const postCommentCount = section.querySelector('[data-comment-count]');
 
         function autosize(el) {
             if (!el) return;
@@ -363,6 +246,123 @@
             const fragment = beforeCaret.slice(atIndex + 1);
             if (/\s/.test(fragment)) return '';
             return fragment;
+        }
+
+        function setFormLoading(form, loading) {
+            if (!form) return;
+            const button = form.querySelector('button[type="submit"]');
+            if (!button) return;
+
+            if (loading) {
+                if (!button.dataset.originalLabel) {
+                    button.dataset.originalLabel = button.textContent.trim();
+                }
+                button.disabled = true;
+                button.textContent = 'Sending...';
+            } else {
+                button.disabled = false;
+                if (button.dataset.originalLabel) {
+                    button.textContent = button.dataset.originalLabel;
+                }
+            }
+        }
+
+        function updateCommentTotals(nextCount) {
+            if (typeof nextCount !== 'number') return;
+            if (commentsMeta) {
+                commentsMeta.textContent = nextCount + ' {{ __('ui.post.comments') }}';
+            }
+            if (postCommentStat) {
+                postCommentStat.textContent = '💬 ' + nextCount + ' {{ __('ui.post.comments') }}';
+            }
+            if (postCommentCount) {
+                postCommentCount.textContent = nextCount;
+            }
+        }
+
+        function ensureThreadVisible() {
+            if (thread) thread.hidden = false;
+            if (emptyState) emptyState.hidden = true;
+        }
+
+        function insertCommentHtml(html, isReply, parentId) {
+            if (!html) return;
+            ensureThreadVisible();
+
+            if (!isReply) {
+                if (!thread) return;
+                thread.insertAdjacentHTML('afterbegin', html);
+                return;
+            }
+
+            if (!parentId) return;
+            const parentComment = section.querySelector('[data-comment-id="' + parentId + '"]');
+            if (!parentComment) return;
+
+            let repliesContainer = parentComment.querySelector('.comment-replies');
+            if (!repliesContainer) {
+                repliesContainer = document.createElement('div');
+                repliesContainer.className = 'comment-replies';
+                const body = parentComment.querySelector('.comment-body');
+                if (body) {
+                    body.appendChild(repliesContainer);
+                }
+            }
+
+            repliesContainer.insertAdjacentHTML('beforeend', html);
+        }
+
+        async function submitCommentForm(form) {
+            const actionUrl = form.getAttribute('action') || '';
+            const isReply = form.classList.contains('comment-reply-form');
+            const formData = new FormData(form);
+
+            formData.append('X-Requested-With', 'XMLHttpRequest');
+
+            setFormLoading(form, true);
+
+            try {
+                const res = await fetch(actionUrl, {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: formData
+                });
+
+                if (!res.ok) throw new Error('Network response not ok');
+
+                const data = await res.json();
+                insertCommentHtml(data.html, isReply, data.parent_comment_id);
+
+                if (typeof data.top_level_comments_count === 'number') {
+                    updateCommentTotals(data.top_level_comments_count);
+                }
+
+                const replyForm = form.querySelector('textarea');
+                if (replyForm) {
+                    replyForm.value = '';
+                    autosize(replyForm);
+                }
+
+                const file = form.querySelector('input[type="file"]');
+                if (file) file.value = '';
+
+                if (selectedFile) {
+                    selectedFile.hidden = true;
+                    selectedFile.textContent = '';
+                }
+
+                if (isReply) {
+                    form.classList.add('is-hidden');
+                }
+            } catch (error) {
+                console.error('Comment submit failed', error);
+            } finally {
+                setFormLoading(form, false);
+            }
         }
 
         if (textarea) {
@@ -452,6 +452,20 @@
                 selectedFile.textContent = 'Attached: ' + file.name;
             });
         }
+
+        if (composer) {
+            composer.addEventListener('submit', function (event) {
+                event.preventDefault();
+                submitCommentForm(composer);
+            });
+        }
+
+        document.querySelectorAll('[data-comment-reply-form]').forEach(function (form) {
+            form.addEventListener('submit', function (event) {
+                event.preventDefault();
+                submitCommentForm(form);
+            });
+        });
     });
     </script>
     @endpush

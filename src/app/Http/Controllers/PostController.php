@@ -19,7 +19,7 @@ class PostController extends Controller
 
     public function index()
     {
-        $posts = Post::with('user', 'likes', 'comments')
+        $posts = Post::with(['user', 'comments.user'])
                      ->latest()
                      ->paginate(15);
 
@@ -179,6 +179,8 @@ class PostController extends Controller
             'image' => $commentImageUrl,
         ]);
 
+        $comment->load(['user', 'replies.user', 'replies.likes']);
+
         if ($post->user_id !== Auth::id()) {
             Notification::create([
                 'user_id' => $post->user_id,
@@ -186,6 +188,20 @@ class PostController extends Controller
                 'message' => Auth::user()->name . ' commented on your post!',
                 'type' => 'comment',
                 'related_user_id' => Auth::id(),
+            ]);
+        }
+
+        if ($request->wantsJson() || $request->ajax() || $request->header('Accept') === 'application/json') {
+            return response()->json([
+                'type' => 'comment',
+                'html' => view('posts.partials.comment_item', [
+                    'comment' => $comment,
+                    'isReply' => false,
+                    'showReplyForm' => true,
+                ])->render(),
+                'comment_id' => $comment->id,
+                'post_id' => $post->id,
+                'top_level_comments_count' => $post->comments()->whereNull('parent_id')->count(),
             ]);
         }
 
@@ -217,6 +233,8 @@ class PostController extends Controller
             'image' => $replyImageUrl,
         ]);
 
+        $reply->load(['user', 'replies.user', 'replies.likes']);
+
         if ($comment->user_id !== Auth::id()) {
             Notification::create([
                 'user_id' => $comment->user_id,
@@ -224,6 +242,21 @@ class PostController extends Controller
                 'message' => Auth::user()->name . ' replied to your comment!',
                 'type' => 'comment',
                 'related_user_id' => Auth::id(),
+            ]);
+        }
+
+        if ($request->wantsJson() || $request->ajax() || $request->header('Accept') === 'application/json') {
+            return response()->json([
+                'type' => 'reply',
+                'html' => view('posts.partials.comment_item', [
+                    'comment' => $reply,
+                    'isReply' => true,
+                    'showReplyForm' => false,
+                ])->render(),
+                'comment_id' => $reply->id,
+                'parent_comment_id' => $comment->id,
+                'post_id' => $comment->post_id,
+                'top_level_comments_count' => Comment::where('post_id', $comment->post_id)->whereNull('parent_id')->count(),
             ]);
         }
 
@@ -289,7 +322,7 @@ class PostController extends Controller
     public function loadMore(Request $request)
     {
         $page = (int) $request->query('page', 1);
-        $posts = Post::with(['user', 'comments'])
+        $posts = Post::with(['user', 'comments.user'])
             ->withCount('likes')
             ->latest()
             ->paginate(6, ['*'], 'page', $page);

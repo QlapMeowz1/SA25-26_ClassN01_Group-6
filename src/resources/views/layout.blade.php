@@ -52,7 +52,7 @@
     <link rel="stylesheet" href="{{ asset('css/dashboard-redesign.css') }}">
     <script src="{{ asset('js/theme-manager.js') }}"></script>
 </head>
-<body>
+<body data-page="{{ request()->routeIs('dashboard') ? 'dashboard' : 'app' }}">
     <nav class="navbar">
         <div class="container">
             <div class="nav-brand">
@@ -85,15 +85,15 @@
                         </button>
                         <div class="theme-dropdown-menu" id="themeDropdownMenu" role="menu">
                             <button type="button" class="theme-option" data-theme="light" role="menuitem">
-                                <span class="theme-icon">🌙</span>
+                                <span class="theme-icon">☀️</span>
                                 <span class="theme-label">Light Mode</span>
                             </button>
                             <button type="button" class="theme-option" data-theme="dark" role="menuitem">
-                                <span class="theme-icon">☀️</span>
+                                <span class="theme-icon">🌙</span>
                                 <span class="theme-label">Dark Mode</span>
                             </button>
                             <button type="button" class="theme-option" data-theme="system" role="menuitem">
-                                <span class="theme-icon">🌐</span>
+                                <span class="theme-icon">🖥️</span>
                                 <span class="theme-label">System</span>
                             </button>
                         </div>
@@ -190,23 +190,54 @@
     @auth
     <nav class="mobile-bottom-nav">
         <a href="{{ route('dashboard') }}" class="mobile-nav-item {{ request()->routeIs('dashboard') ? 'mobile-nav-active' : '' }}" title="{{ __('ui.nav.home') }}">
-            <span class="mobile-nav-icon">📊</span>
+            <span class="mobile-nav-icon" aria-hidden="true">
+                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M4 19h16" />
+                    <path d="M7 19V9" />
+                    <path d="M12 19V5" />
+                    <path d="M17 19v-7" />
+                </svg>
+            </span>
             <span class="mobile-nav-label">{{ __('ui.nav.home') }}</span>
         </a>
         <a href="{{ route('challenges.index') }}" class="mobile-nav-item {{ request()->routeIs('challenges.*') ? 'mobile-nav-active' : '' }}" title="{{ __('ui.nav.challenges') }}">
-            <span class="mobile-nav-icon">⚔️</span>
+            <span class="mobile-nav-icon" aria-hidden="true">
+                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M14 3l7 7-4 1-2 4-4-2-4 4-4-4 4-4 2-4 5-2z" />
+                </svg>
+            </span>
             <span class="mobile-nav-label">{{ __('ui.nav.challenges') }}</span>
         </a>
         <a href="{{ route('matches.index') }}" class="mobile-nav-item {{ request()->routeIs('matches.*') ? 'mobile-nav-active' : '' }}" title="{{ __('ui.nav.matches') }}">
-            <span class="mobile-nav-icon">🎾</span>
+            <span class="mobile-nav-icon" aria-hidden="true">
+                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="7" />
+                    <path d="M9 9c3 1 4 4 6 6" />
+                </svg>
+            </span>
             <span class="mobile-nav-label">{{ __('ui.nav.matches') }}</span>
         </a>
         <a href="{{ route('teams.index') }}" class="mobile-nav-item {{ request()->routeIs('teams.*') ? 'mobile-nav-active' : '' }}" title="{{ __('ui.nav.teams') }}">
-            <span class="mobile-nav-icon">👥</span>
+            <span class="mobile-nav-icon" aria-hidden="true">
+                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M16 18v-1a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v1" />
+                    <circle cx="10" cy="8" r="3" />
+                    <path d="M20 18v-1a3 3 0 0 0-2-2.8" />
+                    <path d="M15 5.2a3 3 0 0 1 0 5.6" />
+                </svg>
+            </span>
             <span class="mobile-nav-label">{{ __('ui.nav.teams') }}</span>
         </a>
         <a href="{{ route('tournaments.index') }}" class="mobile-nav-item {{ request()->routeIs('tournaments.*') ? 'mobile-nav-active' : '' }}" title="{{ __('ui.nav.tournaments') }}">
-            <span class="mobile-nav-icon">🏆</span>
+            <span class="mobile-nav-icon" aria-hidden="true">
+                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M8 4h8v4a4 4 0 0 1-8 0V4z" />
+                    <path d="M6 6H4a2 2 0 0 0 2 2" />
+                    <path d="M18 6h2a2 2 0 0 1-2 2" />
+                    <path d="M12 12v4" />
+                    <path d="M8 20h8" />
+                </svg>
+            </span>
             <span class="mobile-nav-label">{{ __('ui.nav.tournaments') }}</span>
         </a>
     </nav>
@@ -238,7 +269,7 @@
                 const iconMap = {
                     'light': '☀️',
                     'dark': '🌙',
-                    'system': '🌐'
+                    'system': '🖥️'
                 };
                 themeDropdownIcon.textContent = iconMap[saved] || '🌙';
                 
@@ -443,18 +474,13 @@
             updateCountdowns();
             setInterval(updateCountdowns, 60 * 1000);
 
-            // Intercept like forms and submit via AJAX to avoid full page reload (prevents jumping to top)
-            document.addEventListener('submit', async function (ev) {
-                const form = ev.target;
-                if (!form || !form.classList.contains('action-form')) return;
+            async function toggleLike(button) {
+                const actionUrl = button.getAttribute('data-like-url') || '';
+                if (!/\/like($|\/)/.test(actionUrl)) return;
 
-                const actionUrl = form.getAttribute('action') || '';
-                if (!/\/like($|\/)/.test(actionUrl)) return; // only handle like endpoints
-
-                ev.preventDefault();
-
+                const form = button.closest('form');
                 const tokenMeta = document.querySelector('meta[name="csrf-token"]');
-                const csrf = tokenMeta ? tokenMeta.getAttribute('content') : (form.querySelector('input[name="_token"]') ? form.querySelector('input[name="_token"]').value : '');
+                const csrf = tokenMeta ? tokenMeta.getAttribute('content') : (form && form.querySelector('input[name="_token"]') ? form.querySelector('input[name="_token"]').value : '');
 
                 try {
                     const res = await fetch(actionUrl, {
@@ -470,22 +496,39 @@
                     if (!res.ok) throw new Error('Network response not ok');
 
                     const data = await res.json();
-
-                    // Update UI: toggle liked class and update count
-                    const btn = form.querySelector('button') || form;
-                    if (data.liked) btn.classList.add('liked'); else btn.classList.remove('liked');
-                    btn.classList.add('like-pop');
-                    setTimeout(function () { btn.classList.remove('like-pop'); }, 350);
-
                     const count = data.likes_count ?? data.likesCount ?? data.count;
-                    const countEl = btn.querySelector('[data-like-count]') || btn.querySelector('.action-count') || btn.querySelector('.comment-like-count');
-                    if (countEl && typeof count !== 'undefined') countEl.textContent = count;
+
+                    if (data.liked) button.classList.add('liked'); else button.classList.remove('liked');
+                    button.classList.add('like-pop');
+                    setTimeout(function () { button.classList.remove('like-pop'); }, 350);
+
+                    const countEls = button.querySelectorAll ? button.querySelectorAll('[data-like-count]') : [];
+                    const fallbackCountEls = form ? form.querySelectorAll('[data-like-count]') : [];
+                    (countEls.length ? countEls : fallbackCountEls).forEach(function (countEl) {
+                        if (typeof count !== 'undefined') countEl.textContent = count;
+                    });
+
+                    const container = button.closest('[data-post-id]') || (form ? form.closest('[data-post-id]') : null);
+                    if (container) {
+                        const statLike = container.querySelector('[data-post-like-stat]');
+                        if (statLike && typeof count !== 'undefined') {
+                            const isUppercase = statLike.textContent.indexOf('Likes') !== -1;
+                            statLike.textContent = '❤️ ' + count + (isUppercase ? ' Likes' : ' likes');
+                        }
+                    }
                 } catch (err) {
                     console.error('Like action failed', err);
-                    // fallback to normal submit -> reload
-                    form.submit();
                 }
-            });
+            }
+
+            document.addEventListener('click', function (ev) {
+                const btn = ev.target.closest('[data-like-trigger]');
+                if (!btn) return;
+
+                ev.preventDefault();
+                ev.stopPropagation();
+                toggleLike(btn);
+            }, true);
 
             // Poll likes count periodically so changes by other users reflect on this page
             async function pollLikes() {
