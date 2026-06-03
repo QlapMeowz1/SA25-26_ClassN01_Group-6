@@ -2,6 +2,10 @@
 
 @section('title', 'Tournaments - BadNet')
 
+@php
+    $tournamentHref = fn ($tournament) => is_numeric($tournament->id) ? route('tournaments.show', $tournament->id) : route('tournaments.create');
+@endphp
+
 @section('content')
 <div class="page-shell tournament-circuit-shell tournament-index-shell">
     <section class="tournament-hero">
@@ -93,7 +97,7 @@
                         </div>
 
                         <div class="featured-actions">
-                            <a href="{{ route('tournaments.show', $featuredTournament->id) }}" class="btn btn-primary btn-large">{{ $featuredTournament->action_label }}</a>
+                            <a href="{{ $tournamentHref($featuredTournament) }}" class="btn btn-primary btn-large">{{ $featuredTournament->action_label }}</a>
                             <span class="deadline-text">{{ __('ui.tournament.registration_progress') }}.</span>
                         </div>
                     </div>
@@ -162,7 +166,7 @@
                                 </div>
                             </div>
 
-                            <a href="{{ route('tournaments.show', $tournament->id) }}" class="btn {{ $tournament->action_variant === 'primary' ? 'btn-primary' : 'btn-secondary' }} btn-block">{{ $tournament->action_label }}</a>
+                            <a href="{{ $tournamentHref($tournament) }}" class="btn {{ $tournament->action_variant === 'primary' ? 'btn-primary' : 'btn-secondary' }} btn-block">{{ $tournament->action_label }}</a>
                         </div>
                     </article>
                 @endforeach
@@ -233,7 +237,7 @@
                                 </div>
                             </div>
 
-                            <a href="{{ route('tournaments.show', $tournament->id) }}" class="btn {{ $tournament->action_variant === 'primary' ? 'btn-primary' : 'btn-secondary' }} btn-block">{{ $tournament->action_label }}</a>
+                            <a href="{{ $tournamentHref($tournament) }}" class="btn {{ $tournament->action_variant === 'primary' ? 'btn-primary' : 'btn-secondary' }} btn-block">{{ $tournament->action_label }}</a>
                         </div>
                     </article>
                 @endforeach

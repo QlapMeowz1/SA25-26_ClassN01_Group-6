@@ -254,8 +254,12 @@ class MatchController extends Controller
     public function show(GameMatch $match)
     {
         $match->load(['player1', 'player2', 'winner', 'joinRequests.requester']);
+        $betService = app(\App\Services\BetService::class);
+        $odds = $betService->getMatchOdds($match);
+        $betInsights = $betService->getMatchInsights($match);
+        $betSlip = $betService->getBetSlipData($match);
 
-        return view('matches.show', compact('match'));
+        return view('matches.show', compact('match', 'odds', 'betInsights', 'betSlip'));
     }
 
     public function create()

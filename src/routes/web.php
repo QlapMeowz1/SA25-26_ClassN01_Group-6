@@ -129,6 +129,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/notifications/mark-all-read', [\App\Http\Controllers\NotificationsController::class, 'markAllRead'])->name('notifications.markAll');
     
     // Betting routes
+    Route::get('/bets/slip/{match}', [\App\Http\Controllers\BetController::class, 'slip'])->name('bets.slip');
     Route::get('/bets', [\App\Http\Controllers\BetController::class, 'index'])->name('bets.index');
     Route::get('/bets/{bet}', [\App\Http\Controllers\BetController::class, 'show'])->name('bets.show');
     

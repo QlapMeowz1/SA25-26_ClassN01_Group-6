@@ -22,6 +22,7 @@
         </div>
 
         <div class="matches-header-actions">
+            <a href="{{ route('bets.index') }}" class="btn btn-secondary">Bets</a>
             <form action="{{ route('matches.quick') }}" method="POST" class="inline">
                 @csrf
                 <button type="submit" class="btn btn-primary">{{ __('ui.match.quick') }}</button>
@@ -132,6 +133,7 @@
                                 <div class="ticket-footer">
                                     @if(!($match->is_sample ?? false))
                                         <a href="{{ route('matches.show', $match->id) }}" class="btn btn-primary btn-small">{{ __('ui.match.view_match') }}</a>
+                                        <a href="{{ route('bets.slip', $match->id) }}" class="btn btn-secondary btn-small">Bet Slip</a>
                                     @else
                                         <a href="{{ route('matches.create') }}" class="btn btn-secondary btn-small">{{ __('ui.match.create_match') }}</a>
                                     @endif
@@ -186,6 +188,9 @@
 
                                 <div class="ticket-footer">
                                     <a href="{{ route('matches.show', $match->id) }}" class="btn btn-primary btn-small">{{ __('ui.match.view_match') }}</a>
+                                    @if($match->status !== 'completed')
+                                        <a href="{{ route('bets.slip', $match->id) }}" class="btn btn-secondary btn-small">Bet Slip</a>
+                                    @endif
                                 </div>
                             </article>
                         @endforeach
@@ -222,6 +227,9 @@
                                 </div>
                                 @if(is_numeric($match->id))
                                     <a href="{{ route('matches.show', $match->id) }}" class="btn btn-secondary btn-small">{{ __('ui.match.details') }}</a>
+                                @endif
+                                @if($match->status !== 'completed')
+                                    <a href="{{ route('bets.slip', $match->id) }}" class="btn btn-primary btn-small">Bet Slip</a>
                                 @endif
                             </article>
                         @endforeach

@@ -179,18 +179,59 @@
                                 <p class="home-eyebrow">Coins</p>
                                 <h2>Place Bet</h2>
                             </div>
+                            <a href="{{ route('bets.slip', $match->id) }}" class="text-sm font-semibold text-sky-600 dark:text-sky-300">Open Bet Slip →</a>
                         </div>
                         <form action="{{ route('matches.placeBet', $match->id) }}" method="POST" class="match-compact-form">
                             @csrf
+                            <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800/60">
+                                <div class="flex items-center justify-between text-sm text-slate-600 dark:text-slate-300">
+                                    <span>Virtual coins</span>
+                                    <strong class="text-slate-900 dark:text-slate-50">{{ auth()->user()->virtual_coins }}</strong>
+                                </div>
+                                <div class="mt-3 grid gap-3 text-sm">
+                                    @foreach($betSlip['players'] ?? [] as $player)
+                                        <label class="block cursor-pointer">
+                                            <input type="radio" name="bet_on_user_id" value="{{ $player['id'] }}" class="peer sr-only" {{ $loop->first ? 'checked' : '' }}>
+                                            <div class="rounded-xl bg-white px-3 py-3 shadow-sm ring-1 ring-transparent transition peer-checked:ring-sky-400 dark:bg-slate-900 dark:peer-checked:ring-sky-500">
+                                                <div class="flex items-center justify-between gap-2">
+                                                    <span class="font-semibold text-slate-600 dark:text-slate-300">{{ $player['name'] }}</span>
+                                                    <strong class="text-slate-900 dark:text-slate-50">x{{ number_format($player['odds'], 2) }}</strong>
+                                                </div>
+                                                <div class="mt-2 flex flex-wrap gap-2 text-[11px] font-semibold">
+                                                    <span class="rounded-full bg-emerald-50 px-2.5 py-1 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300">Confidence {{ $player['confidence'] }}%</span>
+                                                    <span class="rounded-full bg-amber-50 px-2.5 py-1 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300">{{ $player['risk_level'] }}</span>
+                                                    <span class="rounded-full bg-sky-50 px-2.5 py-1 text-sky-700 dark:bg-sky-500/10 dark:text-sky-300">Form {{ $player['form_label'] }}</span>
+                                                    <span class="rounded-full bg-slate-100 px-2.5 py-1 text-slate-700 dark:bg-slate-800 dark:text-slate-200">{{ $player['community_pick_ratio'] }}% picked</span>
+                                                </div>
+                                            </div>
+                                        </label>
+                                    @endforeach
+                                </div>
+                                <div class="mt-3 flex flex-wrap gap-2">
+                                    <span class="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300">{{ $betSlip['odds']['selected_probability'] ?? 50 }}% confidence</span>
+                                    <span class="rounded-full bg-sky-50 px-2.5 py-1 text-xs font-semibold text-sky-700 dark:bg-sky-500/10 dark:text-sky-300">Potential return = stake × odds</span>
+                                </div>
+                                <p class="mt-3 text-xs leading-5 text-slate-500 dark:text-slate-400">Open the dedicated Bet Slip for a fuller breakdown of confidence, form, and community pick ratio.</p>
+                            </div>
+
                             <div class="form-group">
                                 <label>Bet on</label>
-                                <select name="bet_on_user_id" required>
-                                    <option value="">Select Player</option>
-                                    <option value="{{ $match->player1_id }}">{{ $match->player1->name }}</option>
+                                <div class="grid gap-2 sm:grid-cols-2">
+                                    <label class="cursor-pointer">
+                                        <input type="radio" name="bet_on_user_id" value="{{ $match->player1_id }}" class="peer sr-only" checked>
+                                        <div class="rounded-xl border border-slate-200 bg-white px-4 py-3 text-center text-sm font-semibold text-slate-700 shadow-sm transition peer-checked:border-sky-400 peer-checked:bg-sky-50 peer-checked:text-sky-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:peer-checked:border-sky-500 dark:peer-checked:bg-slate-800 dark:peer-checked:text-sky-300">
+                                            {{ $match->player1->name }}
+                                        </div>
+                                    </label>
                                     @if($match->player2)
-                                        <option value="{{ $match->player2_id }}">{{ $match->player2->name }}</option>
+                                        <label class="cursor-pointer">
+                                            <input type="radio" name="bet_on_user_id" value="{{ $match->player2_id }}" class="peer sr-only">
+                                            <div class="rounded-xl border border-slate-200 bg-white px-4 py-3 text-center text-sm font-semibold text-slate-700 shadow-sm transition peer-checked:border-sky-400 peer-checked:bg-sky-50 peer-checked:text-sky-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:peer-checked:border-sky-500 dark:peer-checked:bg-slate-800 dark:peer-checked:text-sky-300">
+                                                {{ $match->player2->name }}
+                                            </div>
+                                        </label>
                                     @endif
-                                </select>
+                                </div>
                             </div>
                             <div class="form-group">
                                 <label>Amount (Max: {{ auth()->user()->virtual_coins }} coins)</label>
