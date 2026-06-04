@@ -51,7 +51,7 @@
                                     </div>
                                 </div>
                             </td>
-                            <td><span class="admin-pill">{{ ucfirst($user->role ?? 'user') }}</span></td>
+                            <td><span class="admin-pill">{{ \Illuminate\Support\Str::headline($user->role ?? 'user') }}</span></td>
                             <td>{{ number_format($user->elo_rating ?? 0) }} ELO<br><small>{{ $user->wins }}W / {{ $user->losses }}L</small></td>
                             <td>{{ $user->posts_count }} posts<br><small>{{ $user->bets_count }} bets / {{ $user->team_members_count }} teams</small></td>
                             <td>

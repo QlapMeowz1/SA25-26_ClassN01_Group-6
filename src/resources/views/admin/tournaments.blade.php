@@ -19,7 +19,7 @@
             <select name="status">
                 <option value="">All statuses</option>
                 @foreach(['upcoming', 'in_progress', 'completed'] as $status)
-                    <option value="{{ $status }}" @selected(request('status') === $status)>{{ ucfirst(str_replace('_', ' ', $status)) }}</option>
+                    <option value="{{ $status }}" @selected(request('status') === $status)>{{ \Illuminate\Support\Str::headline($status) }}</option>
                 @endforeach
             </select>
             <button type="submit" class="btn btn-primary btn-small">Filter</button>
@@ -47,7 +47,7 @@
                                 <strong>{{ $tournament->name }}</strong>
                                 <small>{{ $tournament->start_date ? $tournament->start_date->format('M d, Y') : 'No start date' }}</small>
                             </td>
-                            <td><span class="admin-pill">{{ ucfirst(str_replace('_', ' ', $tournament->status ?? 'upcoming')) }}</span></td>
+                            <td><span class="admin-pill">{{ \Illuminate\Support\Str::headline($tournament->status ?? 'upcoming') }}</span></td>
                             <td>{{ $tournament->organizer?->name ?? 'Unknown' }}</td>
                             <td>{{ $tournament->tournament_participants_count }}/{{ $tournament->max_participants }}</td>
                             <td>{{ number_format($tournament->prize_pool ?? 0) }}</td>

@@ -6,6 +6,14 @@
     $myTeamCount = $myTeams->count();
     $suggestedCount = $suggestedTeams->count();
     $allTeamCount = $allTeams->count();
+    $cleanTeamText = function ($value, $fallback = '') {
+        $text = trim((string) $value);
+        return mb_strlen($text) >= 8 && preg_match('/^[\pL\s.,!?\'"-]+$/u', $text) ? $text : $fallback;
+    };
+    $teamLevelLabel = function ($value) {
+        $level = trim((string) $value);
+        return $level && strtolower($level) !== 'n/a' ? $level : null;
+    };
 @endphp
 
 @section('content')
@@ -76,21 +84,25 @@
                                 <div class="team-card-content">
                                     <div class="team-card-header">
                                         <h3>{{ $team->name }}</h3>
-                                        <span class="team-badge" data-level="{{ strtolower($team->level ?? 'beginner') }}">{{ $team->level ?? 'N/A' }}</span>
+                                        @if($levelLabel = $teamLevelLabel($team->level))
+                                            <span class="team-badge" data-level="{{ strtolower($levelLabel) }}">{{ $levelLabel }}</span>
+                                        @endif
                                     </div>
 
-                                    <p class="team-slogan">{{ $team->slogan ?? 'A team with a shared passion' }}</p>
-                                    <p class="team-description">{{ \Illuminate\Support\Str::limit($team->description, 90) }}</p>
+                                    <p class="team-slogan">{{ $cleanTeamText($team->slogan, 'A team with a shared passion') }}</p>
+                                    @if($cleanTeamText($team->description))
+                                        <p class="team-description">{{ \Illuminate\Support\Str::limit($cleanTeamText($team->description), 90) }}</p>
+                                    @endif
 
                                     <div class="team-meta-grid">
-                                        <div class="team-meta-item">
+                                        <div class="team-meta-item team-meta-members">
                                             <span class="meta-label">{{ __('ui.team.members') }}</span>
                                             <div class="progress-bar-small">
                                                 <div class="progress-fill" style="width: {{ min(100, ($team->members_count ?? 0) * 5) }}%"></div>
                                             </div>
                                             <span class="meta-value">{{ $team->members_count ?? 0 }}/{{ $team->max_members ?? 20 }}</span>
                                         </div>
-                                        <div class="team-meta-item">
+                                        <div class="team-meta-item team-meta-location">
                                             <span class="meta-label">{{ __('ui.team.location') }}</span>
                                             <span class="meta-value">{{ $team->location ?? 'TBD' }}</span>
                                         </div>
@@ -164,21 +176,25 @@
                                 <div class="team-card-content">
                                     <div class="team-card-header">
                                         <h3>{{ $team->name }}</h3>
-                                        <span class="team-badge" data-level="{{ strtolower($team->level ?? 'beginner') }}">{{ $team->level ?? 'N/A' }}</span>
+                                        @if($levelLabel = $teamLevelLabel($team->level))
+                                            <span class="team-badge" data-level="{{ strtolower($levelLabel) }}">{{ $levelLabel }}</span>
+                                        @endif
                                     </div>
 
-                                    <p class="team-slogan">{{ $team->slogan ?? 'A competitive team' }}</p>
-                                    <p class="team-description">{{ \Illuminate\Support\Str::limit($team->description, 90) }}</p>
+                                    <p class="team-slogan">{{ $cleanTeamText($team->slogan, 'A competitive team') }}</p>
+                                    @if($cleanTeamText($team->description))
+                                        <p class="team-description">{{ \Illuminate\Support\Str::limit($cleanTeamText($team->description), 90) }}</p>
+                                    @endif
 
                                     <div class="team-meta-grid">
-                                        <div class="team-meta-item">
+                                        <div class="team-meta-item team-meta-members">
                                             <span class="meta-label">{{ __('ui.team.members') }}</span>
                                             <div class="progress-bar-small">
                                                 <div class="progress-fill" style="width: {{ min(100, ($team->members_count ?? 0) * 5) }}%"></div>
                                             </div>
                                             <span class="meta-value">{{ $team->members_count ?? 0 }}/{{ $team->max_members ?? 20 }}</span>
                                         </div>
-                                        <div class="team-meta-item">
+                                        <div class="team-meta-item team-meta-location">
                                             <span class="meta-label">{{ __('ui.team.location') }}</span>
                                             <span class="meta-value">{{ $team->location ?? 'TBD' }}</span>
                                         </div>
@@ -228,9 +244,11 @@
                                     <span class="team-avatar-small">{{ strtoupper(substr($team->name, 0, 1)) }}</span>
                                     <div class="team-compact-meta">
                                         <strong>{{ $team->name }}</strong>
-                                        <small>{{ $team->level }} - {{ $team->location }}</small>
+                                        <small>{{ $teamLevelLabel($team->level) ?? __('ui.team.level') }} - {{ $team->location }}</small>
                                     </div>
-                                    <span class="team-badge" data-level="{{ strtolower($team->level) }}">{{ $team->level }}</span>
+                                    @if($levelLabel = $teamLevelLabel($team->level))
+                                        <span class="team-badge" data-level="{{ strtolower($levelLabel) }}">{{ $levelLabel }}</span>
+                                    @endif
                                 </div>
                                 <p class="team-description">{{ \Illuminate\Support\Str::limit($team->description, 96) }}</p>
                                 <div class="team-tags">

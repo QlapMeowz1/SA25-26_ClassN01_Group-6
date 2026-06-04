@@ -52,7 +52,7 @@
     <link rel="stylesheet" href="{{ asset('css/dashboard-redesign.css') }}">
     <script src="{{ asset('js/theme-manager.js') }}"></script>
 </head>
-<body data-page="{{ request()->routeIs('dashboard') ? 'dashboard' : 'app' }}">
+<body class="{{ request()->routeIs('admin.*') ? 'admin-route' : '' }}" data-page="{{ request()->routeIs('dashboard') ? 'dashboard' : (request()->routeIs('admin.*') ? 'admin' : 'app') }}">
     <nav class="navbar">
         <div class="container">
             <div class="nav-brand">
@@ -166,7 +166,7 @@
         </div>
     </nav>
 
-    <main class="container main-content app-shell">
+    <main class="container main-content app-shell {{ request()->routeIs('admin.*') ? 'admin-app-shell' : '' }}">
         @if ($errors->any())
             <div class="alert alert-danger">
                 <ul class="error-list">

@@ -11,6 +11,7 @@
     $matchCount = $upcomingMatches->count() + $recentMatches->count();
     $leaderboardPosition = $leaderboard->search(fn ($player) => $player->id === $user->id);
     $newPostCount = $communityPosts->filter(fn ($post) => $post->created_at->greaterThan(now()->subHours(3)))->count();
+    $matchStatusLabel = fn ($status) => \Illuminate\Support\Str::headline((string) $status);
 @endphp
 
 <div class="mx-auto flex max-w-7xl flex-col gap-8 px-4 py-8 sm:px-6 lg:px-8">
@@ -59,16 +60,16 @@
                     </a>
                 </div>
 
-                <div class="mt-6 flex flex-wrap gap-3 text-sm text-slate-500">
-                    <span class="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-2 font-medium text-slate-700">
+                <div class="mt-6 flex flex-wrap gap-3 text-sm">
+                    <span class="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-2 font-semibold text-slate-800 ring-1 ring-slate-200">
                         {{ $communityPosts->total() }} recent posts
                     </span>
-                    <span class="inline-flex items-center gap-2 rounded-full bg-sky-50 px-3 py-2 font-medium text-sky-700">
+                    <span class="inline-flex items-center gap-2 rounded-full bg-sky-100 px-3 py-2 font-semibold text-sky-900 ring-1 ring-sky-200">
                         {{ $openMatches->count() }} open matches
                     </span>
                     @if($newPostCount > 0)
-                        <span class="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-2 font-medium text-emerald-700">
-                            {{ $newPostCount }} {{ __('ui.dashboard.new') }}
+                        <span class="inline-flex items-center gap-2 rounded-full bg-emerald-100 px-3 py-2 font-semibold text-emerald-900 ring-1 ring-emerald-200">
+                            {{ $newPostCount }} {{ __('ui.dashboard.new') ?: 'new' }}
                         </span>
                     @endif
                 </div>
@@ -293,7 +294,7 @@
                 @else
                     <div class="space-y-4">
                         @foreach($communityPosts as $post)
-                            @include('partials.post_card', ['post' => $post])
+                            @include('partials.post_card', ['post' => $post, 'showCommentPreview' => false])
                         @endforeach
                     </div>
 
@@ -311,7 +312,9 @@
                 <div class="mb-4 flex items-center justify-between">
                     <div>
                         <h3 class="text-lg font-black text-slate-900">{{ __('ui.dashboard.your_matches') }}</h3>
-                        <p class="text-sm text-slate-500">{{ __('ui.dashboard.no_upcoming_matches') }}</p>
+                        <p class="text-sm text-slate-500">
+                            {{ $upcomingMatches->isEmpty() ? __('ui.dashboard.no_upcoming_matches') : $upcomingMatches->count() . ' active match' . ($upcomingMatches->count() === 1 ? '' : 'es') }}
+                        </p>
                     </div>
                     <svg class="h-6 w-6 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <rect x="3" y="5" width="18" height="16" rx="3" />
@@ -338,7 +341,7 @@
                                         </div>
                                         <div class="mt-2 inline-flex items-center gap-2 rounded-full px-2.5 py-1 text-xs font-semibold {{ $isLive ? 'bg-amber-50 text-amber-700' : 'bg-emerald-50 text-emerald-700' }}">
                                             <span class="h-2 w-2 rounded-full {{ $isLive ? 'bg-amber-500' : 'bg-emerald-500' }}"></span>
-                                            {{ ucfirst($match->status) }}
+                                            {{ $matchStatusLabel($match->status) }}
                                         </div>
                                     </div>
 
@@ -415,7 +418,7 @@
                 <div class="space-y-3">
                     @foreach($leaderboard->take(5) as $index => $player)
                         <div class="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-3 {{ $player->id === $user->id ? 'ring-2 ring-sky-200' : '' }}">
-                            <span class="flex h-10 w-10 items-center justify-center rounded-full text-sm font-black {{ $index === 0 ? 'bg-amber-100 text-amber-800' : ($index === 1 ? 'bg-slate-100 text-slate-700' : ($index === 2 ? 'bg-orange-100 text-orange-800' : 'bg-emerald-100 text-emerald-800')) }}">
+                            <span class="flex h-10 w-10 items-center justify-center rounded-full border text-sm font-black {{ $index === 0 ? 'border-amber-200 bg-amber-100 text-amber-900' : ($index === 1 ? 'border-slate-300 bg-slate-200 text-slate-950' : ($index === 2 ? 'border-orange-200 bg-orange-100 text-orange-900' : 'border-emerald-200 bg-emerald-100 text-emerald-900')) }}">
                                 {{ str_pad((string) ($index + 1), 2, '0', STR_PAD_LEFT) }}
                             </span>
 

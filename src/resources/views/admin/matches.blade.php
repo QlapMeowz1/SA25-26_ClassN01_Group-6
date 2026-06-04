@@ -19,7 +19,7 @@
             <select name="status">
                 <option value="">All statuses</option>
                 @foreach(['open', 'scheduled', 'in_progress', 'completed', 'cancelled'] as $status)
-                    <option value="{{ $status }}" @selected(request('status') === $status)>{{ ucfirst(str_replace('_', ' ', $status)) }}</option>
+                    <option value="{{ $status }}" @selected(request('status') === $status)>{{ \Illuminate\Support\Str::headline($status) }}</option>
                 @endforeach
             </select>
             <button type="submit" class="btn btn-primary btn-small">Filter</button>
@@ -47,7 +47,7 @@
                                 <strong>{{ $match->player1?->name ?? 'Player 1' }} vs {{ $match->player2?->name ?? 'TBD' }}</strong>
                                 <small>{{ $match->location ?? 'Court TBD' }}</small>
                             </td>
-                            <td><span class="admin-pill">{{ ucfirst(str_replace('_', ' ', $match->status)) }}</span></td>
+                            <td><span class="admin-pill">{{ \Illuminate\Support\Str::headline($match->status) }}</span></td>
                             <td>{{ $match->match_date ? $match->match_date->format('M d, Y H:i') : 'No date' }}</td>
                             <td>{{ $match->winner?->name ?? 'N/A' }}<br><small>{{ $match->player1_score ?? '-' }} / {{ $match->player2_score ?? '-' }}</small></td>
                             <td>{{ $match->bets_count }}</td>

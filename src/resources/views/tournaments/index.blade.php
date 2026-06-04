@@ -134,7 +134,9 @@
                         <div class="tournament-card-content tournament-card-content-modern">
                             <div class="tournament-card-header">
                                 <h3>{{ $tournament->name }}</h3>
-                                <span class="tournament-type-badge" data-type="{{ $tournament->tournament_type ?? 'standard' }}">{{ ucfirst($tournament->tournament_type ?? 'Tournament') }}</span>
+                                @if(strtolower((string) ($tournament->tournament_type ?? '')) !== strtolower((string) $tournament->status_label))
+                                    <span class="tournament-type-badge" data-type="{{ $tournament->tournament_type ?? 'standard' }}">{{ ucfirst($tournament->tournament_type ?? 'Tournament') }}</span>
+                                @endif
                             </div>
 
                             <p class="tournament-organizer">{{ __('ui.tournament.organizer') }} {{ $tournament->organizer?->name ?? __('ui.tournament.community') }}</p>
@@ -203,7 +205,9 @@
                         <div class="tournament-card-content tournament-card-content-modern">
                             <div class="tournament-card-header">
                                 <h3>{{ $tournament->name }}</h3>
-                                <span class="tournament-type-badge" data-type="{{ $tournament->tournament_type ?? 'standard' }}">{{ ucfirst($tournament->tournament_type ?? 'Tournament') }}</span>
+                                @if(strtolower((string) ($tournament->tournament_type ?? '')) !== strtolower((string) $tournament->status_label))
+                                    <span class="tournament-type-badge" data-type="{{ $tournament->tournament_type ?? 'standard' }}">{{ ucfirst($tournament->tournament_type ?? 'Tournament') }}</span>
+                                @endif
                             </div>
 
                             <p class="tournament-description">{{ \Illuminate\Support\Str::limit($tournament->description, 72) }}</p>

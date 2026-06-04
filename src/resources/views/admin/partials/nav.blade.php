@@ -1,8 +1,54 @@
+@php
+    $adminLinks = [
+        ['route' => 'admin.dashboard', 'match' => 'admin.dashboard', 'icon' => 'grid', 'label' => 'Dashboard'],
+        ['route' => 'admin.users', 'match' => 'admin.users', 'icon' => 'users', 'label' => 'Players'],
+        ['route' => 'admin.tournaments', 'match' => 'admin.tournaments', 'icon' => 'trophy', 'label' => 'Tournaments'],
+        ['route' => 'admin.matches', 'match' => 'admin.matches', 'icon' => 'calendar', 'label' => 'Schedule'],
+        ['route' => 'admin.content', 'match' => 'admin.content', 'icon' => 'book', 'label' => 'Court Bookings'],
+        ['route' => 'admin.bets', 'match' => 'admin.bets', 'icon' => 'chart', 'label' => 'Statistics'],
+    ];
+
+    $adminIcon = function ($name) {
+        return match ($name) {
+            'users' => '<path d="M16 18v-1a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v1"/><circle cx="10" cy="8" r="3"/><path d="M20 18v-1a3 3 0 0 0-2-2.8"/><path d="M15 5.2a3 3 0 0 1 0 5.6"/>',
+            'trophy' => '<path d="M8 4h8v4a4 4 0 0 1-8 0V4z"/><path d="M6 6H4a2 2 0 0 0 2 2"/><path d="M18 6h2a2 2 0 0 1-2 2"/><path d="M12 12v4"/><path d="M8 20h8"/>',
+            'calendar' => '<rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4M16 3v4M3 11h18"/>',
+            'book' => '<path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v17H6.5A2.5 2.5 0 0 1 4 17.5z"/><path d="M4 17.5A2.5 2.5 0 0 1 6.5 15H20"/>',
+            'chart' => '<path d="M4 19V5"/><path d="M8 19v-6"/><path d="M13 19V9"/><path d="M18 19v-3"/><path d="M3 19h19"/>',
+            default => '<rect x="4" y="4" width="7" height="7" rx="1"/><rect x="13" y="4" width="7" height="7" rx="1"/><rect x="4" y="13" width="7" height="7" rx="1"/><rect x="13" y="13" width="7" height="7" rx="1"/>',
+        };
+    };
+@endphp
+
 <nav class="admin-section-nav" aria-label="Admin sections">
-    <a href="{{ route('admin.dashboard') }}" class="{{ request()->routeIs('admin.dashboard') ? 'is-active' : '' }}">Overview</a>
-    <a href="{{ route('admin.users') }}" class="{{ request()->routeIs('admin.users') ? 'is-active' : '' }}">Users</a>
-    <a href="{{ route('admin.content') }}" class="{{ request()->routeIs('admin.content') ? 'is-active' : '' }}">Content</a>
-    <a href="{{ route('admin.matches') }}" class="{{ request()->routeIs('admin.matches') ? 'is-active' : '' }}">Matches</a>
-    <a href="{{ route('admin.tournaments') }}" class="{{ request()->routeIs('admin.tournaments') ? 'is-active' : '' }}">Tournaments</a>
-    <a href="{{ route('admin.bets') }}" class="{{ request()->routeIs('admin.bets') ? 'is-active' : '' }}">Bets</a>
+    <div class="admin-sidebar-brand">
+        <span class="admin-brand-mark" aria-hidden="true">⌁</span>
+        <div>
+            <strong>SMASH</strong>
+            <span>Admin Panel</span>
+        </div>
+    </div>
+
+    <div class="admin-sidebar-menu-label">Main Menu</div>
+
+    <div class="admin-sidebar-links">
+        @foreach($adminLinks as $link)
+            <a href="{{ route($link['route']) }}" class="{{ request()->routeIs($link['match']) ? 'is-active' : '' }}">
+                <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    {!! $adminIcon($link['icon']) !!}
+                </svg>
+                <span>{{ $link['label'] }}</span>
+                <span class="admin-nav-chevron" aria-hidden="true">›</span>
+            </a>
+        @endforeach
+    </div>
+
+    <div class="admin-sidebar-user">
+        <span class="admin-sidebar-avatar">{{ strtoupper(substr(auth()->user()->name ?? 'A', 0, 2)) }}</span>
+        <div>
+            <strong>{{ auth()->user()->name ?? 'Admin' }}</strong>
+            <span>Super Admin</span>
+        </div>
+        <span class="admin-sidebar-bell" aria-hidden="true">⌁</span>
+    </div>
 </nav>

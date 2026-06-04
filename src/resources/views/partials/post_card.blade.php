@@ -3,6 +3,7 @@
     $content = $post->display_content ?? $post->content;
     $commentCount = $post->comments_count ?? ($post->comments?->count() ?? 0);
     $isOwner = auth()->check() && auth()->id() === $post->user_id;
+    $showCommentPreview = $showCommentPreview ?? true;
 
     $images = [];
     if (!empty($post->image)) {
@@ -117,7 +118,7 @@
         </a>
     </div>
 
-    @if(isset($post->comments) && $post->comments->count() > 0)
+    @if($showCommentPreview && isset($post->comments) && $post->comments->count() > 0)
         <div class="mt-4 space-y-2 border-t border-slate-200 pt-4">
             @foreach($post->comments->take(2) as $comment)
                 <div class="rounded-2xl bg-slate-50 px-3 py-2 text-sm text-slate-600">

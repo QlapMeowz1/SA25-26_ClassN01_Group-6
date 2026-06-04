@@ -104,7 +104,6 @@
                                     <div class="ticket-badge" data-rank="{{ $match->arena_badge_class ?? 'beginner' }}">
                                         {{ $match->arena_skill ?? 'Beginner' }}
                                     </div>
-                                    <span class="ticket-status">{{ __('ui.match.open') }}</span>
                                 </div>
 
                                 <div class="ticket-players">

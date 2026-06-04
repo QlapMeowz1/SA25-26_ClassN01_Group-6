@@ -28,7 +28,7 @@
             <select name="status">
                 <option value="">All statuses</option>
                 @foreach(['pending', 'won', 'lost'] as $status)
-                    <option value="{{ $status }}" @selected(request('status') === $status)>{{ ucfirst($status) }}</option>
+                    <option value="{{ $status }}" @selected(request('status') === $status)>{{ \Illuminate\Support\Str::headline($status) }}</option>
                 @endforeach
             </select>
             <button type="submit" class="btn btn-primary btn-small">Filter</button>
@@ -59,7 +59,7 @@
                             <td>{{ $bet->gameMatch?->player1?->name ?? 'Player 1' }} vs {{ $bet->gameMatch?->player2?->name ?? 'TBD' }}</td>
                             <td>{{ $bet->betOnUser?->name ?? 'Unknown' }}</td>
                             <td>{{ number_format($bet->amount) }}</td>
-                            <td><span class="admin-pill">{{ ucfirst($bet->status) }}</span></td>
+                            <td><span class="admin-pill">{{ \Illuminate\Support\Str::headline($bet->status) }}</span></td>
                             <td>{{ number_format($bet->payout ?? 0) }}</td>
                         </tr>
                     @endforeach

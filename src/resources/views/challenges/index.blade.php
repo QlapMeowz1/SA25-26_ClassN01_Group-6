@@ -8,7 +8,7 @@
     $sentActive = $sent->whereIn('status', ['open', 'pending'])->count();
 
     $statusLabel = function ($status) {
-        return ucfirst((string) $status);
+        return \Illuminate\Support\Str::headline((string) $status);
     };
 @endphp
 
@@ -125,8 +125,6 @@
                                 <div class="challenge-actions challenge-actions-spread">
                                     @if(!empty($challenge->challenger_id))
                                         <a href="{{ route('profile.show', $challenge->challenger_id) }}" class="btn btn-secondary btn-small">{{ __('ui.challenge.view_player') }}</a>
-                                    @else
-                                        <span class="btn btn-secondary btn-small" aria-disabled="true">{{ __('ui.challenge.sample_player') }}</span>
                                     @endif
 
                                     @if(!$isOwner && !empty($challenge->challenger_id))
