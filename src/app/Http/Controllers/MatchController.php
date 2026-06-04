@@ -449,6 +449,58 @@ class MatchController extends Controller
         return redirect()->route('matches.show', $match->id)->with('success', 'Match result submitted!');
     }
 
+    public function updateOdds(GameMatch $match, Request $request)
+    {
+        if (!$this->canManageOdds($match)) {
+            abort(403);
+        }
+
+        if (!$match->player1_id || !$match->player2_id) {
+            return back()->with('error', 'Odds can be adjusted after both players are confirmed.');
+        }
+
+        if ($match->status === 'completed') {
+            return back()->with('error', 'Odds cannot be changed after the match is completed.');
+        }
+
+        $validated = $request->validate([
+            'player1_odds' => ['required', 'numeric', 'min:1.01', 'max:50'],
+            'player2_odds' => ['required', 'numeric', 'min:1.01', 'max:50'],
+        ]);
+
+        $match->update([
+            'player1_odds' => round((float) $validated['player1_odds'], 2),
+            'player2_odds' => round((float) $validated['player2_odds'], 2),
+            'odds_updated_by' => Auth::id(),
+            'odds_updated_at' => now(),
+        ]);
+
+        return back()->with('success', 'Betting odds updated.');
+    }
+
+    public function deleteOdds(GameMatch $match)
+    {
+        if (!$this->canManageOdds($match)) {
+            abort(403);
+        }
+
+        $match->update([
+            'player1_odds' => null,
+            'player2_odds' => null,
+            'odds_updated_by' => Auth::id(),
+            'odds_updated_at' => now(),
+        ]);
+
+        return back()->with('success', 'Manual odds removed. The system odds are active again.');
+    }
+
+    private function canManageOdds(GameMatch $match): bool
+    {
+        $user = Auth::user();
+
+        return $user && ($user->isAdmin() || (int) $match->player1_id === (int) $user->id);
+    }
+
     public function placeBet(GameMatch $match, PlaceBetRequest $request)
     {
         $validated = $request->validated();

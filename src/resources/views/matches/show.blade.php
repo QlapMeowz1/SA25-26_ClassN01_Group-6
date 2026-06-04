@@ -5,6 +5,7 @@
 @php
     $isParticipant = auth()->id() === $match->player1_id || auth()->id() === $match->player2_id;
     $isCreator = auth()->id() === $match->player1_id;
+    $canManageOdds = auth()->check() && (auth()->user()->isAdmin() || $isCreator);
     $pendingRequests = $match->joinRequests->where('status', 'pending');
 @endphp
 
@@ -158,6 +159,39 @@
 
         <aside class="match-side-column">
             @auth
+                @if($canManageOdds && $match->status !== 'completed' && $match->player2_id)
+                    <section class="match-action-panel">
+                        <div class="match-section-heading">
+                            <div>
+                                <p class="home-eyebrow">Betting Control</p>
+                                <h2>Odds Manager</h2>
+                            </div>
+                        </div>
+                        <form action="{{ route('matches.odds.update', $match->id) }}" method="POST" class="match-compact-form">
+                            @csrf
+                            @error('player1_odds') <span class="error-text">{{ $message }}</span> @enderror
+                            @error('player2_odds') <span class="error-text">{{ $message }}</span> @enderror
+                            <div class="match-form-grid">
+                                <div class="form-group">
+                                    <label>{{ $match->player1?->name ?? 'Player 1' }} Odds</label>
+                                    <input type="number" name="player1_odds" min="1.01" max="50" step="0.01" value="{{ old('player1_odds', number_format($odds['player1_odds'] ?? 1, 2, '.', '')) }}" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>{{ $match->player2?->name ?? 'Player 2' }} Odds</label>
+                                    <input type="number" name="player2_odds" min="1.01" max="50" step="0.01" value="{{ old('player2_odds', number_format($odds['player2_odds'] ?? 1, 2, '.', '')) }}" required>
+                                </div>
+                            </div>
+                            <p class="empty-message">{{ ($odds['is_manual'] ?? false) ? 'Manual odds are active for new bets.' : 'System odds are active. Submit to override them.' }}</p>
+                            <button type="submit" class="btn btn-primary">Update Odds</button>
+                        </form>
+                        <form action="{{ route('matches.odds.delete', $match->id) }}" method="POST" class="inline">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="btn btn-danger btn-small">Remove Manual Odds</button>
+                        </form>
+                    </section>
+                @endif
+
                 @if($match->isOpen() && !$isCreator)
                     <section class="match-action-panel">
                         <div class="match-section-heading">

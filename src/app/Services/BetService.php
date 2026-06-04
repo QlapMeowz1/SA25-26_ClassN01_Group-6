@@ -29,11 +29,17 @@ class BetService
                 throw new \InvalidArgumentException('Insufficient coins');
             }
 
+            $odds = $this->getMatchOdds($match);
+            $selectedOdds = $predictedWinnerId === (int) $match->player1_id
+                ? $odds['player1_odds']
+                : $odds['player2_odds'];
+
             $bet = Bet::create([
                 'user_id' => $user->id,
                 'match_id' => $match->id,
                 'bet_on_user_id' => $predictedWinnerId,
                 'amount' => $amount,
+                'odds' => $selectedOdds,
                 'status' => 'pending',
             ]);
 
@@ -244,6 +250,22 @@ class BetService
     /** Calculate simple odds for a match (placeholder) */
     public function getMatchOdds(GameMatch $match): array
     {
+        if ($match->player1_odds !== null && $match->player2_odds !== null) {
+            $p1 = max(1.01, (float) $match->player1_odds);
+            $p2 = max(1.01, (float) $match->player2_odds);
+            $inverse1 = 1 / $p1;
+            $inverse2 = 1 / $p2;
+            $total = max(0.01, $inverse1 + $inverse2);
+
+            return [
+                'player1_odds' => $p1,
+                'player2_odds' => $p2,
+                'player1_probability' => round(($inverse1 / $total) * 100, 1),
+                'player2_probability' => round(($inverse2 / $total) * 100, 1),
+                'is_manual' => true,
+            ];
+        }
+
         // Basic implementation: equal odds if both players set, otherwise 1:1.
         // We also return implied probabilities so the UI can show a professional betting summary.
         $p1 = 1.0;
@@ -267,6 +289,7 @@ class BetService
             'player2_odds' => $p2,
             'player1_probability' => round($prob1 * 100, 1),
             'player2_probability' => round($prob2 * 100, 1),
+            'is_manual' => false,
         ];
     }
 

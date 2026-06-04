@@ -1,5 +1,5 @@
 /* Typography imports */
-@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sora:wght@500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sora:wght@500;600;700;800&display=swap');
 
 * {
     margin: 0;
@@ -10711,21 +10711,22 @@ h6 { font-size: 1rem; line-height: 1.5; }
 
 /* Admin SMASH console skin */
 body.admin-route {
-    --admin-bg: #06090d;
-    --admin-sidebar: #0d1117;
-    --admin-panel: #11151b;
-    --admin-panel-soft: #141920;
-    --admin-border: #242a33;
-    --admin-border-soft: rgba(148, 163, 184, 0.14);
-    --admin-text: #f8fbff;
-    --admin-muted: #7888a5;
-    --admin-accent: #c6ff1a;
-    --admin-accent-soft: rgba(198, 255, 26, 0.10);
+    --admin-bg: #0a0c10;
+    --admin-sidebar: #0d0f14;
+    --admin-panel: #111318;
+    --admin-panel-soft: #1a1d24;
+    --admin-border: rgba(255, 255, 255, 0.07);
+    --admin-border-soft: rgba(255, 255, 255, 0.06);
+    --admin-text: #e8eaf0;
+    --admin-muted: #6b7280;
+    --admin-accent: #c8f53a;
+    --admin-accent-soft: rgba(200, 245, 58, 0.10);
     --admin-blue: #38bdf8;
     --admin-green: #00e68a;
     --admin-red: #ff4d5e;
     background: var(--admin-bg);
     color: var(--admin-text);
+    font-family: 'Inter', var(--font-body);
 }
 
 body.admin-route .navbar,
@@ -10754,7 +10755,7 @@ body.admin-route .admin-section-nav {
     inset: 0 auto 0 0;
     z-index: 150;
     display: flex;
-    width: 208px;
+    width: 220px;
     flex-direction: column;
     gap: 0;
     overflow: hidden;
@@ -10777,15 +10778,19 @@ body.admin-route .admin-section-nav {
 
 .admin-brand-mark {
     display: inline-flex;
-    width: 30px;
-    height: 30px;
+    width: 32px;
+    height: 32px;
     align-items: center;
     justify-content: center;
     border-radius: 5px;
     background: var(--admin-accent);
     color: #061006;
-    font-size: 1.1rem;
     font-weight: 900;
+}
+
+.admin-brand-mark svg {
+    width: 16px;
+    height: 16px;
 }
 
 .admin-sidebar-brand strong,
@@ -10800,7 +10805,7 @@ body.admin-route .admin-panel-heading h2 {
 .admin-sidebar-brand strong {
     display: block;
     color: var(--admin-text);
-    font-size: 1.06rem;
+    font-size: 1.125rem;
     line-height: 0.95;
 }
 
@@ -10829,15 +10834,15 @@ body.admin-route .admin-panel-heading h2 {
 body.admin-route .admin-section-nav a {
     display: grid;
     grid-template-columns: 18px minmax(0, 1fr) auto;
-    min-height: 38px;
+    min-height: 39px;
     align-items: center;
     justify-content: stretch;
     gap: 9px;
     border-radius: 4px;
     color: var(--admin-muted);
-    padding: 8px 10px;
-    font-size: 0.84rem;
-    font-weight: 700;
+    padding: 9px 12px;
+    font-size: 13px;
+    font-weight: 400;
     text-decoration: none;
 }
 
@@ -10850,6 +10855,10 @@ body.admin-route .admin-section-nav a:hover,
 body.admin-route .admin-section-nav a.is-active {
     background: var(--admin-accent-soft);
     color: var(--admin-accent);
+}
+
+body.admin-route .admin-section-nav a.is-active {
+    font-weight: 600;
 }
 
 .admin-nav-chevron {
@@ -10897,7 +10906,7 @@ body.admin-route .admin-section-nav a.is-active .admin-nav-chevron {
 body.admin-route .admin-hero,
 body.admin-route .admin-page-header {
     display: flex;
-    min-height: 64px;
+    min-height: 60px;
     align-items: flex-start;
     justify-content: space-between;
     gap: 16px;
@@ -10905,15 +10914,17 @@ body.admin-route .admin-page-header {
     border-radius: 0;
     background: transparent;
     box-shadow: none;
-    padding: 0 0 20px;
+    padding: 0 0 18px;
 }
 
 body.admin-route .admin-hero h1,
 body.admin-route .admin-page-header h1 {
     margin: 0;
     color: var(--admin-text);
-    font-size: clamp(2rem, 2.4vw, 2.8rem);
-    line-height: 0.92;
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    line-height: 1.1;
     text-shadow: 2px 2px 0 rgba(56, 189, 248, 0.24);
 }
 
@@ -10934,7 +10945,7 @@ body.admin-route .admin-hero-card,
 body.admin-route .admin-panel,
 body.admin-route .admin-stat-card {
     border: 1px solid var(--admin-border);
-    border-radius: 6px;
+    border-radius: 8px;
     background: var(--admin-panel);
     box-shadow: none;
 }
@@ -10948,7 +10959,7 @@ body.admin-route .admin-hero-card strong,
 body.admin-route .admin-stat-card strong {
     color: var(--admin-text);
     font-family: 'Barlow Condensed', var(--font-heading);
-    font-size: 2.4rem;
+    font-size: 32px;
     text-shadow: 2px 2px 0 rgba(56, 189, 248, 0.22);
 }
 
@@ -10958,6 +10969,399 @@ body.admin-route .admin-health-strip span,
 body.admin-route .admin-table th {
     color: var(--admin-muted);
     letter-spacing: 0.15em;
+}
+
+body.admin-route .admin-table th a {
+    color: inherit;
+    text-decoration: none;
+}
+
+body.admin-route .admin-rank {
+    color: var(--admin-accent);
+}
+
+body.admin-route .admin-win {
+    color: var(--admin-green);
+}
+
+body.admin-route .admin-loss {
+    color: var(--admin-red);
+}
+
+body.admin-route .admin-pill--live,
+body.admin-route .admin-pill--ongoing,
+body.admin-route .admin-pill--active,
+body.admin-route .admin-pill--completed {
+    color: var(--admin-green);
+    background: rgba(0, 230, 138, 0.12);
+}
+
+body.admin-route .admin-pill--paused,
+body.admin-route .admin-pill--injured {
+    color: #f97316;
+    background: rgba(249, 115, 22, 0.14);
+}
+
+body.admin-route .admin-pill--upcoming {
+    color: var(--admin-blue);
+    background: rgba(56, 189, 248, 0.12);
+}
+
+body.admin-route .admin-pill--suspended {
+    color: var(--admin-red);
+    background: rgba(255, 77, 94, 0.14);
+}
+
+body.admin-route .admin-table-panel .admin-panel-heading {
+    display: none;
+}
+
+body.admin-route .admin-tournament-list {
+    display: grid;
+    gap: 12px;
+}
+
+body.admin-route .admin-tournament-card {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 12px 18px;
+    border: 1px solid var(--admin-border);
+    border-radius: 6px;
+    background: var(--admin-panel);
+    padding: 16px 18px 12px;
+}
+
+body.admin-route .admin-tournament-main {
+    display: flex;
+    gap: 14px;
+    min-width: 0;
+}
+
+body.admin-route .admin-trophy {
+    display: inline-flex;
+    width: 38px;
+    height: 38px;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    background: var(--admin-accent-soft);
+    color: var(--admin-accent);
+}
+
+body.admin-route .admin-tournament-main h2 {
+    margin: 0;
+    color: var(--admin-text);
+    font-size: 1rem;
+}
+
+body.admin-route .admin-tournament-main p,
+body.admin-route .admin-tournament-details,
+body.admin-route .admin-progress-row span,
+body.admin-route .admin-progress-row small {
+    color: var(--admin-muted);
+    font-size: 0.78rem;
+}
+
+body.admin-route .admin-tournament-meta {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+}
+
+body.admin-route .admin-tournament-meta div span {
+    display: block;
+    color: var(--admin-muted);
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+body.admin-route .admin-tournament-meta div strong {
+    color: var(--admin-text);
+    font-family: 'Barlow Condensed', var(--font-heading);
+    font-size: 1.35rem;
+}
+
+body.admin-route .admin-progress-row {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 7px;
+}
+
+body.admin-route .admin-progress-row > span {
+    grid-column: 1 / -1;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+body.admin-route .admin-progress {
+    height: 4px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.08);
+}
+
+body.admin-route .admin-progress div {
+    height: 100%;
+    background: var(--admin-accent);
+}
+
+body.admin-route .admin-tournament-details {
+    display: none;
+    grid-column: 1 / -1;
+    border-top: 1px solid var(--admin-border);
+    padding-top: 12px;
+}
+
+body.admin-route .admin-tournament-card:target .admin-tournament-details {
+    display: block;
+}
+
+body.admin-route .admin-schedule-layout {
+    display: grid;
+    grid-template-columns: 280px minmax(0, 1fr);
+    gap: 18px;
+}
+
+body.admin-route .admin-calendar-head,
+body.admin-route .admin-schedule-match,
+body.admin-route .admin-booking-legend,
+body.admin-route .admin-form-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+body.admin-route .admin-calendar-head {
+    justify-content: space-between;
+    margin-bottom: 16px;
+}
+
+body.admin-route .admin-calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+    text-align: center;
+}
+
+body.admin-route .admin-calendar-grid a,
+body.admin-route .admin-calendar-grid span {
+    display: inline-flex;
+    min-height: 32px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    color: var(--admin-text);
+    text-decoration: none;
+}
+
+body.admin-route .admin-calendar-weekdays span {
+    color: var(--admin-muted);
+    font-size: 0.72rem;
+}
+
+body.admin-route .admin-calendar-grid a.is-muted {
+    color: rgba(107, 114, 128, 0.45);
+}
+
+body.admin-route .admin-calendar-grid a.is-selected {
+    background: var(--admin-accent);
+    color: #0a0c10;
+    font-weight: 900;
+}
+
+body.admin-route .admin-schedule-match {
+    justify-content: space-between;
+    border: 1px solid var(--admin-border);
+    border-radius: 6px;
+    background: var(--admin-panel);
+    padding: 13px 18px;
+}
+
+body.admin-route .admin-schedule-match time {
+    color: var(--admin-accent);
+    font-family: 'Barlow Condensed', var(--font-heading);
+    font-size: 1.4rem;
+    font-weight: 800;
+}
+
+body.admin-route .admin-schedule-match span {
+    display: block;
+    color: var(--admin-muted);
+    font-size: 0.78rem;
+}
+
+body.admin-route .admin-booking-legend {
+    margin-bottom: 14px;
+    color: var(--admin-muted);
+    font-size: 0.78rem;
+}
+
+body.admin-route .admin-booking-legend i {
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    margin-right: 6px;
+    border: 1px solid var(--admin-border);
+    border-radius: 4px;
+    vertical-align: middle;
+}
+
+body.admin-route .admin-booking-grid {
+    display: grid;
+    grid-template-columns: 90px repeat(6, minmax(140px, 1fr));
+    overflow-x: auto;
+}
+
+body.admin-route .admin-booking-head,
+body.admin-route .admin-booking-time,
+body.admin-route .admin-booking-cell {
+    min-height: 52px;
+    border-bottom: 1px solid var(--admin-border);
+    padding: 12px;
+}
+
+body.admin-route .admin-booking-head {
+    color: var(--admin-muted);
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+body.admin-route .admin-booking-time {
+    color: var(--admin-muted);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+}
+
+body.admin-route .admin-booking-cell strong,
+body.admin-route .admin-booking-cell span {
+    display: block;
+    font-size: 0.78rem;
+}
+
+body.admin-route .slot--booked {
+    background: rgba(56, 189, 248, 0.18);
+    color: var(--admin-blue);
+}
+
+body.admin-route .slot--available {
+    background: rgba(255,255,255,0.02);
+}
+
+body.admin-route .slot--maintenance {
+    background: rgba(249, 115, 22, 0.18);
+    color: #f97316;
+}
+
+body.admin-route .admin-betting-layout,
+body.admin-route .admin-stats-profiles {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(340px, 420px);
+    gap: 16px;
+}
+
+body.admin-route .admin-stats-profiles {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+body.admin-route .admin-bet-card {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 14px;
+    align-items: center;
+    border: 1px solid var(--admin-border);
+    border-radius: 6px;
+    background: var(--admin-panel);
+    color: var(--admin-text);
+    padding: 14px;
+    text-decoration: none;
+}
+
+body.admin-route .admin-bet-card:hover {
+    border-color: rgba(200, 245, 58, 0.42);
+}
+
+body.admin-route .admin-bet-card span,
+body.admin-route .admin-bet-detail p,
+body.admin-route .admin-bet-detail dt {
+    color: var(--admin-muted);
+    font-size: 0.78rem;
+}
+
+body.admin-route .admin-odds {
+    display: flex;
+    gap: 8px;
+}
+
+body.admin-route .admin-odds span {
+    border-radius: 4px;
+    background: rgba(200,245,58,0.10);
+    color: var(--admin-accent);
+    padding: 6px 8px;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+body.admin-route .admin-distribution {
+    position: relative;
+    height: 28px;
+    overflow: hidden;
+    border-radius: 4px;
+    background: rgba(255,255,255,0.08);
+}
+
+body.admin-route .admin-distribution div {
+    height: 100%;
+    background: var(--admin-accent);
+}
+
+body.admin-route .admin-distribution span {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #0a0c10;
+    font-weight: 900;
+}
+
+body.admin-route .admin-bet-detail dl {
+    display: grid;
+    gap: 10px;
+    margin: 16px 0;
+}
+
+body.admin-route .admin-bet-detail dl div {
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--admin-border);
+    padding-bottom: 8px;
+}
+
+body.admin-route .admin-bet-detail dd {
+    color: var(--admin-text);
+    font-family: 'JetBrains Mono', monospace;
+    margin: 0;
+}
+
+body.admin-route .admin-radar-card canvas {
+    width: 100%;
+    max-height: 220px;
+    margin-top: 12px;
+}
+
+body.admin-route .admin-chart-grid canvas {
+    max-height: 280px;
+}
+
+@media (max-width: 980px) {
+    body.admin-route .admin-schedule-layout,
+    body.admin-route .admin-betting-layout,
+    body.admin-route .admin-stats-profiles {
+        grid-template-columns: 1fr;
+    }
 }
 
 body.admin-route .admin-stat-grid {
@@ -11105,8 +11509,8 @@ body.admin-route .admin-match-row,
 body.admin-route .admin-action-grid a,
 body.admin-route .admin-content-review {
     border: 1px solid var(--admin-border);
-    border-radius: 5px;
-    background: var(--admin-panel-soft);
+    border-radius: 6px;
+    background: var(--admin-panel);
     box-shadow: none;
 }
 
@@ -11134,7 +11538,9 @@ body.admin-route .admin-panel-heading {
 body.admin-route .admin-panel-heading h2 {
     margin: 0;
     color: var(--admin-text);
-    font-size: 1.25rem;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
 }
 
 body.admin-route .admin-action-grid {
@@ -11224,11 +11630,72 @@ body.admin-route .btn-danger {
 
 body.admin-route .admin-filter-bar input,
 body.admin-route .admin-filter-bar select,
-body.admin-route .admin-inline-form select {
+body.admin-route .admin-inline-form select,
+body.admin-route .admin-record-form input,
+body.admin-route .admin-record-form select,
+body.admin-route .admin-record-form textarea {
     border-color: var(--admin-border);
     border-radius: 5px;
-    background: #0d1117;
+    background: var(--admin-panel);
     color: var(--admin-text);
+}
+
+body.admin-route .admin-form-panel {
+    max-width: 980px;
+}
+
+body.admin-route .admin-record-form {
+    display: grid;
+    gap: 18px;
+}
+
+body.admin-route .admin-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+body.admin-route .admin-form-grid label {
+    display: grid;
+    gap: 8px;
+    min-width: 0;
+}
+
+body.admin-route .admin-form-grid label.is-wide {
+    grid-column: 1 / -1;
+}
+
+body.admin-route .admin-form-grid span {
+    color: var(--admin-muted);
+    font-size: 0.72rem;
+    font-weight: 900;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+body.admin-route .admin-record-form input,
+body.admin-route .admin-record-form select,
+body.admin-route .admin-record-form textarea {
+    width: 100%;
+    min-height: 42px;
+    padding: 10px 12px;
+    outline: 0;
+}
+
+body.admin-route .admin-record-form textarea {
+    resize: vertical;
+}
+
+body.admin-route .admin-record-form input:focus,
+body.admin-route .admin-record-form select:focus,
+body.admin-route .admin-record-form textarea:focus {
+    border-color: var(--admin-accent);
+    box-shadow: 0 0 0 3px rgba(200, 245, 58, 0.12);
+}
+
+body.admin-route .admin-record-form small {
+    color: var(--admin-red);
+    font-weight: 800;
 }
 
 body.admin-route .admin-table {
@@ -11254,6 +11721,12 @@ body.admin-route .admin-table td {
     background: transparent;
     color: var(--admin-muted);
     padding: 16px;
+}
+
+body.admin-route .admin-table td:first-child,
+body.admin-route .admin-table td:nth-child(4) {
+    font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 12px;
 }
 
 body.admin-route .admin-table tr:last-child td {

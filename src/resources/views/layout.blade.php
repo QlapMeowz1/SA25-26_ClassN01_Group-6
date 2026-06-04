@@ -28,26 +28,28 @@
         // Store current user ID for theme API sync
         window.currentUserId = @json(auth()->id());
     </script>
-    <script>
-        window.tailwind = window.tailwind || {};
-        window.tailwind.config = {
-            darkMode: ['class', '[data-theme="dark"]'],
-            theme: {
-                extend: {
-                    fontFamily: {
-                        heading: ['"Be Vietnam Pro"', 'sans-serif'],
-                        body: ['Inter', 'sans-serif'],
-                    },
-                    colors: {
-                        court: '#0A5C0A',
-                        energy: '#FF6200',
-                        amber: '#F59E0B',
+    @unless(request()->routeIs('admin.*'))
+        <script>
+            window.tailwind = window.tailwind || {};
+            window.tailwind.config = {
+                darkMode: ['class', '[data-theme="dark"]'],
+                theme: {
+                    extend: {
+                        fontFamily: {
+                            heading: ['"Be Vietnam Pro"', 'sans-serif'],
+                            body: ['Inter', 'sans-serif'],
+                        },
+                        colors: {
+                            court: '#0A5C0A',
+                            energy: '#FF6200',
+                            amber: '#F59E0B',
+                        },
                     },
                 },
-            },
-        };
-    </script>
-    <script src="https://cdn.tailwindcss.com"></script>
+            };
+        </script>
+        <script src="https://cdn.tailwindcss.com"></script>
+    @endunless
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
     <link rel="stylesheet" href="{{ asset('css/dashboard-redesign.css') }}">
     <script src="{{ asset('js/theme-manager.js') }}"></script>

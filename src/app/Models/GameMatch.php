@@ -22,10 +22,17 @@ class GameMatch extends Model
         'player2_score',
         'winner_id',
         'elo_change',
+        'player1_odds',
+        'player2_odds',
+        'odds_updated_by',
+        'odds_updated_at',
     ];
 
     protected $casts = [
         'match_date' => 'datetime',
+        'player1_odds' => 'float',
+        'player2_odds' => 'float',
+        'odds_updated_at' => 'datetime',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
@@ -63,6 +70,16 @@ class GameMatch extends Model
     public function bets()
     {
         return $this->hasMany(Bet::class, 'match_id');
+    }
+
+    public function oddsUpdatedBy()
+    {
+        return $this->belongsTo(User::class, 'odds_updated_by');
+    }
+
+    public function hasManualOdds(): bool
+    {
+        return $this->player1_odds !== null && $this->player2_odds !== null;
     }
 
     public function isCompleted()

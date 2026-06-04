@@ -6,8 +6,9 @@
 @php
     $insights = app(\App\Services\BetService::class)->getMatchInsights($bet->gameMatch, $bet->bet_on_user_id, $bet->amount);
     $stake = $bet->amount ?? 0;
+    $ticketOdds = $bet->odds ?: ($insights['selected_odds'] ?? 1);
     $payout = $bet->payout ?? 0;
-    $expectedReturn = $insights['expected_return'] ?? round($stake * ($insights['selected_odds'] ?? 1));
+    $expectedReturn = round($stake * $ticketOdds);
     $profit = $bet->status === 'won' ? $payout - $stake : ($bet->status === 'lost' ? -$stake : $expectedReturn - $stake);
     $statusClass = $bet->status === 'won' ? 'is-won' : ($bet->status === 'lost' ? 'is-lost' : 'is-pending');
     $match = $bet->gameMatch;
@@ -79,7 +80,7 @@
                     </div>
                     <div>
                         <span>Odds</span>
-                        <strong>x{{ number_format($insights['selected_odds'] ?? 1, 2) }}</strong>
+                        <strong>x{{ number_format($ticketOdds, 2) }}</strong>
                     </div>
                     <div>
                         <span>Expected Return</span>

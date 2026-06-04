@@ -11,7 +11,6 @@ use App\Http\Controllers\TournamentController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\ThemeController;
-use App\Http\Controllers\AdminController;
 use App\Models\GameMatch;
 use App\Models\Challenge;
 use App\Models\Post;
@@ -71,14 +70,27 @@ Route::get('/dashboard', [DashboardController::class, 'index'])->middleware('aut
 
 // Admin
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
-    Route::get('/', [AdminController::class, 'dashboard'])->name('dashboard');
-    Route::get('/users', [AdminController::class, 'users'])->name('users');
-    Route::post('/users/{user}/role', [AdminController::class, 'updateUserRole'])->name('users.role');
-    Route::get('/content', [AdminController::class, 'content'])->name('content');
-    Route::post('/content/posts/{post}/delete', [AdminController::class, 'destroyPost'])->name('posts.delete');
-    Route::get('/matches', [AdminController::class, 'matches'])->name('matches');
-    Route::get('/tournaments', [AdminController::class, 'tournaments'])->name('tournaments');
-    Route::get('/bets', [AdminController::class, 'bets'])->name('bets');
+    Route::get('/', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/players', [\App\Http\Controllers\Admin\PlayersController::class, 'index'])->name('players');
+    Route::get('/players/create', [\App\Http\Controllers\Admin\PlayersController::class, 'create'])->name('players.create');
+    Route::post('/players', [\App\Http\Controllers\Admin\PlayersController::class, 'store'])->name('players.store');
+    Route::get('/users', fn () => redirect()->route('admin.players'))->name('users');
+    Route::get('/tournaments', [\App\Http\Controllers\Admin\TournamentsController::class, 'index'])->name('tournaments');
+    Route::get('/tournaments/create', [\App\Http\Controllers\Admin\TournamentsController::class, 'create'])->name('tournaments.create');
+    Route::post('/tournaments', [\App\Http\Controllers\Admin\TournamentsController::class, 'store'])->name('tournaments.store');
+    Route::get('/schedule', [\App\Http\Controllers\Admin\ScheduleController::class, 'index'])->name('schedule');
+    Route::get('/court-bookings', [\App\Http\Controllers\Admin\CourtBookingsController::class, 'index'])->name('court-bookings');
+    Route::get('/court-bookings/create', [\App\Http\Controllers\Admin\CourtBookingsController::class, 'create'])->name('court-bookings.create');
+    Route::post('/court-bookings', [\App\Http\Controllers\Admin\CourtBookingsController::class, 'store'])->name('court-bookings.store');
+    Route::get('/betting', [\App\Http\Controllers\Admin\BettingController::class, 'index'])->name('betting');
+    Route::post('/betting/matches/{match}/odds', [\App\Http\Controllers\Admin\BettingController::class, 'updateOdds'])->name('betting.odds.update');
+    Route::delete('/betting/matches/{match}/odds', [\App\Http\Controllers\Admin\BettingController::class, 'deleteOdds'])->name('betting.odds.delete');
+    Route::post('/betting/{ticket}/approve', [\App\Http\Controllers\Admin\BettingController::class, 'approve'])->name('betting.approve');
+    Route::post('/betting/{ticket}/cancel', [\App\Http\Controllers\Admin\BettingController::class, 'cancel'])->name('betting.cancel');
+    Route::get('/statistics', [\App\Http\Controllers\Admin\StatisticsController::class, 'index'])->name('statistics');
+    Route::get('/bets', fn () => redirect()->route('admin.betting'))->name('bets');
+    Route::get('/matches', fn () => redirect()->route('admin.schedule'))->name('matches');
+    Route::get('/content', fn () => redirect()->route('admin.dashboard'))->name('content');
 });
 
 // Profile Routes
@@ -113,6 +125,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/matches/{match}/requests/{joinRequest}/reject', [MatchController::class, 'rejectRequest'])->name('matches.requests.reject');
     Route::post('/matches/{match}/start', [MatchController::class, 'startMatch'])->name('matches.start');
     Route::post('/matches/{match}/result', [MatchController::class, 'submitResult'])->name('matches.submitResult');
+    Route::post('/matches/{match}/odds', [MatchController::class, 'updateOdds'])->name('matches.odds.update');
+    Route::delete('/matches/{match}/odds', [MatchController::class, 'deleteOdds'])->name('matches.odds.delete');
     Route::post('/matches/{match}/bet', [MatchController::class, 'placeBet'])->name('matches.placeBet');
 });
 

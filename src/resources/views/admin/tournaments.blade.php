@@ -1,66 +1,45 @@
 @extends('layout')
 
-@section('title', 'Admin Tournaments - BadNet')
+@section('title', 'Tournaments - SMASH Admin')
 
 @section('content')
 <div class="page-shell admin-console-page">
-    <section class="admin-page-header">
-        <div>
-            <p class="home-eyebrow">Admin Console</p>
-            <h1>Tournaments</h1>
-            <p class="page-subtitle">Track event status, registration capacity, and organizer activity.</p>
-        </div>
-    </section>
-
     @include('admin.partials.nav')
 
-    <section class="admin-panel">
-        <form method="GET" action="{{ route('admin.tournaments') }}" class="admin-filter-bar">
-            <select name="status">
-                <option value="">All statuses</option>
-                @foreach(['upcoming', 'in_progress', 'completed'] as $status)
-                    <option value="{{ $status }}" @selected(request('status') === $status)>{{ \Illuminate\Support\Str::headline($status) }}</option>
-                @endforeach
-            </select>
-            <button type="submit" class="btn btn-primary btn-small">Filter</button>
-            <a href="{{ route('admin.tournaments') }}" class="btn btn-secondary btn-small">Reset</a>
-        </form>
+    <section class="admin-page-header">
+        <div>
+            <h1>Tournaments</h1>
+            <p class="page-subtitle">2 ongoing · 2 upcoming · 1 completed</p>
+        </div>
+        <a href="{{ route('admin.tournaments.create') }}" class="btn btn-primary">＋ New Tournament</a>
     </section>
 
-    <section class="admin-panel">
-        <div class="admin-table-wrap">
-            <table class="admin-table">
-                <thead>
-                    <tr>
-                        <th>Tournament</th>
-                        <th>Status</th>
-                        <th>Organizer</th>
-                        <th>Capacity</th>
-                        <th>Prize</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($tournaments as $tournament)
-                        <tr>
-                            <td>
-                                <strong>{{ $tournament->name }}</strong>
-                                <small>{{ $tournament->start_date ? $tournament->start_date->format('M d, Y') : 'No start date' }}</small>
-                            </td>
-                            <td><span class="admin-pill">{{ \Illuminate\Support\Str::headline($tournament->status ?? 'upcoming') }}</span></td>
-                            <td>{{ $tournament->organizer?->name ?? 'Unknown' }}</td>
-                            <td>{{ $tournament->tournament_participants_count }}/{{ $tournament->max_participants }}</td>
-                            <td>{{ number_format($tournament->prize_pool ?? 0) }}</td>
-                            <td><a href="{{ route('tournaments.show', $tournament->id) }}" class="btn btn-secondary btn-small">Open</a></td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
-
-        <div class="pagination-wrapper">
-            {{ $tournaments->links() }}
-        </div>
+    <section class="admin-tournament-list">
+        @foreach($tournaments as $tournament)
+            <article class="admin-tournament-card" id="{{ $tournament['id'] }}">
+                <div class="admin-tournament-main">
+                    <span class="admin-trophy">♕</span>
+                    <div>
+                        <h2>{{ $tournament['name'] }} <span class="admin-pill">{{ $tournament['tag'] }}</span></h2>
+                        <p>{{ $tournament['venue'] }} · {{ $tournament['dates'] }}</p>
+                    </div>
+                </div>
+                <div class="admin-tournament-meta">
+                    <div><span>Players</span><strong>{{ $tournament['players'] }}</strong></div>
+                    <div><span>Prize Pool</span><strong>{{ $tournament['prize'] }}</strong></div>
+                    <span class="admin-pill admin-pill--{{ strtolower($tournament['status']) }}">{{ $tournament['status'] }}</span>
+                    <a href="#{{ $tournament['id'] }}" aria-label="Expand {{ $tournament['name'] }}">›</a>
+                </div>
+                <div class="admin-progress-row">
+                    <span>Bracket Progress</span>
+                    <div class="admin-progress"><div style="width: {{ $tournament['progress'] }}%"></div></div>
+                    <small>{{ $tournament['progress'] }}%</small>
+                </div>
+                <div class="admin-tournament-details">
+                    <p>Registration, bracket seeding, prize pool, and match operations are monitored from this event card.</p>
+                </div>
+            </article>
+        @endforeach
     </section>
 </div>
 @endsection

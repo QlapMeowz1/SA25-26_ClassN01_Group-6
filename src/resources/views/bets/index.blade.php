@@ -98,7 +98,8 @@
                                 $statusClass = 'is-lost';
                             }
 
-                            $expectedReturn = $insights['expected_return'] ?? ($bet->amount * ($insights['selected_odds'] ?? 1));
+                            $ticketOdds = $bet->odds ?: ($insights['selected_odds'] ?? 1);
+                            $expectedReturn = $bet->amount * $ticketOdds;
                             $profit = ($bet->status === 'won' ? ($bet->payout ?? 0) : 0) - ($bet->amount ?? 0);
                         @endphp
 
@@ -125,7 +126,7 @@
                                     </div>
                                     <div>
                                         <span>Odds</span>
-                                        <strong>x{{ number_format($insights['selected_odds'] ?? 1, 2) }}</strong>
+                                        <strong>x{{ number_format($ticketOdds, 2) }}</strong>
                                     </div>
                                     <div>
                                         <span>Expected</span>

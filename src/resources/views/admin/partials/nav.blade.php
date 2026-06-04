@@ -1,11 +1,12 @@
 @php
     $adminLinks = [
         ['route' => 'admin.dashboard', 'match' => 'admin.dashboard', 'icon' => 'grid', 'label' => 'Dashboard'],
-        ['route' => 'admin.users', 'match' => 'admin.users', 'icon' => 'users', 'label' => 'Players'],
+        ['route' => 'admin.players', 'match' => 'admin.players', 'icon' => 'users', 'label' => 'Players'],
         ['route' => 'admin.tournaments', 'match' => 'admin.tournaments', 'icon' => 'trophy', 'label' => 'Tournaments'],
-        ['route' => 'admin.matches', 'match' => 'admin.matches', 'icon' => 'calendar', 'label' => 'Schedule'],
-        ['route' => 'admin.content', 'match' => 'admin.content', 'icon' => 'book', 'label' => 'Court Bookings'],
-        ['route' => 'admin.bets', 'match' => 'admin.bets', 'icon' => 'chart', 'label' => 'Statistics'],
+        ['route' => 'admin.schedule', 'match' => 'admin.schedule', 'icon' => 'calendar', 'label' => 'Schedule'],
+        ['route' => 'admin.court-bookings', 'match' => 'admin.court-bookings', 'icon' => 'book', 'label' => 'Court Bookings'],
+        ['route' => 'admin.betting', 'match' => 'admin.betting', 'icon' => 'coins', 'label' => 'Cá Cược'],
+        ['route' => 'admin.statistics', 'match' => 'admin.statistics', 'icon' => 'chart', 'label' => 'Statistics'],
     ];
 
     $adminIcon = function ($name) {
@@ -15,6 +16,7 @@
             'calendar' => '<rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4M16 3v4M3 11h18"/>',
             'book' => '<path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v17H6.5A2.5 2.5 0 0 1 4 17.5z"/><path d="M4 17.5A2.5 2.5 0 0 1 6.5 15H20"/>',
             'chart' => '<path d="M4 19V5"/><path d="M8 19v-6"/><path d="M13 19V9"/><path d="M18 19v-3"/><path d="M3 19h19"/>',
+            'coins' => '<circle cx="8" cy="8" r="4"/><path d="M12 8h4a4 4 0 0 1 0 8H8"/><path d="M8 12v8"/><path d="M12 16h4"/>',
             default => '<rect x="4" y="4" width="7" height="7" rx="1"/><rect x="13" y="4" width="7" height="7" rx="1"/><rect x="4" y="13" width="7" height="7" rx="1"/><rect x="13" y="13" width="7" height="7" rx="1"/>',
         };
     };
@@ -22,7 +24,13 @@
 
 <nav class="admin-section-nav" aria-label="Admin sections">
     <div class="admin-sidebar-brand">
-        <span class="admin-brand-mark" aria-hidden="true">⌁</span>
+        <span class="admin-brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
+                <path d="M20.2 12.2A6 6 0 0 0 12 3L5 10v8h8l7.2-5.8Z"/>
+                <path d="M12 3v7h7"/>
+                <path d="M5 18 3 21"/>
+            </svg>
+        </span>
         <div>
             <strong>SMASH</strong>
             <span>Admin Panel</span>
@@ -49,6 +57,6 @@
             <strong>{{ auth()->user()->name ?? 'Admin' }}</strong>
             <span>Super Admin</span>
         </div>
-        <span class="admin-sidebar-bell" aria-hidden="true">⌁</span>
+        <span class="admin-sidebar-bell" aria-hidden="true">⌕</span>
     </div>
 </nav>

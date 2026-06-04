@@ -15,11 +15,15 @@ class Bet extends Model
         'match_id',
         'bet_on_user_id',
         'amount',
+        'odds',
         'status',
         'payout',
     ];
 
     protected $casts = [
+        'amount' => 'float',
+        'odds' => 'float',
+        'payout' => 'float',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
@@ -60,7 +64,6 @@ class Bet extends Model
 
     public function calculatePayout()
     {
-        // simple payout: amount * 2 (placeholder). Could extend to use odds.
-        return (float) ($this->amount * 2);
+        return (float) round($this->amount * ($this->odds ?: 2), 2);
     }
 }
