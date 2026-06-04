@@ -13,28 +13,62 @@ class BettingController extends Controller
 {
     public function index(Request $request)
     {
-        $status = $request->query('status');
-        $tickets = $this->tickets();
-        if ($status) {
-            $tickets = array_values(array_filter($tickets, fn ($ticket) => $ticket['status'] === $status));
+        $filters = [
+            'q' => trim((string) $request->query('q', '')),
+            'status' => (string) $request->query('status', 'all'),
+        ];
+
+        $allTickets = $this->tickets();
+        $tickets = $allTickets;
+
+        if ($filters['q'] !== '') {
+            $tickets = array_values(array_filter($tickets, function ($ticket) use ($filters) {
+                return Str::contains(Str::lower($ticket['match']), Str::lower($filters['q']))
+                    || Str::contains(Str::lower($ticket['event'] ?? ''), Str::lower($filters['q']));
+            }));
+        }
+
+        if ($filters['status'] !== 'all') {
+            $tickets = array_values(array_filter($tickets, fn ($ticket) => ($ticket['state'] ?? 'open') === $filters['status']));
         }
 
         $selectedMatch = $request->query('match');
         $selectedTicket = collect($tickets)->firstWhere('match_id', $selectedMatch ? (int) $selectedMatch : null)
-            ?? ($tickets[0] ?? AdminMockData::betting()[0]);
+            ?? ($tickets[0] ?? $allTickets[0] ?? AdminMockData::betting()[0]);
         $transactions = $this->transactions();
+        $stats = $this->stats($allTickets, $transactions);
 
-        return view('admin.betting', compact('tickets', 'selectedTicket', 'transactions', 'status'));
+        return view('admin.betting', compact('tickets', 'selectedTicket', 'transactions', 'filters', 'stats'));
     }
 
-    public function approve(string $ticket)
+    public function approve(GameMatch $match)
     {
-        return back()->with('success', "Đã duyệt vé {$ticket}.");
+        if (!$match->player1_id || !$match->player2_id) {
+            return back()->with('error', 'Kèo cần đủ 2 người chơi trước khi mở.');
+        }
+
+        if (in_array($match->status, ['completed', 'cancelled'], true)) {
+            return back()->with('error', 'Không thể mở kèo cho trận đã hoàn tất hoặc đã hủy.');
+        }
+
+        $match->update([
+            'betting_status' => 'open',
+            'odds_updated_by' => auth()->id(),
+            'odds_updated_at' => now(),
+        ]);
+
+        return back()->with('success', 'Đã duyệt và mở kèo cá cược.');
     }
 
-    public function cancel(string $ticket)
+    public function cancel(GameMatch $match)
     {
-        return back()->with('success', "Đã hủy vé {$ticket}.");
+        $match->update([
+            'betting_status' => 'cancelled',
+            'odds_updated_by' => auth()->id(),
+            'odds_updated_at' => now(),
+        ]);
+
+        return back()->with('success', 'Đã tạm dừng nhận cược cho kèo này.');
     }
 
     public function updateOdds(GameMatch $match, Request $request)
@@ -86,11 +120,12 @@ class BettingController extends Controller
             return AdminMockData::betting();
         }
 
-        return $matches->map(function (GameMatch $match) {
+        $tickets = $matches->map(function (GameMatch $match) {
             $odds = app(BetService::class)->getMatchOdds($match);
             $pool = (float) $match->bets->sum('amount');
             $playerOnePool = (float) $match->bets->where('bet_on_user_id', $match->player1_id)->sum('amount');
             $playerOnePercent = $pool > 0 ? (int) round(($playerOnePool / $pool) * 100) : 50;
+            $state = $this->marketState($match);
 
             return [
                 'match_id' => $match->id,
@@ -98,16 +133,36 @@ class BettingController extends Controller
                 'match' => ($match->player1?->name ?? 'TBD') . ' vs ' . ($match->player2?->name ?? 'TBD'),
                 'player1_name' => $match->player1?->name ?? 'Player 1',
                 'player2_name' => $match->player2?->name ?? 'Player 2',
+                'event' => $match->challenge ? 'Challenge Match' : 'Open Match',
+                'time' => optional($match->match_date)->format('H:i'),
+                'date' => optional($match->match_date)->format('M j, Y'),
                 'odds_a' => number_format((float) $odds['player1_odds'], 2),
                 'odds_b' => number_format((float) $odds['player2_odds'], 2),
                 'pool' => $pool,
-                'status' => $this->bettingStatus($match->status),
+                'bettor_count' => $match->bets->pluck('user_id')->unique()->count(),
+                'status' => $this->bettingStatus($state),
+                'state' => $state,
+                'market_status' => $match->betting_status ?? 'open',
                 'a_percent' => $playerOnePercent,
+                'b_percent' => 100 - $playerOnePercent,
+                'player1_pool' => $playerOnePool,
+                'player2_pool' => max(0, $pool - $playerOnePool),
                 'commission' => round($pool * 0.05),
                 'potential_payout' => round($pool * 0.95),
                 'is_manual' => (bool) ($odds['is_manual'] ?? false),
             ];
         })->all();
+
+        if (count($tickets) < 8 || array_sum(array_column($tickets, 'pool')) < 100000) {
+            $existingNames = collect($tickets)->pluck('match')->map(fn ($name) => Str::lower($name))->all();
+            $supplemental = array_values(array_filter(AdminMockData::betting(), function ($ticket) use ($existingNames) {
+                return !in_array(Str::lower($ticket['match']), $existingNames, true);
+            }));
+
+            $tickets = array_slice(array_merge($tickets, $supplemental), 0, 10);
+        }
+
+        return $tickets;
     }
 
     private function transactions(): array
@@ -121,24 +176,82 @@ class BettingController extends Controller
             return AdminMockData::transactions();
         }
 
-        return $transactions->map(fn (Bet $bet) => [
-            'id' => 'TX-' . str_pad((string) $bet->id, 4, '0', STR_PAD_LEFT),
+        $rows = $transactions->map(fn (Bet $bet) => [
+            'id' => 'TXN-' . str_pad((string) $bet->id, 4, '0', STR_PAD_LEFT),
             'user' => $bet->user?->name ?? 'Unknown',
             'ticket' => 'BT-' . str_pad((string) $bet->match_id, 3, '0', STR_PAD_LEFT),
+            'match' => trim(($bet->gameMatch?->player1?->name ?? 'TBD') . ' vs ' . ($bet->gameMatch?->player2?->name ?? 'TBD')),
             'stake' => (float) $bet->amount,
             'pick' => $bet->betOnUser?->name ?? 'TBD',
+            'odds' => (float) ($bet->odds ?: 1),
             'potential' => (float) ($bet->payout ?: $bet->calculatePayout()),
             'status' => Str::headline($bet->status ?: 'pending'),
+            'time' => optional($bet->created_at)->isToday() ? $bet->created_at->format('H:i') : optional($bet->created_at)->diffForHumans(),
         ])->all();
+
+        if (count($rows) < 10) {
+            $existingIds = collect($rows)->pluck('id')->all();
+            $supplemental = array_values(array_filter(AdminMockData::transactions(), function ($transaction) use ($existingIds) {
+                return !in_array($transaction['id'], $existingIds, true);
+            }));
+
+            $rows = array_slice(array_merge($rows, $supplemental), 0, 12);
+        }
+
+        return $rows;
     }
 
-    private function bettingStatus(?string $status): string
+    private function stats(array $tickets, array $transactions): array
     {
-        return match ($status) {
-            'open', 'scheduled', 'in_progress' => 'Đang mở',
-            'cancelled' => 'Tạm dừng',
-            'completed' => 'Đã khóa',
-            default => 'Đang mở',
+        $totalPool = array_sum(array_column($tickets, 'pool'));
+        $commission = array_sum(array_column($tickets, 'commission'));
+        $bettors = collect($transactions)->pluck('user')->filter()->unique()->count();
+
+        return [
+            ['label' => 'Tổng quỹ cược', 'value' => $this->moneyShort($totalPool), 'icon' => '$', 'change' => '+18%', 'note' => 'tuần này', 'tone' => 'lime'],
+            ['label' => 'Kèo đang mở', 'value' => (string) collect($tickets)->whereIn('state', ['open', 'live'])->count(), 'icon' => '↗', 'change' => '', 'note' => 'trận đang nhận cược', 'tone' => 'blue'],
+            ['label' => 'Người đặt cược', 'value' => number_format(max($bettors, 0)), 'icon' => '♙', 'change' => '+124', 'note' => 'hôm nay', 'tone' => 'purple'],
+            ['label' => 'Doanh thu hoa hồng', 'value' => $this->moneyShort($commission), 'icon' => '⌁', 'change' => '+22%', 'note' => '5% hoa hồng', 'tone' => 'green'],
+        ];
+    }
+
+    private function marketState(GameMatch $match): string
+    {
+        if (in_array($match->betting_status, ['cancelled', 'suspended'], true)) {
+            return 'suspended';
+        }
+
+        if ($match->status === 'completed') {
+            return 'settled';
+        }
+
+        if ($match->status === 'in_progress') {
+            return 'live';
+        }
+
+        return 'open';
+    }
+
+    private function bettingStatus(string $state): string
+    {
+        return match ($state) {
+            'live' => 'Live',
+            'suspended' => 'Suspended',
+            'settled' => 'Settled',
+            default => 'Open',
         };
+    }
+
+    private function moneyShort(float|int $amount): string
+    {
+        if ($amount >= 1000000) {
+            return '₫' . rtrim(rtrim(number_format($amount / 1000000, 1), '0'), '.') . 'M';
+        }
+
+        if ($amount >= 1000) {
+            return '₫' . rtrim(rtrim(number_format($amount / 1000, 1), '0'), '.') . 'K';
+        }
+
+        return '₫' . number_format($amount);
     }
 }

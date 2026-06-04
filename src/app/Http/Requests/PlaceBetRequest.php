@@ -39,6 +39,10 @@ class PlaceBetRequest extends FormRequest
             if ($match->status === 'completed') {
                 $validator->errors()->add('bet_on_user_id', 'Betting is closed for completed matches.');
             }
+
+            if (!$match->canAcceptBets()) {
+                $validator->errors()->add('bet_on_user_id', 'This betting market is not open.');
+            }
         });
     }
 }

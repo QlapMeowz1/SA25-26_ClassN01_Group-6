@@ -43,6 +43,16 @@ class ChallengeController extends Controller
         $hasDuplicateNames = $openChallenges->pluck('challenger.name')->filter()->count() !== $openChallenges->pluck('challenger.name')->filter()->unique()->count();
         if ($openChallenges->isEmpty() || $hasDuplicateNames) {
             $openChallenges = $this->buildSampleOpenChallenges();
+        } elseif ($openChallenges->count() < 6) {
+            $openChallenges = $openChallenges->concat($this->buildSampleOpenChallenges())->unique(fn ($challenge) => $challenge->challenger?->name . $challenge->arena_description)->take(6)->values();
+        }
+
+        if ($received->count() < 4) {
+            $received = $received->concat($this->buildSampleReceivedChallenges())->take(4)->values();
+        }
+
+        if ($sent->count() < 4) {
+            $sent = $sent->concat($this->buildSampleSentChallenges())->take(4)->values();
         }
 
         return view('challenges.index', compact('sent', 'received', 'leaderboard', 'openChallenges'));
@@ -318,6 +328,7 @@ class ChallengeController extends Controller
                 'arena_countdown' => '6d 3h left',
                 'expires_at' => now()->addDays(6)->addHours(3),
                 'joinRequests' => collect(),
+                'is_sample' => true,
             ],
             (object) [
                 'id' => 'sample-open-2',
@@ -332,8 +343,95 @@ class ChallengeController extends Controller
                 'arena_countdown' => '1d 19h left',
                 'expires_at' => now()->addDays(1)->addHours(19),
                 'joinRequests' => collect(),
+                'is_sample' => true,
+            ],
+            (object) [
+                'id' => 'sample-open-3',
+                'challenger_id' => null,
+                'challenger' => (object) ['name' => 'PriyaShuttle'],
+                'status' => 'open',
+                'arena_description' => 'PriyaShuttle wants an advanced singles match before Sunday league finals',
+                'arena_priority' => 'High ELO callout',
+                'arena_time_limit' => '2d 6h left',
+                'arena_required_level' => 'Advanced',
+                'arena_location' => 'State Open Court',
+                'arena_countdown' => '2d 6h left',
+                'expires_at' => now()->addDays(2)->addHours(6),
+                'joinRequests' => collect(),
+                'is_sample' => true,
+            ],
+            (object) [
+                'id' => 'sample-open-4',
+                'challenger_id' => null,
+                'challenger' => (object) ['name' => 'NetNinjas'],
+                'status' => 'open',
+                'arena_description' => 'NetNinjas recruiting two players for doubles sparring and rotation drills',
+                'arena_priority' => 'Doubles session',
+                'arena_time_limit' => '18h left',
+                'arena_required_level' => 'Intermediate',
+                'arena_location' => 'District 7 Arena',
+                'arena_countdown' => '18h left',
+                'expires_at' => now()->addHours(18),
+                'joinRequests' => collect(),
+                'is_sample' => true,
+            ],
+            (object) [
+                'id' => 'sample-open-5',
+                'challenger_id' => null,
+                'challenger' => (object) ['name' => 'RacketMaster'],
+                'status' => 'open',
+                'arena_description' => 'RacketMaster hosting a pro-level three game ladder set tonight',
+                'arena_priority' => 'Elite ladder',
+                'arena_time_limit' => '7h left',
+                'arena_required_level' => 'Professional',
+                'arena_location' => 'Arena Court 1',
+                'arena_countdown' => '7h left',
+                'expires_at' => now()->addHours(7),
+                'joinRequests' => collect(),
+                'is_sample' => true,
             ],
         ]);
+    }
+
+    private function buildSampleReceivedChallenges()
+    {
+        return collect([
+            $this->sampleChallenge('sample-received-1', 'SmashPro', 'pending', 'SmashPro challenged you to a rated singles match at Court 2 tonight', 'Featured invite', '9h left', 'Advanced', 'Court 2'),
+            $this->sampleChallenge('sample-received-2', 'HanoiBirdies', 'pending', 'HanoiBirdies invited you for a friendly doubles rotation this weekend', 'Doubles invite', '1d 4h left', 'Intermediate', 'Hanoi Central Court'),
+            $this->sampleChallenge('sample-received-3', 'CourtKings', 'accepted', 'CourtKings locked a training set with you for tomorrow morning', 'Accepted session', 'Tomorrow', 'Advanced', 'Central Sports Complex'),
+            $this->sampleChallenge('sample-received-4', 'WeekendWarriors', 'rejected', 'WeekendWarriors could not make the weekend schedule and declined', 'Closed invite', 'Closed', 'Beginner', 'District 7 Arena'),
+        ]);
+    }
+
+    private function buildSampleSentChallenges()
+    {
+        return collect([
+            $this->sampleChallenge('sample-sent-1', 'Open', 'open', 'Your open challenge is looking for intermediate players near Central Court', 'Open queue', '2d left', 'Intermediate', 'Central Court', true),
+            $this->sampleChallenge('sample-sent-2', 'Ananya Roy', 'pending', 'You challenged Ananya Roy to a ranked three-set match this Friday', 'Awaiting response', '1d 8h left', 'Advanced', 'State Open Court', true),
+            $this->sampleChallenge('sample-sent-3', 'Dev Khanna', 'accepted', 'Dev Khanna accepted your challenge and the match is being scheduled', 'Accepted', 'Scheduled soon', 'Professional', 'Club League Court 2', true),
+            $this->sampleChallenge('sample-sent-4', 'Meera Joshi', 'rejected', 'Meera Joshi declined due to tournament preparation', 'Closed', 'Closed', 'Intermediate', 'Pune Aces Hall', true),
+        ]);
+    }
+
+    private function sampleChallenge(string $id, string $name, string $status, string $message, string $priority, string $timeLimit, string $level, string $location, bool $sent = false)
+    {
+        return (object) [
+            'id' => $id,
+            'challenger_id' => null,
+            'opponent_id' => null,
+            'challenger' => (object) ['name' => $sent ? (Auth::user()->name ?? 'You') : $name],
+            'opponent' => $sent && $name !== 'Open' ? (object) ['name' => $name, 'rank' => $level] : null,
+            'status' => $status,
+            'arena_description' => $message,
+            'arena_priority' => $priority,
+            'arena_time_limit' => $timeLimit,
+            'arena_required_level' => $level,
+            'arena_location' => $location,
+            'arena_countdown' => $timeLimit,
+            'expires_at' => now()->addDays(2),
+            'joinRequests' => collect(),
+            'is_sample' => true,
+        ];
     }
 
     private function rankBadgeClass(string $rank): string

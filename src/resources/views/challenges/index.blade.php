@@ -219,7 +219,7 @@
                                     </div>
                                 </div>
 
-                                @if($challenge->status === 'pending')
+                                @if($challenge->status === 'pending' && !($challenge->is_sample ?? false))
                                     <div class="challenge-actions challenge-actions-spread">
                                         <form action="{{ route('challenges.accept', $challenge->id) }}" method="POST" class="inline">
                                             @csrf
@@ -288,7 +288,7 @@
                                     </div>
                                 </div>
 
-                                @if($challenge->status === 'open')
+                                @if($challenge->status === 'open' && !($challenge->is_sample ?? false))
                                     @if($pendingRequests->isEmpty())
                                         <div class="empty-inline">{{ __('ui.challenge.no_join_requests') }}</div>
                                     @else

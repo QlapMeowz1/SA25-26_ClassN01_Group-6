@@ -36,8 +36,9 @@
                 theme: {
                     extend: {
                         fontFamily: {
-                            heading: ['"Be Vietnam Pro"', 'sans-serif'],
+                            heading: ['"Barlow Condensed"', 'sans-serif'],
                             body: ['Inter', 'sans-serif'],
+                            mono: ['"JetBrains Mono"', 'monospace'],
                         },
                         colors: {
                             court: '#0A5C0A',
@@ -598,6 +599,45 @@
             // run first poll after short delay, then at interval
             setTimeout(pollLikes, 3000);
             setInterval(pollLikes, 15000);
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('[data-admin-cursor-chart]').forEach(function (chart) {
+                const values = (chart.getAttribute('data-admin-cursor-chart') || '')
+                    .split('|')
+                    .map((value) => value.trim())
+                    .filter(Boolean);
+
+                if (!values.length) return;
+
+                let tooltip = chart.querySelector('.admin-cursor-tooltip');
+                if (!tooltip) {
+                    tooltip = document.createElement('div');
+                    tooltip.className = 'admin-cursor-tooltip';
+                    chart.appendChild(tooltip);
+                }
+
+                function updateTooltip(event) {
+                    const rect = chart.getBoundingClientRect();
+                    const x = Math.min(Math.max(event.clientX - rect.left, 0), rect.width);
+                    const y = Math.min(Math.max(event.clientY - rect.top, 0), rect.height);
+                    const ratio = rect.width > 0 ? x / rect.width : 0;
+                    const index = Math.min(values.length - 1, Math.max(0, Math.floor(ratio * values.length)));
+
+                    tooltip.textContent = values[index];
+                    tooltip.style.left = x + 'px';
+                    tooltip.style.top = y + 'px';
+                    chart.classList.add('is-chart-hovering');
+                }
+
+                chart.addEventListener('mousemove', updateTooltip);
+                chart.addEventListener('mouseenter', updateTooltip);
+                chart.addEventListener('mouseleave', function () {
+                    chart.classList.remove('is-chart-hovering');
+                });
+            });
+        });
     </script>
 
     @stack('scripts')

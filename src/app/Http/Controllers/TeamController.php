@@ -22,6 +22,15 @@ class TeamController extends Controller
         $locationFilter = $request->get('location', '');
 
         $myTeams = $user->teams()->paginate(10);
+        if ($myTeams->getCollection()->count() < 3) {
+            $myTeams->setCollection(
+                $myTeams->getCollection()
+                    ->concat($this->buildSampleTeamCards()->take(3))
+                    ->unique('name')
+                    ->take(3)
+                    ->values()
+            );
+        }
 
         $allTeamsQuery = Team::query();
         
@@ -57,15 +66,63 @@ class TeamController extends Controller
             })
         );
 
+        if ($allTeams->getCollection()->count() < 9 && empty($search) && empty($levelFilter) && empty($locationFilter)) {
+            $allTeams->setCollection(
+                $allTeams->getCollection()
+                    ->concat($this->buildSampleTeamCards())
+                    ->unique('name')
+                    ->take(12)
+                    ->values()
+            );
+        }
+
         // Build suggested teams (same level or next level up)
         $suggestedTeams = $this->buildSuggestedTeams($user);
 
         return view('teams.index', compact('myTeams', 'allTeams', 'suggestedTeams', 'search', 'levelFilter', 'locationFilter'));
     }
 
+    private function buildSampleTeamCards()
+    {
+        return collect([
+            $this->sampleTeam('sample-team-1', 'Saigon Smashers', 'Smashing through the competition', 'Competitive intermediate team for regular matches and tournaments', 'Saigon Sports Complex', 'Intermediate', 8, 20, ['Competitive', 'Regular Matches', 'Tournaments']),
+            $this->sampleTeam('sample-team-2', 'Hanoi Birdies', 'Bird by bird, we rise', 'Advanced players focused on tactical excellence and tournament preparation', 'Hanoi Central Court', 'Advanced', 12, 25, ['Advanced', 'Tournaments', 'Coaching']),
+            $this->sampleTeam('sample-team-3', 'Weekend Warriors', 'Fun for everyone', 'Casual friendly team perfect for beginners and recreational players', 'District 7 Arena', 'Beginner', 5, 15, ['Beginner Friendly', 'Casual', 'Community']),
+            $this->sampleTeam('sample-team-4', 'Hanoi Aces', 'Precision and power on every court', 'League-focused squad with weekly match analysis and drills', 'Hanoi Central Court', 'Advanced', 6, 16, ['Advanced', 'Competitive', 'League Play']),
+            $this->sampleTeam('sample-team-5', 'Da Nang Dropshots', 'Control the rally', 'Technical group for net play, doubles rotation, and evening scrims', 'Da Nang Arena', 'Intermediate', 9, 18, ['Doubles', 'Net Play', 'Evening']),
+            $this->sampleTeam('sample-team-6', 'Pune Aces', 'Calm court, sharp finish', 'Balanced roster for women singles, mixed doubles, and weekend tournaments', 'Pune Aces Hall', 'Professional', 14, 24, ['Professional', 'Mixed Doubles', 'Women Singles']),
+            $this->sampleTeam('sample-team-7', 'Chennai Strikers', 'Serve fast, recover faster', 'High tempo players preparing for city league and ranking events', 'Chennai Sports Dome', 'Advanced', 11, 20, ['City League', 'Training', 'Ranking']),
+            $this->sampleTeam('sample-team-8', 'Rookie Rally Club', 'Every point teaches', 'Beginner-first club with guided sessions and friendly challenges', 'Community Court 4', 'Beginner', 7, 20, ['Beginner', 'Coached', 'Friendly']),
+            $this->sampleTeam('sample-team-9', 'Elite Net Lab', 'Small margins win matches', 'Invite-style group for advanced match review and tactical sessions', 'Central Badminton Lab', 'Professional', 10, 14, ['Invite', 'Analytics', 'Elite']),
+        ]);
+    }
+
+    private function sampleTeam(string $id, string $name, string $slogan, string $description, string $location, string $level, int $members, int $max, array $tags)
+    {
+        return (object) [
+            'id' => $id,
+            'name' => $name,
+            'slogan' => $slogan,
+            'description' => $description,
+            'location' => $location,
+            'level' => $level,
+            'members_count' => $members,
+            'max_members' => $max,
+            'tags' => json_encode($tags),
+            'logo' => null,
+            'is_sample' => true,
+        ];
+    }
+
     private function buildSuggestedTeams($user)
     {
-        $sampleTeams = collect([
+        $sampleTeams = $this->buildSampleTeamCards()->map(function ($team) {
+            $team->tags = json_decode($team->tags, true) ?: [];
+            $team->leader = (object) ['name' => 'Community Lead'];
+            return $team;
+        });
+
+        $sampleTeams = $sampleTeams->concat(collect([
             (object)[
                 'id' => 'sample-1',
                 'name' => 'Saigon Smashers',
@@ -118,7 +175,7 @@ class TeamController extends Controller
                 'leader' => (object)['name' => 'RacketMaster'],
                 'is_sample' => true,
             ],
-        ]);
+        ]));
 
         // Filter by user level preference
         return $sampleTeams->filter(function ($team) use ($user) {

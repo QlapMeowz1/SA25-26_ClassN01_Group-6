@@ -6,7 +6,6 @@ use App\Models\GameMatch;
 use App\Models\Post;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Carbon;
 
 class DashboardController extends Controller
 {
@@ -20,22 +19,22 @@ class DashboardController extends Controller
         $user = Auth::user();
 
         $upcomingMatches = GameMatch::with(['player1', 'player2'])
-        ->where(function ($q) use ($user) {
-            $q->where('player1_id', $user->id)->orWhere('player2_id', $user->id);
-        })
-        ->whereIn('status', ['scheduled', 'in_progress'])
-        ->where('match_date', '>=', now())
-        ->orderBy('match_date')
-        ->limit(5)
-        ->get();
+            ->where(function ($q) use ($user) {
+                $q->where('player1_id', $user->id)->orWhere('player2_id', $user->id);
+            })
+            ->whereIn('status', ['scheduled', 'in_progress'])
+            ->where('match_date', '>=', now())
+            ->orderBy('match_date')
+            ->limit(5)
+            ->get();
 
         $recentMatches = GameMatch::where(function ($q) use ($user) {
             $q->where('player1_id', $user->id)->orWhere('player2_id', $user->id);
         })
-        ->where('status', 'completed')
-        ->latest()
-        ->limit(5)
-        ->get();
+            ->where('status', 'completed')
+            ->latest()
+            ->limit(5)
+            ->get();
 
         $openMatches = GameMatch::with(['player1'])
             ->where('status', 'open')
@@ -45,9 +44,13 @@ class DashboardController extends Controller
             ->limit(4)
             ->get();
 
-        $communityPosts = Post::with(['user', 'comments' => function ($q) {
+        $communityPosts = Post::with([
+            'user',
+            'comments' => function ($q) {
                 $q->latest()->take(2);
-            }, 'comments.user'])
+            },
+            'comments.user',
+        ])
             ->withCount(['likes', 'comments'])
             ->latest()
             ->paginate(6);
@@ -60,10 +63,18 @@ class DashboardController extends Controller
             ->get();
 
         $notifications = $user->notifications()
-                              ->latest()
-                              ->limit(10)
-                              ->get();
+            ->latest()
+            ->limit(10)
+            ->get();
 
-        return view('dashboard', compact('upcomingMatches', 'recentMatches', 'leaderboard', 'notifications', 'openMatches', 'communityPosts', 'onlinePlayers'));
+        return view('dashboard', compact(
+            'upcomingMatches',
+            'recentMatches',
+            'leaderboard',
+            'notifications',
+            'openMatches',
+            'communityPosts',
+            'onlinePlayers'
+        ));
     }
 }

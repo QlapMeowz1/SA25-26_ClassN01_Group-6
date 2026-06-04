@@ -51,6 +51,8 @@
         @endforeach
     </div>
 
+    <a href="{{ route('dashboard') }}" class="admin-player-zone-link">→ Xem Player Zone</a>
+
     <div class="admin-sidebar-user">
         <span class="admin-sidebar-avatar">{{ strtoupper(substr(auth()->user()->name ?? 'A', 0, 2)) }}</span>
         <div>

@@ -1,5 +1,5 @@
 /* Typography imports */
-@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sora:wght@500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
 
 * {
     margin: 0;
@@ -42,9 +42,10 @@
 
 :root {
     /* Font stacks */
-    --font-heading: 'Sora', 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    --font-body: 'Plus Jakarta Sans', 'Be Vietnam Pro', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Roboto, Arial, sans-serif;
-    --font-accent: 'Sora', 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+    --font-heading: 'Barlow Condensed', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    --font-body: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Roboto, Arial, sans-serif;
+    --font-accent: 'Barlow Condensed', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
     --primary-color: #15803d;
     --primary-hover: #0f6a33;
     --secondary-color: #f97316;
@@ -147,6 +148,14 @@ body {
     line-height: 1.65;
     letter-spacing: 0;
     transition: background-color 0.25s ease, color 0.25s ease, background 0.25s ease;
+}
+
+code,
+pre,
+kbd,
+samp,
+.font-mono {
+    font-family: var(--font-mono);
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -8155,6 +8164,13 @@ h6 { font-size: 1rem; line-height: 1.5; }
     gap: 20px;
 }
 
+.betting-ledger-page,
+.betting-ledger-page #tickets,
+.betting-ledger-page #markets,
+.betting-ledger-page #discipline {
+    scroll-margin-top: 88px;
+}
+
 .betting-hero,
 .betting-panel {
     border: 1px solid rgba(148, 163, 184, 0.18);
@@ -11474,9 +11490,12 @@ body.admin-route .admin-bar-chart {
 }
 
 body.admin-route .admin-bar {
+    position: relative;
     display: flex;
     align-items: end;
     justify-content: center;
+    cursor: help;
+    outline: 0;
 }
 
 body.admin-route .admin-bar span {
@@ -11486,6 +11505,12 @@ body.admin-route .admin-bar span {
     min-height: 32px;
     border-radius: 3px 3px 0 0;
     background: #38bdf8;
+}
+
+body.admin-route .admin-bar:hover span,
+body.admin-route .admin-bar:focus-visible span {
+    background: #67d8ff;
+    box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.22), 0 0 24px rgba(56, 189, 248, 0.20);
 }
 
 body.admin-route .admin-recent-matches-panel .admin-table-wrap {
@@ -11725,7 +11750,7 @@ body.admin-route .admin-table td {
 
 body.admin-route .admin-table td:first-child,
 body.admin-route .admin-table td:nth-child(4) {
-    font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-family: var(--font-mono);
     font-size: 12px;
 }
 
@@ -11998,7 +12023,7 @@ body.admin-route .pagination-wrapper {
 }
 
 .betting-receipt-code strong {
-    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-family: var(--font-mono);
     font-size: 1.1rem;
     letter-spacing: 0.03em;
 }
@@ -12036,3 +12061,812 @@ body.admin-route .pagination-wrapper {
         justify-content: flex-start;
     }
 }
+
+/* Admin betting pro screen */
+body.admin-route .admin-player-zone-link {
+    display: flex;
+    min-height: 46px;
+    align-items: center;
+    justify-content: center;
+    margin: 0 12px 12px;
+    border: 1px solid rgba(200, 245, 58, 0.34);
+    border-radius: 5px;
+    background: rgba(200, 245, 58, 0.08);
+    color: var(--admin-text);
+    font-size: 0.86rem;
+    font-weight: 900;
+    text-decoration: none;
+}
+
+body.admin-route .admin-betting-pro {
+    padding-bottom: 34px;
+}
+
+body.admin-route .admin-betting-header {
+    align-items: center;
+}
+
+body.admin-route .admin-create-market-btn {
+    display: inline-flex;
+    min-height: 44px;
+    align-items: center;
+    gap: 9px;
+    border-radius: 5px;
+    background: #f5f5f5;
+    color: #05070a;
+    padding: 0 22px;
+    font-size: 0.9rem;
+    font-weight: 900;
+    text-decoration: none;
+}
+
+body.admin-route .admin-create-market-btn span {
+    font-size: 1.15rem;
+    font-weight: 400;
+}
+
+body.admin-route .admin-betting-kpis {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+body.admin-route .admin-betting-kpi {
+    display: flex;
+    min-height: 160px;
+    justify-content: space-between;
+    border: 1px solid var(--admin-border);
+    border-radius: 7px;
+    background: #0b0d11;
+    padding: 28px 20px 20px;
+}
+
+body.admin-route .admin-betting-kpi span,
+body.admin-route .admin-betting-chart-card .admin-panel-heading span,
+body.admin-route .admin-betting-market-head,
+body.admin-route .admin-betting-detail-card header > span,
+body.admin-route .admin-betting-detail-card section p,
+body.admin-route .admin-betting-split-title span {
+    color: #8290aa;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+
+body.admin-route .admin-betting-kpi strong {
+    display: block;
+    margin-top: 24px;
+    color: var(--admin-text);
+    font-family: 'Barlow Condensed', var(--font-heading);
+    font-size: 2.45rem;
+    line-height: 0.9;
+    text-shadow: 2px 2px 0 rgba(56, 189, 248, 0.24);
+}
+
+body.admin-route .admin-betting-kpi small {
+    display: block;
+    margin-top: 12px;
+    color: #aab4c7;
+    font-size: 0.82rem;
+}
+
+body.admin-route .admin-betting-kpi small b {
+    color: #00e68a;
+    margin-right: 4px;
+}
+
+body.admin-route .admin-betting-kpi i {
+    display: inline-flex;
+    width: 34px;
+    height: 34px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 5px;
+    background: rgba(200, 245, 58, 0.12);
+    color: var(--admin-accent);
+    font-style: normal;
+    font-weight: 900;
+}
+
+body.admin-route .admin-betting-kpi--blue i {
+    background: rgba(56, 189, 248, 0.12);
+    color: var(--admin-blue);
+}
+
+body.admin-route .admin-betting-kpi--purple i {
+    background: rgba(139, 92, 246, 0.16);
+    color: #a78bfa;
+}
+
+body.admin-route .admin-betting-kpi--green i {
+    background: rgba(0, 230, 138, 0.12);
+    color: var(--admin-green);
+}
+
+body.admin-route .admin-betting-chart-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 26px;
+}
+
+body.admin-route .admin-betting-chart-card {
+    min-height: 298px;
+    padding-bottom: 18px;
+}
+
+body.admin-route .admin-betting-chart-card .admin-panel-heading {
+    display: flex;
+    justify-content: space-between;
+}
+
+body.admin-route .admin-betting-bars {
+    display: grid;
+    min-height: 166px;
+    grid-template-columns: repeat(7, 1fr);
+    align-items: end;
+    gap: 28px;
+    margin: 18px 10px 0 52px;
+    padding-top: 10px;
+    background-image: linear-gradient(to bottom, rgba(130, 144, 170, 0.12) 1px, transparent 1px);
+    background-size: 100% 40px;
+}
+
+body.admin-route .admin-betting-bars span {
+    position: relative;
+    display: flex;
+    min-height: 166px;
+    align-items: end;
+    justify-content: center;
+    cursor: help;
+    outline: 0;
+}
+
+body.admin-route .admin-betting-bars span i {
+    display: block;
+    width: 100%;
+    height: var(--bar-height);
+    min-height: 18px;
+    border-radius: 4px 4px 0 0;
+    background: var(--admin-accent);
+    box-shadow: 0 0 18px rgba(200, 245, 58, 0.12);
+}
+
+body.admin-route .admin-betting-bars span:hover,
+body.admin-route .admin-betting-bars span:focus-visible {
+    background: rgba(200, 245, 58, 0.04);
+}
+
+body.admin-route .admin-betting-bars span:hover i,
+body.admin-route .admin-betting-bars span:focus-visible i {
+    background: #d9ff55;
+    box-shadow: 0 0 0 2px rgba(200, 245, 58, 0.24), 0 0 24px rgba(200, 245, 58, 0.22);
+}
+
+body.admin-route .admin-betting-bars span::after,
+body.admin-route .admin-bar::after,
+body.admin-route .admin-chart-hover-zones span::after,
+body.admin-route .admin-chart-point::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    z-index: 20;
+    left: 50%;
+    bottom: calc(100% + 12px);
+    width: max-content;
+    max-width: 220px;
+    transform: translateX(-50%) translateY(4px);
+    border: 1px solid rgba(200, 245, 58, 0.28);
+    border-radius: 5px;
+    background: #f5f5f5;
+    color: #05070a;
+    padding: 8px 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    font-weight: 900;
+    line-height: 1.2;
+    opacity: 0;
+    pointer-events: none;
+    white-space: nowrap;
+    box-shadow: 0 14px 32px rgba(0, 0, 0, 0.28);
+    transition: opacity 140ms ease, transform 140ms ease;
+}
+
+body.admin-route .admin-betting-bars span::before,
+body.admin-route .admin-bar::before,
+body.admin-route .admin-chart-hover-zones span::before,
+body.admin-route .admin-chart-point::before {
+    content: "";
+    position: absolute;
+    z-index: 21;
+    left: 50%;
+    bottom: calc(100% + 6px);
+    width: 10px;
+    height: 10px;
+    transform: translateX(-50%) rotate(45deg);
+    background: #f5f5f5;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 140ms ease;
+}
+
+body.admin-route .admin-betting-bars span:hover::before,
+body.admin-route .admin-betting-bars span:hover::after,
+body.admin-route .admin-betting-bars span:focus-visible::before,
+body.admin-route .admin-betting-bars span:focus-visible::after,
+body.admin-route .admin-bar:hover::before,
+body.admin-route .admin-bar:hover::after,
+body.admin-route .admin-bar:focus-visible::before,
+body.admin-route .admin-bar:focus-visible::after,
+body.admin-route .admin-chart-hover-zones span:hover::before,
+body.admin-route .admin-chart-hover-zones span:hover::after,
+body.admin-route .admin-chart-hover-zones span:focus-visible::before,
+body.admin-route .admin-chart-hover-zones span:focus-visible::after,
+body.admin-route .admin-chart-point:hover::before,
+body.admin-route .admin-chart-point:hover::after,
+body.admin-route .admin-chart-point:focus-visible::before,
+body.admin-route .admin-chart-point:focus-visible::after {
+    opacity: 1;
+}
+
+body.admin-route .admin-betting-bars span:hover::after,
+body.admin-route .admin-betting-bars span:focus-visible::after,
+body.admin-route .admin-bar:hover::after,
+body.admin-route .admin-bar:focus-visible::after,
+body.admin-route .admin-chart-hover-zones span:hover::after,
+body.admin-route .admin-chart-hover-zones span:focus-visible::after,
+body.admin-route .admin-chart-point:hover::after,
+body.admin-route .admin-chart-point:focus-visible::after {
+    transform: translateX(-50%) translateY(0);
+}
+
+body.admin-route .admin-betting-axis {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
+    margin: 8px 8px 0 52px;
+    color: #70809d;
+    font-size: 0.78rem;
+    text-align: center;
+}
+
+body.admin-route .admin-betting-line-chart {
+    position: relative;
+    min-height: 176px;
+    margin: 18px 10px 0 52px;
+    background-image:
+        linear-gradient(to right, rgba(130, 144, 170, 0.10) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(130, 144, 170, 0.10) 1px, transparent 1px);
+    background-size: 20% 38px;
+}
+
+body.admin-route .admin-chart-point {
+    position: absolute;
+    z-index: 5;
+    left: var(--x);
+    top: var(--y);
+    width: 13px;
+    height: 13px;
+    transform: translate(-50%, -50%);
+    border: 2px solid #07090c;
+    border-radius: 999px;
+    cursor: help;
+    outline: 0;
+    pointer-events: none;
+    display: none;
+}
+
+body.admin-route [data-admin-cursor-chart] {
+    position: relative;
+    cursor: crosshair;
+}
+
+body.admin-route [data-admin-cursor-chart] span::before,
+body.admin-route [data-admin-cursor-chart] span::after,
+body.admin-route [data-admin-cursor-chart] .admin-bar::before,
+body.admin-route [data-admin-cursor-chart] .admin-bar::after {
+    content: none !important;
+    display: none !important;
+}
+
+body.admin-route [data-admin-cursor-chart] .admin-chart-hover-zones {
+    display: none;
+}
+
+body.admin-route .admin-cursor-tooltip {
+    position: absolute;
+    z-index: 40;
+    left: 0;
+    top: 0;
+    width: max-content;
+    max-width: 260px;
+    transform: translate(12px, -16px);
+    border: 1px solid rgba(200, 245, 58, 0.32);
+    border-radius: 5px;
+    background: #f5f5f5;
+    color: #05070a;
+    padding: 8px 10px;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 500;
+    line-height: 1.2;
+    opacity: 0;
+    pointer-events: none;
+    white-space: nowrap;
+    box-shadow: 0 14px 32px rgba(0, 0, 0, 0.30);
+    transition: opacity 90ms ease;
+}
+
+body.admin-route [data-admin-cursor-chart].is-chart-hovering .admin-cursor-tooltip {
+    opacity: 1;
+}
+
+body.admin-route .admin-chart-hover-zones {
+    position: absolute;
+    inset: 18px 12px 24px;
+    z-index: 8;
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
+}
+
+body.admin-route .admin-betting-line-chart .admin-chart-hover-zones {
+    inset: 0;
+}
+
+body.admin-route .admin-chart-hover-zones span {
+    position: relative;
+    cursor: help;
+    outline: 0;
+}
+
+body.admin-route .admin-chart-hover-zones span:hover,
+body.admin-route .admin-chart-hover-zones span:focus-visible {
+    background: linear-gradient(to bottom, rgba(200, 245, 58, 0.075), rgba(200, 245, 58, 0.015));
+}
+
+body.admin-route .admin-chart-hover-zones span::after {
+    bottom: auto;
+    top: 10px;
+}
+
+body.admin-route .admin-chart-hover-zones span::before {
+    bottom: auto;
+    top: 38px;
+}
+
+body.admin-route .admin-chart-point--blue {
+    background: var(--admin-blue);
+    box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.16);
+}
+
+body.admin-route .admin-chart-point--lime {
+    background: var(--admin-accent);
+    box-shadow: 0 0 0 4px rgba(200, 245, 58, 0.16);
+}
+
+body.admin-route .admin-chart-point:hover,
+body.admin-route .admin-chart-point:focus-visible {
+    z-index: 10;
+    transform: translate(-50%, -50%) scale(1.18);
+}
+
+body.admin-route .admin-chart-point::before {
+    bottom: calc(100% + 7px);
+}
+
+body.admin-route .admin-chart-point::after {
+    bottom: calc(100% + 13px);
+}
+
+body.admin-route .admin-betting-line-chart svg {
+    width: 100%;
+    height: 176px;
+}
+
+body.admin-route .admin-betting-line-chart path {
+    fill: none;
+    stroke-width: 3;
+    stroke-dasharray: 6 4;
+}
+
+body.admin-route .admin-betting-line-chart .line-blue {
+    stroke: var(--admin-blue);
+}
+
+body.admin-route .admin-betting-line-chart .line-lime {
+    stroke: var(--admin-accent);
+    stroke-dasharray: none;
+}
+
+body.admin-route .admin-betting-line-scale {
+    position: absolute;
+    inset: 0 auto 0 -38px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    color: #70809d;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+}
+
+body.admin-route .admin-betting-workspace {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 450px;
+    gap: 20px;
+    align-items: start;
+    margin-bottom: 26px;
+}
+
+body.admin-route .admin-betting-toolbar {
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    margin-bottom: 14px;
+}
+
+body.admin-route .admin-betting-search {
+    display: flex;
+    flex: 1;
+    min-height: 48px;
+    align-items: center;
+    gap: 10px;
+    border: 1px solid var(--admin-border);
+    border-radius: 5px;
+    background: #0b0d11;
+    color: #8290aa;
+    padding: 0 14px;
+}
+
+body.admin-route .admin-betting-search input {
+    width: 100%;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: var(--admin-text);
+    font: inherit;
+}
+
+body.admin-route .admin-betting-tabs {
+    display: flex;
+    gap: 14px;
+}
+
+body.admin-route .admin-betting-tabs button {
+    min-height: 42px;
+    border: 1px solid var(--admin-border);
+    border-radius: 5px;
+    background: transparent;
+    color: #b7c1d4;
+    padding: 0 18px;
+    font-weight: 800;
+}
+
+body.admin-route .admin-betting-tabs button.is-active {
+    background: #f5f5f5;
+    color: #05070a;
+}
+
+body.admin-route .admin-betting-market-table,
+body.admin-route .admin-betting-transactions,
+body.admin-route .admin-betting-detail-card {
+    border: 1px solid var(--admin-border);
+    border-radius: 7px;
+    background: #07090c;
+    overflow: hidden;
+}
+
+body.admin-route .admin-betting-market-head,
+body.admin-route .admin-betting-market-row {
+    display: grid;
+    grid-template-columns: minmax(260px, 1.4fr) minmax(128px, 0.65fr) minmax(110px, 0.55fr) minmax(128px, 0.55fr) 42px;
+    gap: 18px;
+    align-items: center;
+    padding: 18px 22px;
+}
+
+body.admin-route .admin-betting-market-head {
+    border-bottom: 1px solid var(--admin-border);
+}
+
+body.admin-route .admin-betting-market-row {
+    min-height: 82px;
+    border-bottom: 1px solid var(--admin-border);
+    color: var(--admin-text);
+    text-decoration: none;
+}
+
+body.admin-route .admin-betting-market-row:last-child {
+    border-bottom: 0;
+}
+
+body.admin-route .admin-betting-market-row.is-selected {
+    border-left: 2px solid #f5f5f5;
+    background: rgba(200, 245, 58, 0.05);
+}
+
+body.admin-route .admin-betting-market-row strong {
+    color: var(--admin-text);
+}
+
+body.admin-route .admin-betting-market-row small {
+    display: block;
+    margin-top: 6px;
+    color: #9aa7bd;
+}
+
+body.admin-route .admin-betting-money,
+body.admin-route .admin-betting-detail-card dd,
+body.admin-route .admin-betting-odds-inline,
+body.admin-route .admin-betting-odds-grid input {
+    font-family: 'JetBrains Mono', monospace;
+}
+
+body.admin-route .admin-betting-odds-inline {
+    display: flex;
+    gap: 9px;
+    align-items: center;
+}
+
+body.admin-route .admin-betting-odds-inline b:first-child,
+body.admin-route .admin-betting-odds-grid label:first-child input,
+body.admin-route .admin-betting-pick {
+    color: var(--admin-accent);
+}
+
+body.admin-route .admin-betting-odds-inline b:last-child,
+body.admin-route .admin-betting-odds-grid label:last-child input,
+body.admin-route .admin-betting-blue {
+    color: var(--admin-blue);
+}
+
+body.admin-route .admin-betting-more {
+    color: #9aa7bd;
+    font-weight: 900;
+}
+
+body.admin-route .admin-betting-status,
+body.admin-route .admin-betting-txn-status {
+    display: inline-flex;
+    min-height: 26px;
+    align-items: center;
+    border-radius: 5px;
+    padding: 5px 10px;
+    font-size: 0.74rem;
+    font-weight: 900;
+}
+
+body.admin-route .admin-betting-status--open,
+body.admin-route .admin-betting-txn-status--won {
+    background: rgba(0, 230, 138, 0.12);
+    color: var(--admin-green);
+}
+
+body.admin-route .admin-betting-status--live {
+    background: rgba(200, 245, 58, 0.12);
+    color: var(--admin-accent);
+}
+
+body.admin-route .admin-betting-status--suspended,
+body.admin-route .admin-betting-txn-status--lost {
+    background: rgba(249, 115, 22, 0.16);
+    color: #ff7a2f;
+}
+
+body.admin-route .admin-betting-status--settled {
+    background: rgba(148, 163, 184, 0.10);
+    color: #748199;
+}
+
+body.admin-route .admin-betting-txn-status--pending {
+    background: rgba(245, 158, 11, 0.12);
+    color: #f59e0b;
+}
+
+body.admin-route .admin-betting-empty {
+    padding: 32px;
+    color: #9aa7bd;
+}
+
+body.admin-route .admin-betting-detail-card {
+    position: sticky;
+    top: 18px;
+}
+
+body.admin-route .admin-betting-detail-card header,
+body.admin-route .admin-betting-detail-card form {
+    padding: 24px 20px;
+}
+
+body.admin-route .admin-betting-detail-card header {
+    background: rgba(200, 245, 58, 0.05);
+}
+
+body.admin-route .admin-betting-detail-card header strong {
+    display: block;
+    margin-top: 10px;
+    color: var(--admin-text);
+    font-size: 1.1rem;
+}
+
+body.admin-route .admin-betting-detail-card header small,
+body.admin-route .admin-betting-odds-grid small,
+body.admin-route .admin-betting-split-labels,
+body.admin-route .admin-betting-detail-card dt {
+    color: #9aa7bd;
+    font-size: 0.82rem;
+}
+
+body.admin-route .admin-betting-detail-card section {
+    margin-bottom: 20px;
+}
+
+body.admin-route .admin-betting-odds-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+body.admin-route .admin-betting-odds-grid label {
+    display: grid;
+    gap: 8px;
+    min-height: 116px;
+    border: 1px solid rgba(200, 245, 58, 0.25);
+    border-radius: 5px;
+    background: rgba(200, 245, 58, 0.04);
+    padding: 16px;
+    text-align: center;
+}
+
+body.admin-route .admin-betting-odds-grid label:last-child {
+    border-color: rgba(56, 189, 248, 0.24);
+    background: rgba(56, 189, 248, 0.04);
+}
+
+body.admin-route .admin-betting-odds-grid span {
+    color: #b8c2d6;
+    font-size: 0.82rem;
+}
+
+body.admin-route .admin-betting-odds-grid input {
+    width: 100%;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    font-size: 2.05rem;
+    font-weight: 900;
+    text-align: center;
+}
+
+body.admin-route .admin-betting-split-title,
+body.admin-route .admin-betting-split-labels,
+body.admin-route .admin-betting-detail-card dl div {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+body.admin-route .admin-betting-split {
+    height: 10px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: rgba(56, 189, 248, 0.18);
+}
+
+body.admin-route .admin-betting-split div {
+    height: 100%;
+    background: var(--admin-accent);
+}
+
+body.admin-route .admin-betting-split-labels {
+    margin-top: 8px;
+}
+
+body.admin-route .admin-betting-split-labels span:first-child {
+    color: var(--admin-accent);
+}
+
+body.admin-route .admin-betting-split-labels span:last-child {
+    color: var(--admin-blue);
+}
+
+body.admin-route .admin-betting-detail-card dl {
+    display: grid;
+    gap: 0;
+    margin: 0 0 24px;
+}
+
+body.admin-route .admin-betting-detail-card dl div {
+    border-bottom: 1px solid var(--admin-border);
+    padding: 14px 0;
+}
+
+body.admin-route .admin-betting-detail-card dd {
+    margin: 0;
+    color: var(--admin-text);
+    font-weight: 900;
+}
+
+body.admin-route .admin-betting-primary-action,
+body.admin-route .admin-betting-danger-action {
+    width: 100%;
+    min-height: 46px;
+    border-radius: 5px;
+    font-weight: 900;
+}
+
+body.admin-route .admin-betting-primary-action {
+    border: 1px solid #f5f5f5;
+    background: #f5f5f5;
+    color: #05070a;
+}
+
+body.admin-route .admin-betting-danger-action {
+    border: 1px solid rgba(255, 77, 94, 0.5);
+    background: transparent;
+    color: var(--admin-red);
+}
+
+body.admin-route .admin-betting-detail-card > form:last-child {
+    padding-top: 0;
+}
+
+body.admin-route .admin-betting-transactions {
+    background: #07090c;
+}
+
+body.admin-route .admin-betting-transactions .admin-panel-heading {
+    margin: 0;
+}
+
+body.admin-route .admin-betting-transactions .admin-panel-heading a {
+    color: var(--admin-text);
+    font-weight: 900;
+    text-decoration: none;
+}
+
+body.admin-route .admin-betting-transactions .admin-table-wrap {
+    border: 0;
+}
+
+body.admin-route .admin-betting-purple {
+    color: #8b5cf6;
+}
+
+@media (max-width: 1180px) {
+    body.admin-route .admin-betting-kpis,
+    body.admin-route .admin-betting-chart-grid,
+    body.admin-route .admin-betting-workspace {
+        grid-template-columns: 1fr;
+    }
+
+    body.admin-route .admin-betting-detail-card {
+        position: static;
+    }
+
+    body.admin-route .admin-betting-toolbar {
+        align-items: stretch;
+        flex-direction: column;
+    }
+}
+
+@media (max-width: 760px) {
+    body.admin-route .admin-create-market-btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    body.admin-route .admin-betting-tabs {
+        overflow-x: auto;
+    }
+
+    body.admin-route .admin-betting-market-head {
+        display: none;
+    }
+
+    body.admin-route .admin-betting-market-row {
+        grid-template-columns: 1fr;
+    }
+}
+

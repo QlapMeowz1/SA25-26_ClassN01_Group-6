@@ -41,13 +41,24 @@ class TournamentController extends Controller
         $ongoingTournaments = $allTournaments->where('display_status', 'ongoing')->values();
         $completedTournaments = $allTournaments->where('display_status', 'completed')->values();
 
-        if ($allTournaments->isEmpty() && $myTournaments->isEmpty()) {
+        if ($allTournaments->count() < 8) {
             $samples = $this->sampleTournaments(false);
-            $myTournaments = $samples->take(2)->values();
-            $upcomingTournaments = $samples->skip(2)->values();
-            $ongoingTournaments = collect();
-            $completedTournaments = collect();
-            $allTournaments = $samples->values();
+            $existingNames = $allTournaments->pluck('name')->map(fn ($name) => strtolower($name))->all();
+            $samples = $samples->reject(fn ($tournament) => in_array(strtolower($tournament->name), $existingNames, true));
+
+            $allTournaments = $allTournaments->concat($samples)->take(10)->values();
+
+            if ($myTournaments->isEmpty()) {
+                $myTournaments = $allTournaments->take(2)->values();
+            }
+
+            $myIds = $myTournaments->pluck('id')->filter()->all();
+            $upcomingTournaments = $allTournaments
+                ->where('display_status', 'upcoming')
+                ->when(!empty($myIds), fn ($collection) => $collection->reject(fn ($tournament) => in_array($tournament->id, $myIds, true)))
+                ->values();
+            $ongoingTournaments = $allTournaments->where('display_status', 'ongoing')->values();
+            $completedTournaments = $allTournaments->where('display_status', 'completed')->values();
         }
 
         $featuredTournament = $upcomingTournaments->first() ?? $ongoingTournaments->first() ?? $myTournaments->first() ?? $this->sampleTournaments(true)->first();
@@ -178,6 +189,48 @@ class TournamentController extends Controller
                 'participant_count' => 15,
                 'prize_details' => '10000 🪙 Coins',
                 'organizer' => 'SmashPro',
+            ],
+            [
+                'id' => 'sample-night-court-series',
+                'name' => 'Night Court Series',
+                'description' => 'Evening ladder tournament with rapid group stages and final playoff.',
+                'status' => 'upcoming',
+                'start_date' => Carbon::now()->addDays(4)->setTime(19, 0),
+                'end_date' => Carbon::now()->addDays(5)->setTime(22, 0),
+                'max_participants' => 24,
+                'prize_pool' => 4200,
+                'banner_color' => '#06b6d4',
+                'participant_count' => 14,
+                'prize_details' => '4200 🪙 Coins',
+                'organizer' => 'Da Nang Dropshots',
+            ],
+            [
+                'id' => 'sample-mixed-doubles-showdown',
+                'name' => 'Mixed Doubles Showdown',
+                'description' => 'Mixed doubles bracket built for fast rotations and creative court coverage.',
+                'status' => 'upcoming',
+                'start_date' => Carbon::now()->addWeeks(2)->setTime(9, 0),
+                'end_date' => Carbon::now()->addWeeks(2)->setTime(19, 0),
+                'max_participants' => 20,
+                'prize_pool' => 6500,
+                'banner_color' => '#ec4899',
+                'participant_count' => 9,
+                'prize_details' => '6500 🪙 Coins',
+                'organizer' => 'Pune Aces',
+            ],
+            [
+                'id' => 'sample-pro-ranking-finals',
+                'name' => 'Pro Ranking Finals',
+                'description' => 'Completed elite finals event used for ranking calibration and season seeding.',
+                'status' => 'completed',
+                'start_date' => Carbon::now()->subWeeks(2)->setTime(10, 0),
+                'end_date' => Carbon::now()->subWeeks(2)->setTime(21, 0),
+                'max_participants' => 16,
+                'prize_pool' => 12000,
+                'banner_color' => '#10b981',
+                'participant_count' => 16,
+                'prize_details' => '12000 🪙 Coins',
+                'organizer' => 'Elite Net Lab',
             ],
         ]);
 

@@ -17,7 +17,7 @@
     ];
 @endphp
 
-<div class="page-shell betting-page betting-ledger-page">
+<div class="page-shell betting-page betting-ledger-page" id="ledger">
     <section class="betting-hero">
         <div>
             <p class="home-eyebrow">Sportsbook Ledger</p>
@@ -33,10 +33,10 @@
     </section>
 
     <nav class="betting-desk-nav" aria-label="Betting sections">
-        <a href="{{ route('bets.index') }}" class="is-active">Ledger</a>
-        <a href="{{ route('matches.index') }}">Markets</a>
-        <a href="#tickets">Tickets</a>
-        <a href="#discipline">Stake Plan</a>
+        <a href="#ledger" class="is-active" data-bet-scroll="ledger">Ledger</a>
+        <a href="#markets" data-bet-scroll="markets">Markets</a>
+        <a href="#tickets" data-bet-scroll="tickets">Tickets</a>
+        <a href="#discipline" data-bet-scroll="discipline">Stake Plan</a>
     </nav>
 
     <section class="betting-health-strip">
@@ -174,7 +174,7 @@
                 </div>
             </section>
 
-            <section class="betting-panel betting-market-watch">
+            <section class="betting-panel betting-market-watch" id="markets">
                 <div class="betting-panel-heading">
                     <div>
                         <p class="home-eyebrow">Market Watch</p>
@@ -228,6 +228,24 @@
 document.addEventListener('DOMContentLoaded', function () {
     const tabs = document.querySelectorAll('[data-bet-filter]');
     const tickets = document.querySelectorAll('[data-bet-ticket]');
+    const navLinks = document.querySelectorAll('[data-bet-scroll]');
+
+    navLinks.forEach(function (link) {
+        link.addEventListener('click', function (event) {
+            event.preventDefault();
+
+            const targetId = link.getAttribute('data-bet-scroll');
+            const target = document.getElementById(targetId);
+            if (!target) return;
+
+            navLinks.forEach((item) => item.classList.toggle('is-active', item === link));
+            target.scrollIntoView({ behavior: 'smooth', block: targetId === 'ledger' ? 'start' : 'nearest' });
+
+            if (window.history && window.history.replaceState) {
+                window.history.replaceState(null, '', window.location.pathname + window.location.search);
+            }
+        });
+    });
 
     tabs.forEach(function (tab) {
         tab.addEventListener('click', function () {

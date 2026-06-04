@@ -21,6 +21,10 @@ class BetService
                 throw new \InvalidArgumentException('Betting is closed for completed matches.');
             }
 
+            if (!$match->canAcceptBets()) {
+                throw new \InvalidArgumentException('This betting market is not open.');
+            }
+
             if (!in_array($predictedWinnerId, [(int) $match->player1_id, (int) $match->player2_id], true)) {
                 throw new \InvalidArgumentException('Choose a valid player for this match.');
             }

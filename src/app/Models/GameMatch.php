@@ -26,6 +26,7 @@ class GameMatch extends Model
         'player2_odds',
         'odds_updated_by',
         'odds_updated_at',
+        'betting_status',
     ];
 
     protected $casts = [
@@ -80,6 +81,16 @@ class GameMatch extends Model
     public function hasManualOdds(): bool
     {
         return $this->player1_odds !== null && $this->player2_odds !== null;
+    }
+
+    public function canAcceptBets(): bool
+    {
+        $marketStatus = $this->betting_status ?? 'open';
+
+        return $this->player1_id
+            && $this->player2_id
+            && !in_array($this->status, ['completed', 'cancelled'], true)
+            && in_array($marketStatus, ['open', 'approved'], true);
     }
 
     public function isCompleted()

@@ -15,6 +15,8 @@ use App\Models\GameMatch;
 use App\Models\Challenge;
 use App\Models\Post;
 
+Route::get('/player-portal', fn () => view('player-portal'))->name('player.portal');
+
 // Home
 Route::get('/', function () {
     $posts = Post::with(['user', 'comments.user'])
@@ -85,8 +87,8 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/betting', [\App\Http\Controllers\Admin\BettingController::class, 'index'])->name('betting');
     Route::post('/betting/matches/{match}/odds', [\App\Http\Controllers\Admin\BettingController::class, 'updateOdds'])->name('betting.odds.update');
     Route::delete('/betting/matches/{match}/odds', [\App\Http\Controllers\Admin\BettingController::class, 'deleteOdds'])->name('betting.odds.delete');
-    Route::post('/betting/{ticket}/approve', [\App\Http\Controllers\Admin\BettingController::class, 'approve'])->name('betting.approve');
-    Route::post('/betting/{ticket}/cancel', [\App\Http\Controllers\Admin\BettingController::class, 'cancel'])->name('betting.cancel');
+    Route::post('/betting/matches/{match}/approve', [\App\Http\Controllers\Admin\BettingController::class, 'approve'])->name('betting.approve');
+    Route::post('/betting/matches/{match}/cancel', [\App\Http\Controllers\Admin\BettingController::class, 'cancel'])->name('betting.cancel');
     Route::get('/statistics', [\App\Http\Controllers\Admin\StatisticsController::class, 'index'])->name('statistics');
     Route::get('/bets', fn () => redirect()->route('admin.betting'))->name('bets');
     Route::get('/matches', fn () => redirect()->route('admin.schedule'))->name('matches');
@@ -95,6 +97,8 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
 // Profile Routes
 Route::middleware('auth')->group(function () {
+    Route::get('/portal/betting', [\App\Http\Controllers\PortalBettingController::class, 'index'])->name('portal.betting.index');
+    Route::post('/portal/betting', [\App\Http\Controllers\PortalBettingController::class, 'store'])->name('portal.betting.store');
     Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::post('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
     Route::get('/profile/{id}', [ProfileController::class, 'show'])->whereNumber('id')->name('profile.show');

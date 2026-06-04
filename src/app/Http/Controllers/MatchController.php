@@ -62,6 +62,10 @@ class MatchController extends Controller
             ->get()
             ->map(fn($match) => $this->decorateMatch($match));
 
+        if ($openMatches->count() < 6 && empty(array_filter($filters))) {
+            $openMatches = $this->mergeSampleMatches($openMatches, $this->buildSampleMatches(), 6);
+        }
+
         $upcomingMatches = $applyFilters(GameMatch::with(['player1', 'player2'])
             ->where(function ($query) use ($user) {
                 $query->where('player1_id', $user->id)->orWhere('player2_id', $user->id);
@@ -74,6 +78,10 @@ class MatchController extends Controller
             ->limit(8)
             ->get();
 
+        if ($upcomingMatches->count() < 5 && empty(array_filter($filters))) {
+            $upcomingMatches = $this->mergeSampleMatches($upcomingMatches, $this->buildSampleUpcomingMatches(), 5);
+        }
+
         $completedMatches = $applyFilters(GameMatch::with(['player1', 'player2', 'winner'])
             ->where(function ($query) use ($user) {
                 $query->where('player1_id', $user->id)->orWhere('player2_id', $user->id);
@@ -84,33 +92,8 @@ class MatchController extends Controller
             ->limit(8)
             ->get();
 
-        if ($completedMatches->isEmpty()) {
-            $completedMatches = collect([
-                (object) [
-                    'id' => 'sample-completed-1',
-                    'player1' => (object) ['name' => 'meowhunterz'],
-                    'player2' => (object) ['name' => 'HanoiBirdies'],
-                    'player1_score' => 21,
-                    'player2_score' => 15,
-                    'winner_id' => 1,
-                    'player1_id' => 1,
-                    'player2_id' => 2,
-                    'location' => 'Central Court',
-                    'match_date' => now()->subDays(3),
-                ],
-                (object) [
-                    'id' => 'sample-completed-2',
-                    'player1' => (object) ['name' => 'meowhunterz'],
-                    'player2' => (object) ['name' => 'ShuttleKing'],
-                    'player1_score' => 18,
-                    'player2_score' => 21,
-                    'winner_id' => 2,
-                    'player1_id' => 1,
-                    'player2_id' => 2,
-                    'location' => 'Downtown Arena',
-                    'match_date' => now()->subDays(5),
-                ],
-            ]);
+        if ($completedMatches->count() < 6 && empty(array_filter($filters))) {
+            $completedMatches = $this->mergeSampleMatches($completedMatches, $this->buildSampleCompletedMatches(), 6);
         }
 
         return view('matches.index', compact('upcomingMatches', 'completedMatches', 'openMatches', 'filters'));
@@ -218,7 +201,92 @@ class MatchController extends Controller
                 'joinRequests' => collect([]),
                 'is_sample' => true,
             ],
+            (object)[
+                'id' => 'sample-4',
+                'player1_id' => null,
+                'player2_id' => null,
+                'player1' => (object)['id' => null, 'name' => 'Sita Patil', 'rank' => 'Professional'],
+                'player2' => null,
+                'status' => 'open',
+                'location' => 'Bangalore Indoor Stadium',
+                'match_date' => Carbon::now()->addHours(5),
+                'arena_location' => 'Bangalore Indoor Stadium',
+                'arena_time' => 'Today 8PM',
+                'arena_skill' => 'Professional',
+                'arena_badge_class' => 'diamond',
+                'joinRequests' => collect([]),
+                'is_sample' => true,
+            ],
+            (object)[
+                'id' => 'sample-5',
+                'player1_id' => null,
+                'player2_id' => null,
+                'player1' => (object)['id' => null, 'name' => 'Vikram Nair', 'rank' => 'Advanced'],
+                'player2' => null,
+                'status' => 'open',
+                'location' => 'District 7 Arena',
+                'match_date' => Carbon::now()->addDays(2)->setTime(19, 30),
+                'arena_location' => 'District 7 Arena',
+                'arena_time' => 'Fri 7PM',
+                'arena_skill' => 'Advanced',
+                'arena_badge_class' => 'gold',
+                'joinRequests' => collect([]),
+                'is_sample' => true,
+            ],
         ]);
+    }
+
+    private function buildSampleUpcomingMatches()
+    {
+        return collect([
+            $this->sampleMatch('sample-upcoming-1', 'Priya Sharma', 'Ananya Roy', 'Women\'s Singles', 'scheduled', 'State Open Court 1', now()->addHours(3), 'Advanced'),
+            $this->sampleMatch('sample-upcoming-2', 'Dev Khanna', 'Rohan Mehta', 'Men\'s Singles', 'in_progress', 'Club League Court 2', now()->addHours(1), 'Professional'),
+            $this->sampleMatch('sample-upcoming-3', 'Sita Patil', 'Meera Joshi', 'Women\'s Singles', 'scheduled', 'Pune Aces Hall', now()->addDay()->setTime(10, 30), 'Intermediate'),
+            $this->sampleMatch('sample-upcoming-4', 'Layla Hassan', 'Divya Chopra', 'Women\'s Singles', 'scheduled', 'Hyderabad Dome', now()->addDays(2)->setTime(15, 0), 'Advanced'),
+            $this->sampleMatch('sample-upcoming-5', 'Vikram Nair', 'Arun Tiwari', 'Men\'s Singles', 'scheduled', 'Jaipur Jets Court', now()->addDays(3)->setTime(18, 0), 'Intermediate'),
+        ]);
+    }
+
+    private function buildSampleCompletedMatches()
+    {
+        return collect([
+            $this->sampleMatch('sample-completed-1', 'meowhunterz', 'HanoiBirdies', 'Community Match', 'completed', 'Central Court', now()->subDays(3), 'Beginner', 21, 15, 1),
+            $this->sampleMatch('sample-completed-2', 'meowhunterz', 'ShuttleKing', 'Open Ladder', 'completed', 'Downtown Arena', now()->subDays(5), 'Intermediate', 18, 21, 2),
+            $this->sampleMatch('sample-completed-3', 'Priya Sharma', 'Sita Patil', 'State Open', 'completed', 'Court 1', now()->subDays(2), 'Advanced', 21, 18, 1),
+            $this->sampleMatch('sample-completed-4', 'Dev Khanna', 'Vikram Nair', 'Club League', 'completed', 'Court 2', now()->subDays(4), 'Professional', 21, 19, 1),
+            $this->sampleMatch('sample-completed-5', 'Ananya Roy', 'Meera Joshi', 'Friendly', 'completed', 'Court 5', now()->subDays(6), 'Intermediate', 16, 21, 2),
+            $this->sampleMatch('sample-completed-6', 'Rohan Mehta', 'Arun Tiwari', 'Weekend Ladder', 'completed', 'Court 3', now()->subWeek(), 'Advanced', 22, 20, 1),
+        ]);
+    }
+
+    private function sampleMatch(string $id, string $p1, string $p2, string $label, string $status, string $location, Carbon $date, string $rank, ?int $score1 = null, ?int $score2 = null, ?int $winner = null)
+    {
+        return (object) [
+            'id' => $id,
+            'player1_id' => 1,
+            'player2_id' => 2,
+            'player1' => (object) ['id' => 1, 'name' => $p1, 'rank' => $rank],
+            'player2' => (object) ['id' => 2, 'name' => $p2, 'rank' => $rank],
+            'status' => $status,
+            'location' => $location,
+            'match_date' => $date,
+            'player1_score' => $score1,
+            'player2_score' => $score2,
+            'winner_id' => $winner === 1 ? 1 : ($winner === 2 ? 2 : null),
+            'arena_label' => $label,
+            'is_sample' => true,
+        ];
+    }
+
+    private function mergeSampleMatches($realMatches, $sampleMatches, int $limit)
+    {
+        $existing = $realMatches->map(fn ($match) => strtolower(($match->player1?->name ?? '') . ' vs ' . ($match->player2?->name ?? '')))->all();
+
+        $samples = $sampleMatches->reject(function ($match) use ($existing) {
+            return in_array(strtolower(($match->player1?->name ?? '') . ' vs ' . ($match->player2?->name ?? '')), $existing, true);
+        });
+
+        return $realMatches->concat($samples)->take($limit)->values();
     }
 
     private function rankBadgeClass($rank)

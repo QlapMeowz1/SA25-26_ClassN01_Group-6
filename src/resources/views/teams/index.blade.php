@@ -116,7 +116,11 @@
                                         </div>
                                     @endif
 
-                                    <a href="{{ route('teams.show', $team->id) }}" class="btn btn-primary btn-block">{{ __('ui.team.view_team') }}</a>
+                                    @if($team->is_sample ?? false)
+                                        <button type="button" class="btn btn-primary btn-block sample-team-btn" data-team-id="{{ $team->id }}" data-team-name="{{ $team->name }}" data-team-level="{{ $team->level }}" data-team-location="{{ $team->location }}" data-team-members="{{ $team->members_count }}" data-team-max="{{ $team->max_members }}" data-team-slogan="{{ $team->slogan }}" data-team-description="{{ $team->description }}">{{ __('ui.team.view_team') }}</button>
+                                    @else
+                                        <a href="{{ route('teams.show', $team->id) }}" class="btn btn-primary btn-block">{{ __('ui.team.view_team') }}</a>
+                                    @endif
                                 </div>
                             </article>
                         @endforeach
@@ -208,7 +212,11 @@
                                         </div>
                                     @endif
 
-                                    <a href="{{ route('teams.show', $team->id) }}" class="btn btn-secondary btn-block">{{ __('ui.team.view_team') }}</a>
+                                    @if($team->is_sample ?? false)
+                                        <button type="button" class="btn btn-secondary btn-block sample-team-btn" data-team-id="{{ $team->id }}" data-team-name="{{ $team->name }}" data-team-level="{{ $team->level }}" data-team-location="{{ $team->location }}" data-team-members="{{ $team->members_count }}" data-team-max="{{ $team->max_members }}" data-team-slogan="{{ $team->slogan }}" data-team-description="{{ $team->description }}">{{ __('ui.team.view_team') }}</button>
+                                    @else
+                                        <a href="{{ route('teams.show', $team->id) }}" class="btn btn-secondary btn-block">{{ __('ui.team.view_team') }}</a>
+                                    @endif
                                 </div>
                             </article>
                         @endforeach
