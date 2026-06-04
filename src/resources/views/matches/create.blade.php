@@ -22,6 +22,17 @@
 
     <div class="match-create-layout">
         <section class="match-form-panel">
+            @if ($errors->any())
+                <div class="match-form-errors">
+                    <strong>Match could not be created</strong>
+                    <ul>
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
             <form method="POST" action="{{ route('matches.store') }}" class="match-create-form">
                 @csrf
 
@@ -42,7 +53,13 @@
                 <div class="match-form-grid">
                     <div class="form-group">
                         <label for="match_date">Match Date & Time</label>
-                        <input type="datetime-local" id="match_date" name="match_date" value="{{ old('match_date') }}" required>
+                        <input
+                            type="datetime-local"
+                            id="match_date"
+                            name="match_date"
+                            value="{{ old('match_date', $defaultMatchDate ?? now()->addHour()->format('Y-m-d\TH:i')) }}"
+                            min="{{ $minMatchDate ?? now()->addMinutes(5)->format('Y-m-d\TH:i') }}"
+                            required>
                         @error('match_date') <span class="error-text">{{ $message }}</span> @enderror
                     </div>
 

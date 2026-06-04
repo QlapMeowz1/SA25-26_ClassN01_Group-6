@@ -81,8 +81,7 @@
 
         @if($posts->isEmpty())
             <div class="post-card feed-empty">
-                <h3>{{ __('ui.home.no_posts_title') }}</h3>
-                <p>{{ __('ui.home.no_posts_body') }}</p>
+                @include('partials.empty-illustration', ['title' => __('ui.home.no_posts_title'), 'message' => __('ui.home.no_posts_body')])
             </div>
         @else
             <div class="posts-feed">

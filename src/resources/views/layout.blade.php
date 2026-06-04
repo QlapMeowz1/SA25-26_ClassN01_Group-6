@@ -70,6 +70,9 @@
                     <a href="{{ route('matches.index') }}" class="nav-link {{ request()->routeIs('matches.*') ? 'nav-link-active' : '' }}">{{ __('ui.nav.matches') }}</a>
                     <a href="{{ route('teams.index') }}" class="nav-link {{ request()->routeIs('teams.*') ? 'nav-link-active' : '' }}">{{ __('ui.nav.teams') }}</a>
                     <a href="{{ route('tournaments.index') }}" class="nav-link {{ request()->routeIs('tournaments.*') ? 'nav-link-active' : '' }}">{{ __('ui.nav.tournaments') }}</a>
+                    @if(auth()->user()->isAdmin())
+                        <a href="{{ route('admin.dashboard') }}" class="nav-link {{ request()->routeIs('admin.*') ? 'nav-link-active' : '' }}">Admin</a>
+                    @endif
                 </div>
 
                 <div class="nav-actions">
@@ -138,6 +141,9 @@
                         <div class="nav-dropdown">
                             <a href="{{ route('profile.show', auth()->id()) }}" class="nav-dropdown-link">{{ __('ui.nav.profile') }}</a>
                             <a href="{{ route('profile.edit') }}" class="nav-dropdown-link">{{ __('ui.nav.settings') }}</a>
+                            @if(auth()->user()->isAdmin())
+                                <a href="{{ route('admin.dashboard') }}" class="nav-dropdown-link">Admin Console</a>
+                            @endif
                             <form action="{{ route('logout') }}" method="POST">
                                 @csrf
                                 <button type="submit" class="nav-dropdown-link nav-dropdown-button">{{ __('ui.nav.logout') }}</button>
@@ -240,6 +246,17 @@
             </span>
             <span class="mobile-nav-label">{{ __('ui.nav.tournaments') }}</span>
         </a>
+        @if(auth()->user()->isAdmin())
+            <a href="{{ route('admin.dashboard') }}" class="mobile-nav-item {{ request()->routeIs('admin.*') ? 'mobile-nav-active' : '' }}" title="Admin">
+                <span class="mobile-nav-icon" aria-hidden="true">
+                    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 3l7 4v5c0 5-3.4 8.4-7 10-3.6-1.6-7-5-7-10V7l7-4z" />
+                        <path d="M9 12l2 2 4-5" />
+                    </svg>
+                </span>
+                <span class="mobile-nav-label">Admin</span>
+            </a>
+        @endif
     </nav>
     @endauth
 
@@ -476,19 +493,24 @@
 
             async function toggleLike(button) {
                 const actionUrl = button.getAttribute('data-like-url') || '';
-                if (!/\/like($|\/)/.test(actionUrl)) return;
+                if (!actionUrl || button.dataset.likeBusy === 'true') return;
 
                 const form = button.closest('form');
                 const tokenMeta = document.querySelector('meta[name="csrf-token"]');
                 const csrf = tokenMeta ? tokenMeta.getAttribute('content') : (form && form.querySelector('input[name="_token"]') ? form.querySelector('input[name="_token"]').value : '');
+                const isPostLike = /\/posts\/[^/]+\/like$/.test(new URL(actionUrl, window.location.origin).pathname);
 
                 try {
+                    button.dataset.likeBusy = 'true';
+                    button.disabled = true;
+
                     const res = await fetch(actionUrl, {
                         method: 'POST',
                         credentials: 'same-origin',
                         headers: {
                             'X-CSRF-TOKEN': csrf,
                             'Accept': 'application/json',
+                            'Content-Type': 'application/json',
                             'X-Requested-With': 'XMLHttpRequest'
                         }
                     });
@@ -511,13 +533,16 @@
                     const container = button.closest('[data-post-id]') || (form ? form.closest('[data-post-id]') : null);
                     if (container) {
                         const statLike = container.querySelector('[data-post-like-stat]');
-                        if (statLike && typeof count !== 'undefined') {
+                        if (isPostLike && statLike && typeof count !== 'undefined') {
                             const isUppercase = statLike.textContent.indexOf('Likes') !== -1;
                             statLike.textContent = '❤️ ' + count + (isUppercase ? ' Likes' : ' likes');
                         }
                     }
                 } catch (err) {
                     console.error('Like action failed', err);
+                } finally {
+                    button.dataset.likeBusy = 'false';
+                    button.disabled = false;
                 }
             }
 
@@ -545,21 +570,22 @@
                         // update all elements for this post
                         const els = document.querySelectorAll('[data-post-id="' + id + '"]');
                         els.forEach(function(container) {
-                            // update only like counters inside this container
-                            const countEls = container.querySelectorAll('.fb-action-btn [data-like-count], .comment-like-btn [data-like-count], .comment-like-btn .comment-like-count');
-                            countEls.forEach(function(c){ c.textContent = data.likes_count; });
+                            // update only the post like button. Comment likes have their own endpoint/state.
+                            const likeButtons = Array.from(container.querySelectorAll('[data-like-trigger]')).filter(function (likeBtn) {
+                                const url = likeBtn.getAttribute('data-like-url') || '';
+                                return /\/posts\/[^/]+\/like$/.test(new URL(url, window.location.origin).pathname);
+                            });
+
+                            likeButtons.forEach(function (likeBtn) {
+                                likeBtn.querySelectorAll('[data-like-count]').forEach(function(c){ c.textContent = data.likes_count; });
+                                if (data.liked) likeBtn.classList.add('liked'); else likeBtn.classList.remove('liked');
+                            });
 
                             const statLike = container.querySelector('[data-post-like-stat]');
                             if (statLike) {
                                 const isUppercase = statLike.textContent.indexOf('Likes') !== -1;
                                 statLike.textContent = '❤️ ' + data.likes_count + (isUppercase ? ' Likes' : ' likes');
                             }
-
-                            // toggle liked class on like buttons
-                            const likeButtons = container.querySelectorAll('.fb-action-btn, .comment-like-btn');
-                            likeButtons.forEach(function (likeBtn) {
-                                if (data.liked) likeBtn.classList.add('liked'); else likeBtn.classList.remove('liked');
-                            });
                         });
                     } catch (e) {
                         // ignore individual failures
@@ -570,7 +596,6 @@
             // run first poll after short delay, then at interval
             setTimeout(pollLikes, 3000);
             setInterval(pollLikes, 15000);
-        });
     </script>
 
     @stack('scripts')

@@ -30,6 +30,7 @@ class AuthController extends Controller
             'phone' => $validated['phone'] ?? null,
             'elo_rating' => 1200,
             'virtual_coins' => 5000,
+            'role' => 'user',
         ]);
 
         Auth::login($user);

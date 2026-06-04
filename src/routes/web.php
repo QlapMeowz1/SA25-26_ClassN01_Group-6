@@ -11,6 +11,7 @@ use App\Http\Controllers\TournamentController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\ThemeController;
+use App\Http\Controllers\AdminController;
 use App\Models\GameMatch;
 use App\Models\Challenge;
 use App\Models\Post;
@@ -67,6 +68,18 @@ Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->n
 
 // Dashboard
 Route::get('/dashboard', [DashboardController::class, 'index'])->middleware('auth')->name('dashboard');
+
+// Admin
+Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/', [AdminController::class, 'dashboard'])->name('dashboard');
+    Route::get('/users', [AdminController::class, 'users'])->name('users');
+    Route::post('/users/{user}/role', [AdminController::class, 'updateUserRole'])->name('users.role');
+    Route::get('/content', [AdminController::class, 'content'])->name('content');
+    Route::post('/content/posts/{post}/delete', [AdminController::class, 'destroyPost'])->name('posts.delete');
+    Route::get('/matches', [AdminController::class, 'matches'])->name('matches');
+    Route::get('/tournaments', [AdminController::class, 'tournaments'])->name('tournaments');
+    Route::get('/bets', [AdminController::class, 'bets'])->name('bets');
+});
 
 // Profile Routes
 Route::middleware('auth')->group(function () {

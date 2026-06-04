@@ -30,7 +30,7 @@
         <section class="posts-feed">
         @if($posts->isEmpty())
             <div class="empty-panel">
-                <p class="empty-message">{{ __('ui.post.no_posts') }}</p>
+                @include('partials.empty-illustration', ['title' => __('ui.post.no_posts'), 'message' => __('ui.post.share_placeholder')])
             </div>
         @else
             @foreach($posts as $post)

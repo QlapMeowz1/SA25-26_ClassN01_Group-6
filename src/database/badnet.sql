@@ -12,6 +12,7 @@ create table users(
  losses int not null default 0,
  bio text null,
  avatar varchar(255) null,
+ role enum('user','admin') not null default 'user',
  remember_token varchar(100) null,
  created_at datetime null,
  updated_at datetime null

@@ -5,147 +5,240 @@
 @section('content')
 @php
     $net = ($stats['payout'] ?? 0) - ($stats['wagered'] ?? 0);
-    $winRate = ($stats['won'] ?? 0) + ($stats['lost'] ?? 0) > 0
-        ? round((($stats['won'] ?? 0) / max(1, ($stats['won'] ?? 0) + ($stats['lost'] ?? 0))) * 100)
-        : 0;
-    $favoriteLabel = collect($favoritePicks ?? [])->keys()->take(3)->join(', ');
+    $settled = ($stats['won'] ?? 0) + ($stats['lost'] ?? 0);
+    $winRate = $settled > 0 ? round((($stats['won'] ?? 0) / $settled) * 100) : 0;
+    $biggestWin = $history->where('status', 'won')->max('payout') ?? 0;
+    $roi = ($stats['wagered'] ?? 0) > 0 ? round(($net / max(1, $stats['wagered'])) * 100) : 0;
+    $statusTabs = [
+        'all' => ['label' => 'All', 'count' => $stats['total'] ?? 0],
+        'pending' => ['label' => 'Pending', 'count' => $stats['pending'] ?? 0],
+        'won' => ['label' => 'Won', 'count' => $stats['won'] ?? 0],
+        'lost' => ['label' => 'Lost', 'count' => $stats['lost'] ?? 0],
+    ];
 @endphp
 
-<div class="min-h-screen bg-slate-50 px-4 py-8 text-slate-900 transition-colors dark:bg-slate-950 dark:text-slate-100 sm:px-6 lg:px-8">
-    <div class="mx-auto max-w-7xl space-y-6">
-        <section class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-            <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-                <div>
-                    <p class="inline-flex items-center gap-2 rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-amber-700 dark:bg-amber-500/10 dark:text-amber-300">Coins</p>
-                    <h1 class="mt-3 font-heading text-3xl font-extrabold text-slate-900 dark:text-slate-50">Your Bets</h1>
-                    <p class="mt-2 max-w-2xl text-sm text-slate-600 dark:text-slate-300">Track your picks, payouts, and performance in one clean view.</p>
-                </div>
+<div class="page-shell betting-page betting-ledger-page">
+    <section class="betting-hero">
+        <div>
+            <p class="home-eyebrow">Sportsbook Ledger</p>
+            <h1>Your Betting Desk</h1>
+            <p class="page-subtitle">Track wallet health, open exposure, ticket outcomes, and live markets from one polished betting board.</p>
+        </div>
 
-                <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                    <div class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-center shadow-sm dark:border-slate-800 dark:bg-slate-800/60">
-                        <div class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Coins</div>
-                        <div class="mt-1 font-heading text-xl font-bold text-slate-900 dark:text-slate-50">{{ number_format($stats['coins'] ?? 0) }}</div>
-                    </div>
-                    <div class="rounded-xl border border-slate-200 bg-emerald-50 px-4 py-3 text-center shadow-sm dark:border-slate-800 dark:bg-emerald-500/10">
-                        <div class="text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-700 dark:text-emerald-300">Won</div>
-                        <div class="mt-1 font-heading text-xl font-bold text-slate-900 dark:text-slate-50">{{ $stats['won'] ?? 0 }}</div>
-                    </div>
-                    <div class="rounded-xl border border-slate-200 bg-amber-50 px-4 py-3 text-center shadow-sm dark:border-slate-800 dark:bg-amber-500/10">
-                        <div class="text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-700 dark:text-amber-300">Win Rate</div>
-                        <div class="mt-1 font-heading text-xl font-bold text-slate-900 dark:text-slate-50">{{ $winRate }}%</div>
-                    </div>
-                    <div class="rounded-xl border border-slate-200 bg-sky-50 px-4 py-3 text-center shadow-sm dark:border-slate-800 dark:bg-sky-500/10">
-                        <div class="text-[11px] font-semibold uppercase tracking-[0.18em] text-sky-700 dark:text-sky-300">Net</div>
-                        <div class="mt-1 font-heading text-xl font-bold {{ $net >= 0 ? 'text-emerald-700 dark:text-emerald-300' : 'text-rose-700 dark:text-rose-300' }}">{{ $net >= 0 ? '+' : '' }}{{ number_format($net) }}</div>
-                    </div>
-                </div>
-            </div>
-        </section>
+        <div class="betting-wallet-card">
+            <span>Available Coins</span>
+            <strong>{{ number_format($stats['coins'] ?? 0) }}</strong>
+            <small>{{ $net >= 0 ? 'Positive' : 'Negative' }} net form: {{ $net >= 0 ? '+' : '' }}{{ number_format($net) }} coins · ROI {{ $roi >= 0 ? '+' : '' }}{{ $roi }}%</small>
+        </div>
+    </section>
 
-        <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-            <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                    <h2 class="font-heading text-lg font-bold text-slate-900 dark:text-slate-50">Betting Snapshot</h2>
-                    <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">A quick read on your current betting form.</p>
-                </div>
-                <div class="flex flex-wrap gap-2">
-                    <span class="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300">Net {{ $net >= 0 ? '+' : '' }}{{ number_format($net) }} 🪙</span>
-                    <span class="rounded-full bg-sky-50 px-3 py-1 text-xs font-semibold text-sky-700 dark:bg-sky-500/10 dark:text-sky-300">{{ $winRate }}% win rate</span>
-                    @if(!empty($favoritePicks) && $favoritePicks->count())
-                        <span class="rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700 dark:bg-amber-500/10 dark:text-amber-300">Top picks: {{ collect($favoritePicks)->values()->sum() }} bets</span>
-                    @endif
-                </div>
-            </div>
-        </section>
+    <nav class="betting-desk-nav" aria-label="Betting sections">
+        <a href="{{ route('bets.index') }}" class="is-active">Ledger</a>
+        <a href="{{ route('matches.index') }}">Markets</a>
+        <a href="#tickets">Tickets</a>
+        <a href="#discipline">Stake Plan</a>
+    </nav>
 
-        <div class="grid gap-6 lg:grid-cols-[1fr_320px]">
-            <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-                <div class="mb-4 flex items-center justify-between">
+    <section class="betting-health-strip">
+        <div><span>Pending Exposure</span><strong>{{ number_format($stats['pending_exposure'] ?? 0) }}</strong></div>
+        <div><span>Average Stake</span><strong>{{ number_format($stats['avg_stake'] ?? 0) }}</strong></div>
+        <div><span>Settled Tickets</span><strong>{{ number_format($stats['settled'] ?? 0) }}</strong></div>
+        <div><span>ROI</span><strong class="{{ $roi >= 0 ? 'text-positive' : 'text-negative' }}">{{ $roi >= 0 ? '+' : '' }}{{ $roi }}%</strong></div>
+    </section>
+
+    <section class="betting-kpi-grid">
+        <div class="betting-kpi-card">
+            <span>Total Bets</span>
+            <strong>{{ $stats['total'] ?? 0 }}</strong>
+            <small>{{ $stats['pending'] ?? 0 }} still pending</small>
+        </div>
+        <div class="betting-kpi-card">
+            <span>Win Rate</span>
+            <strong>{{ $winRate }}%</strong>
+            <small>{{ $stats['won'] ?? 0 }} won / {{ $stats['lost'] ?? 0 }} lost</small>
+        </div>
+        <div class="betting-kpi-card">
+            <span>Total Wagered</span>
+            <strong>{{ number_format($stats['wagered'] ?? 0) }}</strong>
+            <small>Coins committed</small>
+        </div>
+        <div class="betting-kpi-card {{ $net >= 0 ? 'is-positive' : 'is-negative' }}">
+            <span>Net Result</span>
+            <strong>{{ $net >= 0 ? '+' : '' }}{{ number_format($net) }}</strong>
+            <small>Biggest win {{ number_format($biggestWin) }}</small>
+        </div>
+    </section>
+
+    <div class="betting-layout">
+        <main class="betting-main-column">
+            <section class="betting-panel" id="tickets">
+                <div class="betting-panel-heading">
                     <div>
-                        <h2 class="font-heading text-xl font-bold text-slate-900 dark:text-slate-50">Bet History</h2>
-                        <p class="text-sm text-slate-500 dark:text-slate-400">Latest bets placed from the app.</p>
+                        <p class="home-eyebrow">Tickets</p>
+                        <h2>Bet History</h2>
                     </div>
-                    <span class="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300">{{ $stats['total'] ?? 0 }} total</span>
+                    <div class="betting-filter-tabs" data-bet-filter-tabs>
+                        @foreach($statusTabs as $key => $tab)
+                            <button type="button" class="{{ $loop->first ? 'is-active' : '' }}" data-bet-filter="{{ $key }}">
+                                {{ $tab['label'] }}
+                                <span>{{ $tab['count'] }}</span>
+                            </button>
+                        @endforeach
+                    </div>
                 </div>
 
-                <div class="space-y-4">
+                <div class="betting-ticket-list">
                     @forelse($history as $bet)
                         @php
                             $insights = app(\App\Services\BetService::class)->getMatchInsights($bet->gameMatch, $bet->bet_on_user_id, $bet->amount);
-                            $statusTone = $bet->status === 'won'
-                                ? 'bg-emerald-50 text-emerald-700 border-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-300 dark:border-emerald-500/20'
-                                : ($bet->status === 'lost'
-                                    ? 'bg-rose-50 text-rose-700 border-rose-100 dark:bg-rose-500/10 dark:text-rose-300 dark:border-rose-500/20'
-                                    : 'bg-amber-50 text-amber-700 border-amber-100 dark:bg-amber-500/10 dark:text-amber-300 dark:border-amber-500/20');
-                            $riskTone = $insights['risk_tone'] ?? 'amber';
-                            $riskClass = $riskTone === 'emerald'
-                                ? 'bg-emerald-50 text-emerald-700 border-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-300 dark:border-emerald-500/20'
-                                : ($riskTone === 'rose'
-                                    ? 'bg-rose-50 text-rose-700 border-rose-100 dark:bg-rose-500/10 dark:text-rose-300 dark:border-rose-500/20'
-                                    : 'bg-amber-50 text-amber-700 border-amber-100 dark:bg-amber-500/10 dark:text-amber-300 dark:border-amber-500/20');
+                            $statusClass = 'is-pending';
+                            if ($bet->status === 'won') {
+                                $statusClass = 'is-won';
+                            } elseif ($bet->status === 'lost') {
+                                $statusClass = 'is-lost';
+                            }
+
+                            $expectedReturn = $insights['expected_return'] ?? ($bet->amount * ($insights['selected_odds'] ?? 1));
+                            $profit = ($bet->status === 'won' ? ($bet->payout ?? 0) : 0) - ($bet->amount ?? 0);
                         @endphp
-                        <article class="rounded-xl border border-slate-200 bg-slate-50 p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-slate-700 dark:bg-slate-800/60">
-                            <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                                <div class="min-w-0">
-                                    <div class="flex flex-wrap items-center gap-2">
-                                        <h3 class="truncate font-heading text-base font-bold text-slate-900 dark:text-slate-50">
-                                            Bet on: {{ $bet->betOnUser?->name ?? 'Player' }}
-                                        </h3>
-                                        <span class="rounded-full border px-2.5 py-1 text-xs font-semibold {{ $statusTone }}">
-                                            {{ ucfirst($bet->status) }}
-                                        </span>
-                                    </div>
 
-                                    <div class="mt-2 flex flex-wrap gap-3 text-sm text-slate-600 dark:text-slate-300">
-                                        <span>Match: {{ $bet->gameMatch?->player1?->name }} vs {{ $bet->gameMatch?->player2?->name ?? 'TBD' }}</span>
-                                        <span>•</span>
-                                        <span>{{ $bet->created_at->diffForHumans() }}</span>
-                                    </div>
+                        <article class="betting-ticket {{ $statusClass }}" data-bet-ticket data-status="{{ $bet->status }}">
+                            <div class="betting-ticket-id">
+                                <span>Ticket</span>
+                                <strong>#{{ str_pad($bet->id, 5, '0', STR_PAD_LEFT) }}</strong>
+                                <small>{{ $bet->created_at->format('M d') }}</small>
+                            </div>
 
-                                    <div class="mt-3 flex flex-wrap gap-2 text-xs font-semibold">
-                                        <span class="rounded-full border px-2.5 py-1 {{ $riskClass }}">{{ $insights['risk_level'] ?? 'Balanced' }}</span>
-                                        <span class="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-slate-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">Payout x{{ number_format($insights['selected_odds'] ?? 1, 2) }}</span>
-                                        <span class="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-slate-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">Return {{ number_format($insights['expected_return'] ?? 0) }} 🪙</span>
+                            <div class="betting-ticket-body">
+                                <div class="betting-ticket-title">
+                                    <div>
+                                        <h3>{{ $bet->gameMatch?->player1?->name ?? 'Player 1' }} vs {{ $bet->gameMatch?->player2?->name ?? 'TBD' }}</h3>
+                                        <p>Pick: <strong>{{ $bet->betOnUser?->name ?? 'Unknown' }}</strong> · {{ $bet->created_at->diffForHumans() }}</p>
                                     </div>
+                                    <span class="betting-status-pill">{{ ucfirst($bet->status) }}</span>
                                 </div>
 
-                                <div class="flex items-center gap-3">
-                                    <div class="rounded-xl border border-slate-200 bg-white px-4 py-3 text-right shadow-sm dark:border-slate-700 dark:bg-slate-900">
-                                        <div class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Stake</div>
-                                        <div class="font-heading text-lg font-bold text-slate-900 dark:text-slate-50">{{ number_format($bet->amount) }} 🪙</div>
+                                <div class="betting-ticket-metrics">
+                                    <div>
+                                        <span>Stake</span>
+                                        <strong>{{ number_format($bet->amount) }}</strong>
                                     </div>
-                                    <a href="{{ route('bets.show', $bet->id) }}" class="inline-flex items-center justify-center rounded-full bg-sky-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-700 dark:bg-sky-500 dark:text-slate-950 dark:hover:bg-sky-400">
-                                        Details
-                                    </a>
+                                    <div>
+                                        <span>Odds</span>
+                                        <strong>x{{ number_format($insights['selected_odds'] ?? 1, 2) }}</strong>
+                                    </div>
+                                    <div>
+                                        <span>Expected</span>
+                                        <strong>{{ number_format($expectedReturn) }}</strong>
+                                    </div>
+                                    <div>
+                                        <span>{{ $bet->status === 'pending' ? 'Risk' : 'Profit' }}</span>
+                                        <strong class="{{ $profit >= 0 ? 'text-positive' : 'text-negative' }}">
+                                            {{ $bet->status === 'pending' ? ($insights['risk_level'] ?? 'Balanced') : (($profit >= 0 ? '+' : '') . number_format($profit)) }}
+                                        </strong>
+                                    </div>
                                 </div>
+                            </div>
+
+                            <div class="betting-ticket-actions">
+                                @if($bet->gameMatch)
+                                    <a href="{{ route('matches.show', $bet->gameMatch->id) }}" class="betting-inline-link">Match</a>
+                                @endif
+                                <a href="{{ route('bets.show', $bet->id) }}" class="betting-ticket-link">Details</a>
                             </div>
                         </article>
                     @empty
-                        <div class="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-8 text-center dark:border-slate-700 dark:bg-slate-800/60">
-                            <h3 class="font-heading text-lg font-bold text-slate-900 dark:text-slate-50">No bets yet</h3>
-                            <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">When you place bets, they will appear here with status and payout details.</p>
+                        <div class="betting-empty-state">
+                            <h3>No tickets yet</h3>
+                            <p>Your betting history will appear here after you place a stake on a match.</p>
+                            <a href="{{ route('matches.index') }}" class="btn btn-primary">Browse Matches</a>
                         </div>
                     @endforelse
                 </div>
             </section>
+        </main>
 
-            <aside class="space-y-6">
-                <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-                    <h3 class="font-heading text-lg font-bold text-slate-900 dark:text-slate-50">Performance</h3>
-                    <div class="mt-4 space-y-3 text-sm text-slate-600 dark:text-slate-300">
-                        <div class="flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2 dark:bg-slate-800/60"><span>Pending</span><strong class="text-slate-900 dark:text-slate-50">{{ $stats['pending'] ?? 0 }}</strong></div>
-                        <div class="flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2 dark:bg-slate-800/60"><span>Wagered</span><strong class="text-slate-900 dark:text-slate-50">{{ number_format($stats['wagered'] ?? 0) }} 🪙</strong></div>
-                        <div class="flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2 dark:bg-slate-800/60"><span>Payout</span><strong class="text-slate-900 dark:text-slate-50">{{ number_format($stats['payout'] ?? 0) }} 🪙</strong></div>
+        <aside class="betting-side-column">
+            <section class="betting-panel betting-performance-card">
+                <p class="home-eyebrow">Performance</p>
+                <h2>Form Read</h2>
+                <div class="betting-ring" style="--value: {{ $winRate }}%">
+                    <strong>{{ $winRate }}%</strong>
+                    <span>Win rate</span>
+                </div>
+                <div class="betting-side-stats">
+                    <div><span>Pending</span><strong>{{ $stats['pending'] ?? 0 }}</strong></div>
+                    <div><span>Payout</span><strong>{{ number_format($stats['payout'] ?? 0) }}</strong></div>
+                    <div><span>Biggest Win</span><strong>{{ number_format($biggestWin) }}</strong></div>
+                </div>
+            </section>
+
+            <section class="betting-panel betting-market-watch">
+                <div class="betting-panel-heading">
+                    <div>
+                        <p class="home-eyebrow">Market Watch</p>
+                        <h2>Open Markets</h2>
                     </div>
-                </section>
+                    <a href="{{ route('matches.index') }}" class="betting-inline-link">Browse</a>
+                </div>
 
-                <section class="rounded-2xl border border-slate-200 bg-gradient-to-br from-sky-50 to-emerald-50 p-5 shadow-sm dark:border-slate-800 dark:from-slate-900 dark:to-slate-900">
-                    <p class="inline-flex rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">Tip</p>
-                    <h3 class="mt-3 font-heading text-lg font-bold text-slate-900 dark:text-slate-50">Bet smart, not loud</h3>
-                    <p class="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">Use smaller stakes for uncertain matches and keep your biggest bets for strong-form players.</p>
-                </section>
-            </aside>
-        </div>
+                <div class="betting-watch-list">
+                    @forelse($openMarkets as $market)
+                        <a href="{{ route('bets.slip', $market->id) }}" class="betting-watch-row">
+                            <strong>{{ $market->player1?->name ?? 'Player 1' }} vs {{ $market->player2?->name ?? 'Player 2' }}</strong>
+                            <span>{{ ucfirst($market->status) }} · {{ $market->match_date ? $market->match_date->format('M d, h:i A') : 'Time TBD' }}</span>
+                        </a>
+                    @empty
+                        <div class="empty-inline">No open betting markets right now.</div>
+                    @endforelse
+                </div>
+            </section>
+
+            <section class="betting-panel betting-favorites-card">
+                <p class="home-eyebrow">Patterns</p>
+                <h2>Favorite Picks</h2>
+                <div class="betting-watch-list">
+                    @forelse($favoritePicks as $pick)
+                        <div class="betting-watch-row">
+                            <strong>{{ $pick['name'] }}</strong>
+                            <span>{{ $pick['count'] }} tickets · {{ $pick['won'] }} wins</span>
+                        </div>
+                    @empty
+                        <div class="empty-inline">Place a few bets to build pick patterns.</div>
+                    @endforelse
+                </div>
+            </section>
+
+            <section class="betting-panel betting-tip-card" id="discipline">
+                <p class="home-eyebrow">Discipline</p>
+                <h2>Stake Plan</h2>
+                <p>Use small stakes for balanced markets, reserve bigger bets for high-confidence picks, and avoid chasing losses.</p>
+                <div class="betting-stake-guide">
+                    <span>Safe 1-3%</span>
+                    <span>Standard 5%</span>
+                    <span>High risk 10% max</span>
+                </div>
+            </section>
+        </aside>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const tabs = document.querySelectorAll('[data-bet-filter]');
+    const tickets = document.querySelectorAll('[data-bet-ticket]');
+
+    tabs.forEach(function (tab) {
+        tab.addEventListener('click', function () {
+            const status = tab.getAttribute('data-bet-filter');
+            tabs.forEach((item) => item.classList.toggle('is-active', item === tab));
+
+            tickets.forEach(function (ticket) {
+                const shouldShow = status === 'all' || ticket.getAttribute('data-status') === status;
+                ticket.hidden = !shouldShow;
+            });
+        });
+    });
+});
+</script>
 @endsection

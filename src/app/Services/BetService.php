@@ -13,6 +13,18 @@ class BetService
     public function placeBet(User $user, GameMatch $match, int $amount, int $predictedWinnerId): Bet
     {
         return DB::transaction(function () use ($user, $match, $amount, $predictedWinnerId) {
+            if (!$match->player1_id || !$match->player2_id) {
+                throw new \InvalidArgumentException('Betting opens after the match has two confirmed players.');
+            }
+
+            if ($match->status === 'completed') {
+                throw new \InvalidArgumentException('Betting is closed for completed matches.');
+            }
+
+            if (!in_array($predictedWinnerId, [(int) $match->player1_id, (int) $match->player2_id], true)) {
+                throw new \InvalidArgumentException('Choose a valid player for this match.');
+            }
+
             if ($user->virtual_coins < $amount) {
                 throw new \InvalidArgumentException('Insufficient coins');
             }

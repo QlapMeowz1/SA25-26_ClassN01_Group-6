@@ -55,7 +55,6 @@ class MatchController extends Controller
 
         $openMatches = $applyFilters(GameMatch::with(['player1', 'joinRequests.requester'])
             ->where('status', 'open')
-            ->where('player1_id', '!=', $user->id)
             ->where('match_date', '>=', now())
         )
             ->orderBy('match_date')
@@ -268,14 +267,17 @@ class MatchController extends Controller
             ->orderBy('elo_rating', 'desc')
             ->paginate(20);
 
-        return view('matches.create', compact('users'));
+        $defaultMatchDate = now()->addHour()->format('Y-m-d\TH:i');
+        $minMatchDate = now()->addMinutes(5)->format('Y-m-d\TH:i');
+
+        return view('matches.create', compact('users', 'defaultMatchDate', 'minMatchDate'));
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
             'player2_id' => 'nullable|exists:users,id|not_in:' . Auth::id(),
-            'match_date' => 'required|date|after:now',
+            'match_date' => 'required|date|after_or_equal:' . now()->addMinutes(5)->toDateTimeString(),
             'location' => 'nullable|string|max:255',
         ]);
 
@@ -289,7 +291,9 @@ class MatchController extends Controller
             'location' => $validated['location'] ?? null,
         ]);
 
-        return redirect()->route('matches.show', $match->id)->with('success', $isOpenMatch ? 'Open match created! Players can request to join.' : 'Match created!');
+        return redirect()
+            ->route('matches.show', $match->id)
+            ->with('success', $isOpenMatch ? 'Open match created! Players can request to join.' : 'Match created!');
     }
 
     public function quickStore(Request $request)
@@ -450,11 +454,11 @@ class MatchController extends Controller
         $validated = $request->validated();
 
         try {
-            app(\App\Services\BetService::class)->placeBet(Auth::user(), $match, (int)$validated['amount'], (int)$validated['bet_on_user_id']);
+            $bet = app(\App\Services\BetService::class)->placeBet(Auth::user(), $match, (int)$validated['amount'], (int)$validated['bet_on_user_id']);
         } catch (\Exception $e) {
             return back()->withErrors(['amount' => $e->getMessage()]);
         }
 
-        return back()->with('success', 'Bet placed!');
+        return redirect()->route('bets.show', $bet->id)->with('success', 'Bet placed!');
     }
 }

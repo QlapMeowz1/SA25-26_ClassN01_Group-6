@@ -35,16 +35,6 @@
             </div>
         </div>
 
-        <div class="tournament-hero-visual">
-            <div class="hero-racket-card">
-                <span class="hero-racket-badge">{{ __('ui.tournament.live_circuit') }}</span>
-                <h3>{{ __('ui.tournament.find_next_battle') }}</h3>
-                <p>{{ __('ui.tournament.live_circuit_body') }}</p>
-                <div class="hero-racket-bars">
-                    <span></span><span></span><span></span><span></span>
-                </div>
-            </div>
-        </div>
     </section>
 
     @if(!empty($featuredTournament))
@@ -98,7 +88,6 @@
 
                         <div class="featured-actions">
                             <a href="{{ $tournamentHref($featuredTournament) }}" class="btn btn-primary btn-large">{{ $featuredTournament->action_label }}</a>
-                            <span class="deadline-text">{{ __('ui.tournament.registration_progress') }}.</span>
                         </div>
                     </div>
 
@@ -140,7 +129,6 @@
                     <article class="tournament-card tournament-card-modern" data-tournament-card data-status="{{ $tournament->display_status }}" data-name="{{ strtolower($tournament->name) }}">
                         <div class="tournament-banner tournament-banner-modern" style="--tournament-banner-start: {{ $tournament->banner_color ?? '#6366f1' }};">
                             <span class="tournament-status-badge status-{{ $tournament->status_class }}">{{ $tournament->status_label }}</span>
-                            <span class="countdown-pill" data-countdown data-status="{{ $tournament->display_status }}" data-start-date="{{ optional($tournament->start_date)->toIso8601String() }}">{{ $tournament->countdown_text }}</span>
                         </div>
 
                         <div class="tournament-card-content tournament-card-content-modern">
@@ -157,16 +145,16 @@
                             </div>
 
                             <div class="tournament-slots">
-                                <div class="slots-row">
-                                    <span class="slots-label">{{ __('ui.tournament.slots') }}</span>
-                                    <span class="slots-value">{{ $tournament->slots_filled }}/{{ $tournament->slots_total }}</span>
+                                <div class="tournament-slots-summary">
+                                    <span class="slots-label">{{ __('ui.tournament.slots') }}:</span>
+                                    <strong class="slots-value">{{ $tournament->slots_filled }}/{{ $tournament->slots_total }}</strong>
                                 </div>
                                 <div class="progress-bar-small">
                                     <div class="progress-fill" style="width: {{ $tournament->slots_percentage }}%"></div>
                                 </div>
                             </div>
 
-                            <a href="{{ $tournamentHref($tournament) }}" class="btn {{ $tournament->action_variant === 'primary' ? 'btn-primary' : 'btn-secondary' }} btn-block">{{ $tournament->action_label }}</a>
+                            <a href="{{ $tournamentHref($tournament) }}" class="btn {{ $tournament->action_variant === 'primary' ? 'btn-primary' : 'btn-secondary' }} tournament-card-action">{{ $tournament->action_label }}</a>
                         </div>
                     </article>
                 @endforeach
@@ -210,7 +198,6 @@
                     <article class="tournament-card tournament-card-modern" data-tournament-card data-status="{{ $tournament->display_status }}" data-name="{{ strtolower($tournament->name) }}">
                         <div class="tournament-banner tournament-banner-modern" style="--tournament-banner-start: {{ $tournament->banner_color ?? '#6366f1' }};">
                             <span class="tournament-status-badge status-{{ $tournament->status_class }}">{{ $tournament->status_label }}</span>
-                            <span class="countdown-pill" data-countdown data-status="{{ $tournament->display_status }}" data-start-date="{{ optional($tournament->start_date)->toIso8601String() }}">{{ $tournament->countdown_text }}</span>
                         </div>
 
                         <div class="tournament-card-content tournament-card-content-modern">
@@ -228,16 +215,16 @@
                             </div>
 
                             <div class="tournament-slots">
-                                <div class="slots-row">
-                                    <span class="slots-label">Slots</span>
-                                    <span class="slots-value">{{ $tournament->slots_filled }}/{{ $tournament->slots_total }}</span>
+                                <div class="tournament-slots-summary">
+                                    <span class="slots-label">Slots:</span>
+                                    <strong class="slots-value">{{ $tournament->slots_filled }}/{{ $tournament->slots_total }}</strong>
                                 </div>
                                 <div class="progress-bar-small">
                                     <div class="progress-fill" style="width: {{ $tournament->slots_percentage }}%"></div>
                                 </div>
                             </div>
 
-                            <a href="{{ $tournamentHref($tournament) }}" class="btn {{ $tournament->action_variant === 'primary' ? 'btn-primary' : 'btn-secondary' }} btn-block">{{ $tournament->action_label }}</a>
+                            <a href="{{ $tournamentHref($tournament) }}" class="btn {{ $tournament->action_variant === 'primary' ? 'btn-primary' : 'btn-secondary' }} tournament-card-action">{{ $tournament->action_label }}</a>
                         </div>
                     </article>
                 @endforeach

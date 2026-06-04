@@ -25,6 +25,7 @@ class User extends Authenticatable
         'bio',
         'avatar',
         'theme',
+        'role',
     ];
 
     protected $hidden = [
@@ -37,7 +38,13 @@ class User extends Authenticatable
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
         'theme' => 'string',
+        'role' => 'string',
     ];
+
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
+    }
 
     public function challenges()
     {

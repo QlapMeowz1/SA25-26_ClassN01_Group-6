@@ -25,6 +25,7 @@ class UserFactory extends Factory
             'losses'            => $this->faker->numberBetween(0, 80),
             'bio'               => 'Đam mê cầu lông ' . $this->faker->sentence(8),
             'avatar'            => 'https://picsum.photos/id/' . rand(1, 200) . '/300/300',
+            'role'              => 'user',
             'remember_token'    => Str::random(10),
         ];
     }

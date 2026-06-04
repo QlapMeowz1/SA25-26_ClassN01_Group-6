@@ -119,18 +119,18 @@ class PostController extends Controller
     public function like(Request $request, Post $post)
     {
         $user = Auth::user();
+        $liked = false;
 
         if ($post->isLikedBy($user->id)) {
             PostLike::where('post_id', $post->id)
                      ->where('user_id', $user->id)
                      ->delete();
-            $post->likes_count -= 1;
         } else {
             PostLike::create([
                 'post_id' => $post->id,
                 'user_id' => $user->id,
             ]);
-            $post->likes_count += 1;
+            $liked = true;
 
             if ($post->user_id !== $user->id) {
                 Notification::create([
@@ -143,11 +143,12 @@ class PostController extends Controller
             }
         }
 
+        $post->likes_count = $post->likes()->count();
         $post->save();
 
         if ($request->wantsJson() || $request->ajax() || $request->header('Accept') === 'application/json') {
             return response()->json([
-                'liked' => $post->isLikedBy($user->id),
+                'liked' => $liked,
                 'likes_count' => $post->likes_count,
             ]);
         }
@@ -268,7 +269,7 @@ class PostController extends Controller
         $existingLike = $comment->likes()->where('user_id', Auth::id())->first();
 
         if ($existingLike) {
-            $existingLike->delete();
+            $comment->likes()->where('user_id', Auth::id())->delete();
 
             if ($request->wantsJson() || $request->ajax() || $request->header('Accept') === 'application/json') {
                 return response()->json([

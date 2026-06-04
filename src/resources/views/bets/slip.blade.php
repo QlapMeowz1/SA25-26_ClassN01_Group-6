@@ -6,138 +6,265 @@
 @php
     $players = collect($betSlip['players'] ?? []);
     $selected = $players->firstWhere('selected', true) ?? $players->first();
+    $wallet = auth()->user()->virtual_coins ?? 0;
+    $defaultStake = min(100, max(10, (int) $wallet));
+    $matchTime = $match->match_date ? $match->match_date->format('M d, h:i A') : 'Time TBD';
+    $maxRecommended = max(10, (int) floor($wallet * 0.1));
 @endphp
 
-<div class="min-h-screen bg-slate-50 px-4 py-8 text-slate-900 transition-colors dark:bg-slate-950 dark:text-slate-100 sm:px-6 lg:px-8">
-    <div class="mx-auto max-w-6xl space-y-6">
-        <section class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-            <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-                <div>
-                    <p class="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300">Bet Slip</p>
-                    <h1 class="mt-3 font-heading text-3xl font-extrabold text-slate-900 dark:text-slate-50">{{ $match->player1->name }} vs {{ $match->player2?->name ?? 'TBD' }}</h1>
-                    <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">Choose your side, check confidence, and place the bet in one clean flow.</p>
-                </div>
+<div class="page-shell betting-page betting-slip-page">
+    <section class="betting-hero betting-slip-hero">
+        <div>
+            <p class="home-eyebrow">Bet Slip</p>
+            <h1>{{ $match->player1->name }} vs {{ $match->player2?->name ?? 'TBD' }}</h1>
+            <p class="page-subtitle">Choose a side, size your stake, and review the return before locking the ticket.</p>
+        </div>
 
-                <div class="flex flex-wrap gap-2">
-                    <span class="rounded-full bg-sky-50 px-3 py-1 text-xs font-semibold text-sky-700 dark:bg-sky-500/10 dark:text-sky-300">{{ ucfirst($match->status) }}</span>
-                    <span class="rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700 dark:bg-amber-500/10 dark:text-amber-300">{{ $match->match_date->format('M d, h:i A') }}</span>
-                    <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700 dark:bg-slate-800 dark:text-slate-200">{{ $match->location ?? __('ui.match.court_tbd') }}</span>
-                </div>
-            </div>
-        </section>
+        <div class="betting-match-meta">
+            <span>{{ ucfirst($match->status) }}</span>
+            <span>{{ $matchTime }}</span>
+            <span>{{ $match->location ?? __('ui.match.court_tbd') }}</span>
+        </div>
+    </section>
 
-        <div class="grid gap-6 lg:grid-cols-[1fr_360px]">
-            <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-                <div class="flex items-center justify-between gap-3">
+    <section class="betting-market-board">
+        <div>
+            <span>Wallet</span>
+            <strong>{{ number_format($wallet) }}</strong>
+            <small>Available coins</small>
+        </div>
+        <div>
+            <span>Recommended Cap</span>
+            <strong>{{ number_format($maxRecommended) }}</strong>
+            <small>10% discipline limit</small>
+        </div>
+        <div>
+            <span>Market Type</span>
+            <strong>Winner</strong>
+            <small>Settles after final result</small>
+        </div>
+        <div>
+            <span>Minimum Stake</span>
+            <strong>10</strong>
+            <small>Coins per ticket</small>
+        </div>
+    </section>
+
+    <form action="{{ route('matches.placeBet', $match->id) }}" method="POST" class="betting-slip-layout" id="betSlipForm">
+        @csrf
+
+        <main class="betting-main-column">
+            <section class="betting-panel">
+                <div class="betting-panel-heading">
                     <div>
-                        <h2 class="font-heading text-xl font-bold text-slate-900 dark:text-slate-50">Pick a player</h2>
-                        <p class="text-sm text-slate-500 dark:text-slate-400">Pill control keeps the choice clear and mobile-friendly.</p>
+                        <p class="home-eyebrow">Market</p>
+                        <h2>Match Winner</h2>
                     </div>
-                    <a href="{{ route('matches.show', $match->id) }}" class="text-sm font-semibold text-sky-600 dark:text-sky-300">Back to match</a>
+                    <a href="{{ route('matches.show', $match->id) }}" class="betting-inline-link">Back to match</a>
                 </div>
 
-                <form action="{{ route('matches.placeBet', $match->id) }}" method="POST" class="mt-6 space-y-6" id="betSlipForm">
-                    @csrf
+                <div class="betting-market-grid">
+                    @forelse($players as $player)
+                        @php
+                            $toneClass = $player['risk_tone'] === 'emerald'
+                                ? 'is-low-risk'
+                                : ($player['risk_tone'] === 'rose' ? 'is-high-risk' : 'is-balanced');
+                        @endphp
+                        <label class="betting-market-card {{ $toneClass }}">
+                            <input
+                                type="radio"
+                                name="bet_on_user_id"
+                                value="{{ $player['id'] }}"
+                                class="sr-only"
+                                {{ $player['selected'] ? 'checked' : '' }}
+                                data-player-choice>
 
-                    <div class="grid gap-3 sm:grid-cols-2">
-                        @foreach($players as $player)
-                            <label class="group block cursor-pointer">
-                                <input type="radio" name="bet_on_user_id" value="{{ $player['id'] }}" class="peer sr-only" {{ $player['selected'] ? 'checked' : '' }} data-player-choice>
-                                <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4 transition hover:-translate-y-0.5 peer-checked:border-sky-400 peer-checked:bg-sky-50 peer-checked:shadow-sm dark:border-slate-700 dark:bg-slate-800/60 dark:peer-checked:border-sky-500 dark:peer-checked:bg-slate-800">
-                                    <div class="flex items-center justify-between gap-3">
-                                        <div>
-                                            <div class="font-heading text-lg font-bold text-slate-900 dark:text-slate-50">{{ $player['name'] }}</div>
-                                            <div class="text-sm text-slate-500 dark:text-slate-400">{{ $player['rank'] }} · {{ $player['elo'] }} ELO</div>
-                                        </div>
-                                        <span class="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">x{{ number_format($player['odds'], 2) }}</span>
-                                    </div>
-
-                                    <div class="mt-4 grid grid-cols-2 gap-2 text-xs font-semibold">
-                                        <span class="rounded-full bg-emerald-50 px-2.5 py-1 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300">Confidence {{ $player['confidence'] }}%</span>
-                                        <span class="rounded-full bg-amber-50 px-2.5 py-1 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300">{{ $player['risk_level'] }}</span>
-                                        <span class="rounded-full bg-sky-50 px-2.5 py-1 text-sky-700 dark:bg-sky-500/10 dark:text-sky-300">Form {{ $player['form_label'] }}</span>
-                                        <span class="rounded-full bg-slate-100 px-2.5 py-1 text-slate-700 dark:bg-slate-700/70 dark:text-slate-200">Community {{ $player['community_pick_ratio'] }}%</span>
-                                    </div>
+                            <div class="betting-market-top">
+                                <div class="betting-player-avatar">{{ strtoupper(substr($player['name'], 0, 1)) }}</div>
+                                <div>
+                                    <h3>{{ $player['name'] }}</h3>
+                                    <p>{{ $player['rank'] }} · {{ number_format($player['elo']) }} ELO</p>
                                 </div>
-                            </label>
-                        @endforeach
-                    </div>
+                                <strong class="betting-odds-pill">x{{ number_format($player['odds'], 2) }}</strong>
+                            </div>
 
-                    <div class="grid gap-4 sm:grid-cols-2">
-                        <div>
-                            <label class="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">Stake amount</label>
-                            <input type="number" min="10" max="{{ auth()->user()->virtual_coins }}" name="amount" id="stakeAmount" value="10" class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900 shadow-sm outline-none focus:border-sky-400 focus:ring-4 focus:ring-sky-100 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:focus:border-sky-500 dark:focus:ring-sky-500/20">
+                            <div class="betting-player-comparison">
+                                <div><span>ELO</span><strong>{{ number_format($player['elo']) }}</strong></div>
+                                <div><span>Rank</span><strong>{{ $player['rank'] }}</strong></div>
+                                <div><span>Market</span><strong>{{ $player['risk_level'] }}</strong></div>
+                            </div>
+
+                            <div class="betting-probability-bar">
+                                <span style="width: {{ $player['probability'] }}%"></span>
+                            </div>
+
+                            <div class="betting-market-metrics">
+                                <div><span>Probability</span><strong>{{ $player['probability'] }}%</strong></div>
+                                <div><span>Confidence</span><strong>{{ $player['confidence'] }}%</strong></div>
+                                <div><span>Form</span><strong>{{ $player['form_label'] }}</strong></div>
+                                <div><span>Crowd</span><strong>{{ $player['community_pick_ratio'] }}%</strong></div>
+                            </div>
+
+                            <span class="betting-risk-badge">{{ $player['risk_level'] }}</span>
+                        </label>
+                    @empty
+                        <div class="betting-empty-state">
+                            <h3>This market is not ready</h3>
+                            <p>The match needs two confirmed players before betting can open.</p>
                         </div>
-
-                        <div class="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800/60">
-                            <div class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Preview</div>
-                            <div class="mt-2 font-heading text-lg font-bold text-slate-900 dark:text-slate-50" id="returnPreview">Expected return: {{ $selected['expected_return'] ?? 0 }} 🪙</div>
-                            <p class="mt-1 text-sm text-slate-600 dark:text-slate-300" id="confidencePreview">Confidence: {{ $selected['confidence'] ?? 0 }}%</p>
-                        </div>
-                    </div>
-
-                    <div class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800/60">
-                        <div>
-                            <div class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Recommendation</div>
-                            <p class="mt-1 text-sm text-slate-600 dark:text-slate-300">Stick to balanced stakes and watch the community pick ratio before you lock in.</p>
-                        </div>
-
-                        <button type="submit" class="inline-flex items-center justify-center rounded-full bg-sky-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-700 dark:bg-sky-500 dark:text-slate-950 dark:hover:bg-sky-400">
-                            Place Bet
-                        </button>
-                    </div>
-                </form>
+                    @endforelse
+                </div>
             </section>
 
-            <aside class="space-y-6">
-                <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-                    <h3 class="font-heading text-lg font-bold text-slate-900 dark:text-slate-50">Slip Stats</h3>
-                    <div class="mt-4 space-y-3 text-sm text-slate-600 dark:text-slate-300">
-                        <div class="flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2 dark:bg-slate-800/60"><span>Virtual coins</span><strong class="text-slate-900 dark:text-slate-50">{{ auth()->user()->virtual_coins }}</strong></div>
-                        <div class="flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2 dark:bg-slate-800/60"><span>Best odds</span><strong class="text-slate-900 dark:text-slate-50">x{{ number_format(collect($players)->max('odds') ?? 1, 2) }}</strong></div>
-                        <div class="flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2 dark:bg-slate-800/60"><span>Highest confidence</span><strong class="text-slate-900 dark:text-slate-50">{{ collect($players)->max('confidence') ?? 0 }}%</strong></div>
+            <section class="betting-panel">
+                <div class="betting-panel-heading">
+                    <div>
+                        <p class="home-eyebrow">Stake</p>
+                        <h2>Size Your Bet</h2>
                     </div>
-                </section>
+                </div>
 
-                <section class="rounded-2xl border border-slate-200 bg-gradient-to-br from-emerald-50 to-sky-50 p-5 shadow-sm dark:border-slate-800 dark:from-slate-900 dark:to-slate-900">
-                    <p class="inline-flex rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">Note</p>
-                    <h3 class="mt-3 font-heading text-lg font-bold text-slate-900 dark:text-slate-50">Confidence, form and crowd all matter</h3>
-                    <p class="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">This slip blends ELO-based odds, recent form, and community picks so the decision feels like a real sportsbook, not a plain form.</p>
-                </section>
-            </aside>
-        </div>
-    </div>
+                <div class="betting-stake-layout">
+                    <div>
+                        <label for="stakeAmount">Stake amount</label>
+                        <input
+                            type="number"
+                            min="10"
+                            max="{{ $wallet }}"
+                            name="amount"
+                            id="stakeAmount"
+                            value="{{ $defaultStake }}"
+                            data-wallet="{{ $wallet }}"
+                            required>
+                        <p class="betting-input-help">Wallet balance: {{ number_format($wallet) }} coins</p>
+                    </div>
+
+                    <div class="betting-quick-stakes">
+                        @foreach([50, 100, 250, $maxRecommended] as $stake)
+                            <button type="button" data-quick-stake="{{ $stake }}">{{ number_format($stake) }}</button>
+                        @endforeach
+                        <button type="button" data-quick-stake="{{ $wallet }}">Max</button>
+                    </div>
+                </div>
+
+                <div class="betting-discipline-note">
+                    <strong>Stake discipline</strong>
+                    <span>Keeping this ticket under {{ number_format($maxRecommended) }} coins protects the wallet from oversized exposure.</span>
+                </div>
+            </section>
+        </main>
+
+        <aside class="betting-side-column">
+            <section class="betting-panel betting-slip-card">
+                <div class="betting-panel-heading">
+                    <div>
+                        <p class="home-eyebrow">Ticket</p>
+                        <h2>Bet Slip</h2>
+                    </div>
+                    <span class="betting-status-pill">Open</span>
+                </div>
+
+                <div class="betting-slip-selection">
+                    <span>Selection</span>
+                    <strong id="selectionName">{{ $selected['name'] ?? 'Choose player' }}</strong>
+                    <small id="selectionMeta">{{ $selected ? 'x' . number_format($selected['odds'], 2) . ' · ' . $selected['risk_level'] : 'No market selected' }}</small>
+                </div>
+
+                <div class="betting-ticket-divider"></div>
+
+                <div class="betting-slip-preview">
+                    <div><span>Stake</span><strong id="stakePreview">{{ number_format($defaultStake) }}</strong></div>
+                    <div><span>Odds</span><strong id="oddsPreview">x{{ number_format($selected['odds'] ?? 1, 2) }}</strong></div>
+                    <div><span>Return</span><strong id="returnPreview">{{ number_format(round($defaultStake * ($selected['odds'] ?? 1))) }}</strong></div>
+                    <div><span>Profit</span><strong id="profitPreview">{{ number_format(round($defaultStake * (($selected['odds'] ?? 1) - 1))) }}</strong></div>
+                </div>
+
+                <div class="betting-risk-meter">
+                    <div>
+                        <span>Risk Meter</span>
+                        <strong id="riskPreview">{{ $selected['risk_level'] ?? 'Balanced' }}</strong>
+                    </div>
+                    <div class="betting-probability-bar">
+                        <span id="confidenceMeter" style="width: {{ $selected['confidence'] ?? 50 }}%"></span>
+                    </div>
+                    <small id="confidencePreview">Confidence {{ $selected['confidence'] ?? 0 }}%</small>
+                </div>
+
+                <p class="betting-slip-error" id="stakeError" hidden></p>
+
+                <button type="submit" class="btn btn-primary btn-block" id="placeBetButton">Place Bet</button>
+                <a href="{{ route('bets.index') }}" class="btn btn-secondary btn-block">Back to Desk</a>
+            </section>
+        </aside>
+    </form>
 </div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+    const players = @json($players->values());
     const radios = document.querySelectorAll('[data-player-choice]');
     const stakeInput = document.getElementById('stakeAmount');
-    const returnPreview = document.getElementById('returnPreview');
-    const confidencePreview = document.getElementById('confidencePreview');
-    const players = @json($players->values());
+    const quickStakeButtons = document.querySelectorAll('[data-quick-stake]');
+    const wallet = parseInt(stakeInput?.dataset.wallet || '0', 10) || 0;
+    const formatter = new Intl.NumberFormat('en-US');
+
+    const els = {
+        selectionName: document.getElementById('selectionName'),
+        selectionMeta: document.getElementById('selectionMeta'),
+        stakePreview: document.getElementById('stakePreview'),
+        oddsPreview: document.getElementById('oddsPreview'),
+        returnPreview: document.getElementById('returnPreview'),
+        profitPreview: document.getElementById('profitPreview'),
+        riskPreview: document.getElementById('riskPreview'),
+        confidencePreview: document.getElementById('confidencePreview'),
+        confidenceMeter: document.getElementById('confidenceMeter'),
+        stakeError: document.getElementById('stakeError'),
+        placeBetButton: document.getElementById('placeBetButton'),
+    };
+
+    function selectedPlayer() {
+        const selected = Array.from(radios).find((radio) => radio.checked);
+        return players.find((player) => String(player.id) === String(selected?.value));
+    }
 
     function updatePreview() {
-        const selected = Array.from(radios).find((radio) => radio.checked);
-        if (!selected) return;
+        const player = selectedPlayer();
+        const stake = Math.max(0, parseInt(stakeInput?.value || '0', 10) || 0);
+        const odds = parseFloat(player?.odds || 1);
+        const expectedReturn = Math.round(stake * odds);
+        const profit = Math.max(0, expectedReturn - stake);
+        const invalid = stake < 10 || stake > wallet || !player;
 
-        const player = players.find((item) => String(item.id) === String(selected.value));
-        if (!player) return;
+        if (els.selectionName) els.selectionName.textContent = player?.name || 'Choose player';
+        if (els.selectionMeta) els.selectionMeta.textContent = player ? `x${odds.toFixed(2)} · ${player.risk_level}` : 'No market selected';
+        if (els.stakePreview) els.stakePreview.textContent = formatter.format(stake);
+        if (els.oddsPreview) els.oddsPreview.textContent = `x${odds.toFixed(2)}`;
+        if (els.returnPreview) els.returnPreview.textContent = formatter.format(expectedReturn);
+        if (els.profitPreview) els.profitPreview.textContent = formatter.format(profit);
+        if (els.riskPreview) els.riskPreview.textContent = player?.risk_level || 'Balanced';
+        if (els.confidencePreview) els.confidencePreview.textContent = `Confidence ${player?.confidence || 0}%`;
+        if (els.confidenceMeter) els.confidenceMeter.style.width = `${player?.confidence || 0}%`;
 
-        const stake = parseInt(stakeInput?.value || '0', 10) || 0;
-        const expectedReturn = Math.round(stake * parseFloat(player.odds || 1));
-
-        if (returnPreview) {
-            returnPreview.textContent = `Expected return: ${expectedReturn} 🪙`;
+        if (els.stakeError) {
+            els.stakeError.hidden = !invalid;
+            els.stakeError.textContent = stake > wallet
+                ? 'Stake exceeds your wallet balance.'
+                : (stake < 10 ? 'Minimum stake is 10 coins.' : 'Choose a market before placing the bet.');
         }
 
-        if (confidencePreview) {
-            confidencePreview.textContent = `Confidence: ${player.confidence}% · ${player.form_label} · Community ${player.community_pick_ratio}%`;
-        }
+        if (els.placeBetButton) els.placeBetButton.disabled = invalid;
     }
 
     radios.forEach((radio) => radio.addEventListener('change', updatePreview));
     if (stakeInput) stakeInput.addEventListener('input', updatePreview);
+    quickStakeButtons.forEach(function (button) {
+        button.addEventListener('click', function () {
+            if (!stakeInput) return;
+            stakeInput.value = Math.min(wallet, parseInt(button.getAttribute('data-quick-stake') || '0', 10) || 0);
+            updatePreview();
+        });
+    });
+
     updatePreview();
 });
 </script>
