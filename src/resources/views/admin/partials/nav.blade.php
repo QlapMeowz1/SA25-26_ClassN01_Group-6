@@ -5,7 +5,7 @@
         ['route' => 'admin.tournaments', 'match' => 'admin.tournaments', 'icon' => 'trophy', 'label' => 'Tournaments'],
         ['route' => 'admin.schedule', 'match' => 'admin.schedule', 'icon' => 'calendar', 'label' => 'Schedule'],
         ['route' => 'admin.court-bookings', 'match' => 'admin.court-bookings', 'icon' => 'book', 'label' => 'Court Bookings'],
-        ['route' => 'admin.betting', 'match' => 'admin.betting', 'icon' => 'coins', 'label' => 'Cá Cược'],
+        ['route' => 'admin.betting', 'match' => 'admin.betting', 'icon' => 'coins', 'label' => 'Betting'],
         ['route' => 'admin.content', 'match' => 'admin.content', 'icon' => 'content', 'label' => 'Moderation'],
         ['route' => 'admin.statistics', 'match' => 'admin.statistics', 'icon' => 'chart', 'label' => 'Statistics'],
     ];

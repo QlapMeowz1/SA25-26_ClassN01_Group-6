@@ -51,6 +51,7 @@ class PlayersController extends Controller
                 'bets_count' => $user->bets_count,
                 'is_banned' => $user->is_banned,
                 'can_manage' => auth()->id() !== $user->id,
+                'can_update_role' => auth()->id() !== $user->id,
             ];
         })->all();
 
@@ -92,6 +93,25 @@ class PlayersController extends Controller
         ]);
 
         return redirect()->route('admin.players')->with('success', 'Đã thêm player mới.');
+    }
+
+    public function updateRole(Request $request, User $user)
+    {
+        $data = $request->validate([
+            'role' => ['required', Rule::in(['user', 'admin'])],
+        ]);
+
+        if ($user->id === $request->user()->id && $data['role'] !== 'admin') {
+            return back()->with('error', 'Bạn không thể tự hạ quyền admin của mình.');
+        }
+
+        if ($user->isAdmin() && $data['role'] !== 'admin' && User::where('role', 'admin')->count() <= 1) {
+            return back()->with('error', 'Không thể hạ quyền admin cuối cùng.');
+        }
+
+        $user->update(['role' => $data['role']]);
+
+        return back()->with('success', 'Đã cập nhật role cho user.');
     }
 
     public function ban(Request $request, User $user)

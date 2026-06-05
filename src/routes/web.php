@@ -82,6 +82,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/players', [\App\Http\Controllers\Admin\PlayersController::class, 'index'])->name('players');
     Route::get('/players/create', [\App\Http\Controllers\Admin\PlayersController::class, 'create'])->name('players.create');
     Route::post('/players', [\App\Http\Controllers\Admin\PlayersController::class, 'store'])->name('players.store');
+    Route::post('/players/{user}/role', [\App\Http\Controllers\Admin\PlayersController::class, 'updateRole'])->name('players.role');
     Route::post('/players/{user}/ban', [\App\Http\Controllers\Admin\PlayersController::class, 'ban'])->name('players.ban');
     Route::post('/players/{user}/unban', [\App\Http\Controllers\Admin\PlayersController::class, 'unban'])->name('players.unban');
     Route::delete('/players/{user}', [\App\Http\Controllers\Admin\PlayersController::class, 'destroy'])->name('players.destroy');

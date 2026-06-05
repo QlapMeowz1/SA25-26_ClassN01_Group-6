@@ -43,6 +43,7 @@
                         <th><a href="{{ $sortLink('losses') }}">L</a></th>
                         <th><a href="{{ $sortLink('rating') }}">Rating</a></th>
                         <th>Activity</th>
+                        <th>Role</th>
                         <th><a href="{{ $sortLink('status') }}">Status</a></th>
                         <th>Actions</th>
                     </tr>
@@ -69,9 +70,23 @@
                                 <span class="admin-mini-stat">{{ $player['posts_count'] }} posts</span>
                                 <span class="admin-mini-stat">{{ $player['bets_count'] }} bets</span>
                             </td>
+                            <td>
+                                @if($player['can_update_role'] ?? false)
+                                    <form method="POST" action="{{ route('admin.players.role', $player['id']) }}" class="admin-inline-form admin-role-form">
+                                        @csrf
+                                        <select name="role" aria-label="Role for {{ $player['name'] }}">
+                                            <option value="user" @selected(($player['role'] ?? 'user') === 'user')>User</option>
+                                            <option value="admin" @selected(($player['role'] ?? 'user') === 'admin')>Admin</option>
+                                        </select>
+                                        <button type="submit" class="btn btn-secondary btn-small">Save</button>
+                                    </form>
+                                @else
+                                    <span class="admin-pill">{{ \Illuminate\Support\Str::headline($player['role'] ?? 'admin') }}</span>
+                                @endif
+                            </td>
                             <td><span class="admin-pill admin-pill--{{ strtolower($player['status']) }}">{{ $player['status'] }}</span></td>
                             <td>
-                                @if($player['can_manage'])
+                                @if($player['can_manage'] ?? false)
                                     <div class="admin-row-actions">
                                         @if($player['is_banned'])
                                             <form method="POST" action="{{ route('admin.players.unban', $player['id']) }}">
@@ -99,7 +114,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="10">
+                            <td colspan="11">
                                 <div class="empty-inline">No players found.</div>
                             </td>
                         </tr>

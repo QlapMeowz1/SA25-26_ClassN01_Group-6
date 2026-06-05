@@ -1,6 +1,6 @@
 @extends('layout')
 
-@section('title', 'Cá Cược - SMASH Admin')
+@section('title', 'Betting - SMASH Admin')
 
 @php
     $money = fn ($value) => '₫' . number_format((float) $value, 0, ',', '.');
@@ -40,8 +40,8 @@
 
     <section class="admin-page-header admin-betting-header">
         <div>
-            <h1>Cá Cược</h1>
-            <p class="page-subtitle">Quản lý tỷ lệ cược, giao dịch và thanh toán</p>
+            <h1>Betting</h1>
+            <p class="page-subtitle">Manage odds, transactions, and payouts</p>
         </div>
         <a href="{{ route('matches.create') }}" class="admin-create-market-btn">
             <span>+</span>
