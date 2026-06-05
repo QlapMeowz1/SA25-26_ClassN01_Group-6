@@ -60,8 +60,33 @@ body[data-page="dashboard"] .composer-media-preview video {
 }
 
 body[data-page="dashboard"] .post-card.feed-card {
+    background: #ffffff;
     border-color: rgba(226, 232, 240, 0.9);
+    color: var(--dashboard-text);
     box-shadow: 0 12px 32px rgba(15, 23, 42, 0.05);
+}
+
+body[data-page="dashboard"] .post-card.feed-card .post-author a:not(.author-avatar),
+body[data-page="dashboard"] .post-card.feed-card .font-heading.text-base {
+    color: #0f172a !important;
+    text-shadow: none;
+}
+
+body[data-page="dashboard"] .post-card.feed-card .post-author a:not(.author-avatar):hover,
+body[data-page="dashboard"] .post-card.feed-card .font-heading.text-base:hover {
+    color: #15803d !important;
+}
+
+body[data-page="dashboard"] .post-card.feed-card .post-header {
+    border-bottom-color: #dbe3ea;
+}
+
+body[data-page="dashboard"] .post-card.feed-card .post-content {
+    color: #0f172a;
+}
+
+body[data-page="dashboard"] .post-card.feed-card .delete-btn {
+    color: #dc2626;
 }
 
 body[data-page="dashboard"] .post-card.feed-card:hover {
@@ -168,5 +193,80 @@ body[data-page="dashboard"] .author-avatar-system {
 }
 
 :root[data-theme="dark"] body[data-page="dashboard"] .post-card.feed-card {
+    background:
+        linear-gradient(180deg, rgba(15, 23, 42, 0.98), rgba(11, 18, 32, 0.98)),
+        #0f172a;
+    border-color: rgba(51, 65, 85, 0.95);
+    color: var(--dashboard-text);
     box-shadow: 0 12px 32px rgba(0, 0, 0, 0.28);
+}
+
+:root[data-theme="dark"] body[data-page="dashboard"] .post-card.feed-card .post-author a:not(.author-avatar),
+:root[data-theme="dark"] body[data-page="dashboard"] .post-card.feed-card .font-heading.text-base {
+    color: #f8fafc !important;
+}
+
+:root[data-theme="dark"] body[data-page="dashboard"] .post-card.feed-card .post-author a:not(.author-avatar):hover,
+:root[data-theme="dark"] body[data-page="dashboard"] .post-card.feed-card .font-heading.text-base:hover {
+    color: #86efac !important;
+}
+
+:root[data-theme="dark"] body[data-page="dashboard"] .post-card.feed-card .post-content {
+    color: var(--dashboard-text);
+}
+
+:root[data-theme="dark"] body[data-page="dashboard"] .post-card.feed-card .post-header {
+    border-bottom-color: rgba(51, 65, 85, 0.95);
+}
+
+:root[data-theme="dark"] body[data-page="dashboard"] .post-card.feed-card .post-time,
+:root[data-theme="dark"] body[data-page="dashboard"] .post-card.feed-card .text-slate-500,
+:root[data-theme="dark"] body[data-page="dashboard"] .post-card.feed-card .text-slate-400 {
+    color: #94a3b8 !important;
+}
+
+:root[data-theme="dark"] body[data-page="dashboard"] .post-card.feed-card .bg-emerald-50 {
+    background-color: rgba(16, 185, 129, 0.14) !important;
+}
+
+:root[data-theme="dark"] body[data-page="dashboard"] .post-card.feed-card .text-emerald-800 {
+    color: #86efac !important;
+}
+
+:root[data-theme="dark"] body[data-page="dashboard"] .post-card.feed-card .post-media,
+:root[data-theme="dark"] body[data-page="dashboard"] .post-card.feed-card .post-image-grid > div,
+:root[data-theme="dark"] body[data-page="dashboard"] .post-card.feed-card video {
+    background-color: rgba(2, 6, 23, 0.72) !important;
+    border-color: rgba(51, 65, 85, 0.9) !important;
+}
+
+:root[data-theme="dark"] body[data-page="dashboard"] .post-card.feed-card .post-stats {
+    color: #cbd5e1;
+}
+
+:root[data-theme="dark"] body[data-page="dashboard"] .post-card.feed-card .post-stats span {
+    background: rgba(2, 6, 23, 0.52);
+    border-color: rgba(51, 65, 85, 0.95);
+    color: #cbd5e1;
+}
+
+:root[data-theme="dark"] body[data-page="dashboard"] .post-card.feed-card .post-action-pill {
+    background: rgba(15, 23, 42, 0.86) !important;
+    border-color: rgba(71, 85, 105, 0.82) !important;
+    color: #e2e8f0 !important;
+}
+
+:root[data-theme="dark"] body[data-page="dashboard"] .post-card.feed-card .post-action-pill:hover {
+    background: rgba(30, 41, 59, 0.96) !important;
+    border-color: rgba(45, 212, 191, 0.42) !important;
+    color: #ccfbf1 !important;
+}
+
+:root[data-theme="dark"] body[data-page="dashboard"] .post-card.feed-card .post-action-count {
+    background: rgba(2, 6, 23, 0.8) !important;
+    color: #e2e8f0 !important;
+}
+
+:root[data-theme="dark"] body[data-page="dashboard"] .post-card.feed-card .delete-btn {
+    color: #fca5a5;
 }

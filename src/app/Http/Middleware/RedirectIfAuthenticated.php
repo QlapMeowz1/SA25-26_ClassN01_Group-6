@@ -13,6 +13,10 @@ class RedirectIfAuthenticated
 
         foreach ($guards as $guard) {
             if (auth()->guard($guard)->check()) {
+                if (!auth()->guard($guard)->user()->email_verified_at) {
+                    return redirect(route('verification.notice'));
+                }
+
                 return redirect(route('dashboard'));
             }
         }

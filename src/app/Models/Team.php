@@ -15,6 +15,11 @@ class Team extends Model
         'leader_id',
         'logo',
         'members_count',
+        'max_members',
+        'level',
+        'location',
+        'slogan',
+        'tags',
     ];
 
     protected $casts = [
@@ -29,7 +34,9 @@ class Team extends Model
 
     public function members()
     {
-        return $this->belongsToMany(User::class, 'team_members', 'team_id', 'user_id');
+        return $this->belongsToMany(User::class, 'team_members', 'team_id', 'user_id')
+            ->withPivot('role', 'created_at')
+            ->withTimestamps();
     }
 
     public function teamMembers()

@@ -6,6 +6,7 @@
         ['route' => 'admin.schedule', 'match' => 'admin.schedule', 'icon' => 'calendar', 'label' => 'Schedule'],
         ['route' => 'admin.court-bookings', 'match' => 'admin.court-bookings', 'icon' => 'book', 'label' => 'Court Bookings'],
         ['route' => 'admin.betting', 'match' => 'admin.betting', 'icon' => 'coins', 'label' => 'Cá Cược'],
+        ['route' => 'admin.content', 'match' => 'admin.content', 'icon' => 'content', 'label' => 'Moderation'],
         ['route' => 'admin.statistics', 'match' => 'admin.statistics', 'icon' => 'chart', 'label' => 'Statistics'],
     ];
 
@@ -17,6 +18,7 @@
             'book' => '<path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v17H6.5A2.5 2.5 0 0 1 4 17.5z"/><path d="M4 17.5A2.5 2.5 0 0 1 6.5 15H20"/>',
             'chart' => '<path d="M4 19V5"/><path d="M8 19v-6"/><path d="M13 19V9"/><path d="M18 19v-3"/><path d="M3 19h19"/>',
             'coins' => '<circle cx="8" cy="8" r="4"/><path d="M12 8h4a4 4 0 0 1 0 8H8"/><path d="M8 12v8"/><path d="M12 16h4"/>',
+            'content' => '<path d="M4 5h16"/><path d="M4 12h10"/><path d="M4 19h7"/><path d="M17 14l3 3-3 3"/><path d="M14 17h6"/>',
             default => '<rect x="4" y="4" width="7" height="7" rx="1"/><rect x="13" y="4" width="7" height="7" rx="1"/><rect x="4" y="13" width="7" height="7" rx="1"/><rect x="13" y="13" width="7" height="7" rx="1"/>',
         };
     };

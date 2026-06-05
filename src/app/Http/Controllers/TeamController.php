@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Team;
 use App\Models\TeamMember;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -186,9 +187,18 @@ class TeamController extends Controller
 
     public function show(Team $team)
     {
-        $members = $team->members()->paginate(10);
+        $team->load('leader');
+        $members = $team->members()
+            ->orderByRaw("CASE WHEN team_members.role = 'leader' THEN 0 ELSE 1 END")
+            ->orderByDesc('elo_rating')
+            ->paginate(10);
+        $canManageTeam = $this->canManageTeam($team);
+        $memberIds = $team->members()->pluck('users.id');
+        $availableUsers = $canManageTeam
+            ? User::whereNotIn('id', $memberIds)->orderBy('name')->limit(60)->get()
+            : collect();
 
-        return view('teams.show', compact('team', 'members'));
+        return view('teams.show', compact('team', 'members', 'canManageTeam', 'availableUsers'));
     }
 
     public function create()
@@ -235,16 +245,71 @@ class TeamController extends Controller
             return back()->with('error', 'You are already a member of this team!');
         }
 
+        $maxMembers = (int) ($team->max_members ?? 20);
+        $memberCount = (int) ($team->members_count ?? $team->members()->count());
+        if ($maxMembers > 0 && $memberCount >= $maxMembers) {
+            return back()->with('error', 'This team is already full.');
+        }
+
         TeamMember::create([
             'team_id' => $team->id,
             'user_id' => $user->id,
             'role' => 'member',
         ]);
 
-        $team->members_count += 1;
-        $team->save();
+        $team->update(['members_count' => $team->members()->count()]);
 
-        return back()->with('success', 'Joined team successfully!');
+        return redirect()->route('teams.show', $team->id)->with('success', 'Joined team successfully. You can now view the team roster.');
+    }
+
+    public function joinSample(Request $request)
+    {
+        $data = $request->validate([
+            'team_name' => ['required', 'string', 'max:255'],
+        ]);
+
+        $team = Team::where('name', $data['team_name'])->first();
+
+        if (!$team) {
+            $sample = $this->buildSampleTeamCards()->firstWhere('name', $data['team_name']);
+
+            if (!$sample) {
+                return back()->with('error', 'Team preview could not be found.');
+            }
+
+            $user = Auth::user();
+            $leader = User::where('role', 'admin')
+                ->where('id', '!=', $user->id)
+                ->first()
+                ?: User::where('id', '!=', $user->id)->first()
+                ?: $user;
+
+            $team = Team::create([
+                'name' => $sample->name,
+                'description' => $sample->description,
+                'leader_id' => $leader->id,
+                'logo' => null,
+                'members_count' => 0,
+                'max_members' => $sample->max_members ?? 20,
+                'level' => $sample->level,
+                'location' => $sample->location,
+                'slogan' => $sample->slogan,
+                'tags' => $sample->tags,
+            ]);
+
+            TeamMember::firstOrCreate(
+                ['team_id' => $team->id, 'user_id' => $leader->id],
+                ['role' => 'leader']
+            );
+
+            $team->update(['members_count' => $team->members()->count()]);
+
+            if ((int) $leader->id === (int) $user->id) {
+                return redirect()->route('teams.show', $team->id)->with('success', 'Team created from preview and you are the leader.');
+            }
+        }
+
+        return $this->join($team);
     }
 
     public function leave(Team $team)
@@ -257,9 +322,61 @@ class TeamController extends Controller
 
         TeamMember::where('team_id', $team->id)->where('user_id', $user->id)->delete();
 
-        $team->members_count -= 1;
-        $team->save();
+        $team->update(['members_count' => $team->members()->count()]);
 
         return back()->with('success', 'Left team successfully!');
+    }
+
+    public function addMember(Request $request, Team $team)
+    {
+        if (!$this->canManageTeam($team)) {
+            abort(403);
+        }
+
+        $data = $request->validate([
+            'user_id' => ['required', 'integer', 'exists:users,id'],
+        ]);
+
+        if ($team->hasMember($data['user_id'])) {
+            return back()->with('error', 'This user is already a team member.');
+        }
+
+        $maxMembers = (int) ($team->max_members ?? 20);
+        if ($maxMembers > 0 && $team->members()->count() >= $maxMembers) {
+            return back()->with('error', 'This team is already full.');
+        }
+
+        TeamMember::create([
+            'team_id' => $team->id,
+            'user_id' => $data['user_id'],
+            'role' => 'member',
+        ]);
+
+        $team->update(['members_count' => $team->members()->count()]);
+
+        return back()->with('success', 'Member added to team.');
+    }
+
+    public function removeMember(Team $team, User $user)
+    {
+        if (!$this->canManageTeam($team)) {
+            abort(403);
+        }
+
+        if ((int) $team->leader_id === (int) $user->id) {
+            return back()->with('error', 'Team leader cannot be removed from the team.');
+        }
+
+        TeamMember::where('team_id', $team->id)->where('user_id', $user->id)->delete();
+        $team->update(['members_count' => $team->members()->count()]);
+
+        return back()->with('success', 'Member removed from team.');
+    }
+
+    private function canManageTeam(Team $team): bool
+    {
+        $user = Auth::user();
+
+        return $user && ($user->isAdmin() || (int) $team->leader_id === (int) $user->id);
     }
 }

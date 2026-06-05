@@ -177,28 +177,60 @@
                     <span class="team-about-badge">{{ $memberCount }} players</span>
                 </div>
 
+                @if($canManageTeam)
+                    <form method="POST" action="{{ route('teams.members.add', $team->id) }}" class="member-manage-form">
+                        @csrf
+                        <label for="team_member_user_id">Add member</label>
+                        <select id="team_member_user_id" name="user_id" required>
+                            <option value="">Choose a player...</option>
+                            @foreach($availableUsers as $candidate)
+                                <option value="{{ $candidate->id }}">{{ $candidate->name }} - {{ $candidate->email }}</option>
+                            @endforeach
+                        </select>
+                        <button type="submit" class="btn btn-primary btn-small" @disabled($availableUsers->isEmpty())>Add</button>
+                    </form>
+                @endif
+
                 <div class="team-roster-list">
                     @forelse($members as $member)
+                        @php
+                            $memberWins = (int) ($member->wins ?? 0);
+                            $memberLosses = (int) ($member->losses ?? 0);
+                            $memberTotal = $memberWins + $memberLosses;
+                            $memberWinRate = $memberTotal > 0 ? round(($memberWins / $memberTotal) * 100) : 0;
+                            $memberRole = $member->pivot?->role ?? ($team->leader_id === $member->id ? 'leader' : 'member');
+                            $joinedAt = $member->pivot?->created_at;
+                        @endphp
                         <article class="team-roster-row">
                             <span class="team-roster-rank">#{{ str_pad($loop->iteration + (($members->currentPage() - 1) * $members->perPage()), 2, '0', STR_PAD_LEFT) }}</span>
                             <div class="member-info">
                                 <span class="team-avatar-small">{{ strtoupper(substr($member->name, 0, 1)) }}</span>
                                 <div>
                                     <a href="{{ route('profile.show', $member->id) }}" class="member-name">{{ $member->name }}</a>
-                                    <span class="member-rank">{{ $member->rank }} - {{ $member->elo_rating }} ELO</span>
+                                    <span class="member-rank">{{ $member->rank ?? 'Unranked' }} - {{ $member->elo_rating ?? 0 }} ELO</span>
+                                    <span class="member-contact">{{ $member->email }}</span>
+                                    <span class="member-joined">{{ $joinedAt ? 'Joined ' . $joinedAt->diffForHumans() : 'Recently joined' }}</span>
                                 </div>
                             </div>
                             <div class="team-roster-role">
-                                @if($team->leader_id === $member->id)
+                                @if($memberRole === 'leader')
                                     <span class="badge-leader">Leader</span>
                                 @else
                                     <span class="team-role-badge">Member</span>
                                 @endif
                             </div>
                             <div class="member-stats">
-                                <span>{{ $member->wins }}W</span>
-                                <span>{{ $member->losses }}L</span>
+                                <span>{{ $memberWins }}W</span>
+                                <span>{{ $memberLosses }}L</span>
+                                <span>{{ $memberWinRate }}%</span>
                             </div>
+                            @if($canManageTeam && $memberRole !== 'leader')
+                                <form method="POST" action="{{ route('teams.members.remove', [$team->id, $member->id]) }}" class="member-remove-form" onsubmit="return confirm('Remove this member from the team?');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-danger btn-small">Remove</button>
+                                </form>
+                            @endif
                         </article>
                     @empty
                         <div class="empty-state compact-empty">

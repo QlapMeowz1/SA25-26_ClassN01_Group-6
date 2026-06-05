@@ -3,7 +3,9 @@
 @section('title', 'Tournaments - BadNet')
 
 @php
-    $tournamentHref = fn ($tournament) => is_numeric($tournament->id) ? route('tournaments.show', $tournament->id) : route('tournaments.create');
+    $tournamentHref = fn ($tournament) => !empty($tournament->sample_id)
+        ? route('tournaments.preview', $tournament->sample_id)
+        : route('tournaments.show', $tournament->id);
 @endphp
 
 @section('content')

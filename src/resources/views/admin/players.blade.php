@@ -22,8 +22,11 @@
 
     <section class="admin-panel">
         <form method="GET" action="{{ route('admin.players') }}" class="admin-filter-bar">
-            <input type="search" name="search" placeholder="Search players or clubs...">
+            <input type="search" name="search" value="{{ $search }}" placeholder="Search players, email, rank...">
             <button type="submit" class="btn btn-secondary btn-small">Filter</button>
+            @if($search !== '')
+                <a href="{{ route('admin.players') }}" class="btn btn-secondary btn-small">Reset</a>
+            @endif
         </form>
     </section>
 
@@ -39,16 +42,21 @@
                         <th><a href="{{ $sortLink('wins') }}">W</a></th>
                         <th><a href="{{ $sortLink('losses') }}">L</a></th>
                         <th><a href="{{ $sortLink('rating') }}">Rating</a></th>
+                        <th>Activity</th>
                         <th><a href="{{ $sortLink('status') }}">Status</a></th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach($players as $player)
+                    @forelse($players as $player)
                         <tr>
                             <td>
                                 <div class="admin-user-cell">
                                     <span class="admin-avatar">{{ $player['initials'] }}</span>
-                                    <strong>{{ $player['name'] }}</strong>
+                                    <div>
+                                        <strong>{{ $player['name'] }}</strong>
+                                        <small>{{ $player['email'] }}</small>
+                                    </div>
                                 </div>
                             </td>
                             <td>{{ $player['category'] }}</td>
@@ -57,9 +65,45 @@
                             <td class="admin-win">{{ $player['wins'] }}</td>
                             <td class="admin-loss">{{ $player['losses'] }}</td>
                             <td>{{ $player['rating'] }}</td>
+                            <td>
+                                <span class="admin-mini-stat">{{ $player['posts_count'] }} posts</span>
+                                <span class="admin-mini-stat">{{ $player['bets_count'] }} bets</span>
+                            </td>
                             <td><span class="admin-pill admin-pill--{{ strtolower($player['status']) }}">{{ $player['status'] }}</span></td>
+                            <td>
+                                @if($player['can_manage'])
+                                    <div class="admin-row-actions">
+                                        @if($player['is_banned'])
+                                            <form method="POST" action="{{ route('admin.players.unban', $player['id']) }}">
+                                                @csrf
+                                                <button type="submit" class="btn btn-secondary btn-small">Unban</button>
+                                            </form>
+                                        @else
+                                            <form method="POST" action="{{ route('admin.players.ban', $player['id']) }}" onsubmit="return confirm('Ban this user?');">
+                                                @csrf
+                                                <input type="hidden" name="reason" value="Violated community rules">
+                                                <button type="submit" class="btn btn-secondary btn-small">Ban</button>
+                                            </form>
+                                        @endif
+
+                                        <form method="POST" action="{{ route('admin.players.destroy', $player['id']) }}" onsubmit="return confirm('Delete this user and related data? This cannot be undone.');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-danger btn-small">Delete</button>
+                                        </form>
+                                    </div>
+                                @else
+                                    <span class="admin-muted-note">Current admin</span>
+                                @endif
+                            </td>
                         </tr>
-                    @endforeach
+                    @empty
+                        <tr>
+                            <td colspan="10">
+                                <div class="empty-inline">No players found.</div>
+                            </td>
+                        </tr>
+                    @endforelse
                 </tbody>
             </table>
         </div>

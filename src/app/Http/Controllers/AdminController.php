@@ -11,6 +11,8 @@ use App\Models\Team;
 use App\Models\Tournament;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
 
 class AdminController extends Controller
@@ -128,9 +130,45 @@ class AdminController extends Controller
 
     public function destroyPost(Post $post)
     {
-        $post->delete();
+        DB::transaction(function () use ($post) {
+            $commentIds = $post->comments()->pluck('id');
+
+            if (Schema::hasTable('comment_likes') && $commentIds->isNotEmpty()) {
+                DB::table('comment_likes')->whereIn('comment_id', $commentIds)->delete();
+            }
+
+            if (Schema::hasTable('post_likes')) {
+                DB::table('post_likes')->where('post_id', $post->id)->delete();
+            }
+
+            $post->comments()->delete();
+            $post->delete();
+        });
 
         return back()->with('success', 'Post removed by admin.');
+    }
+
+    public function destroyComment(Comment $comment)
+    {
+        DB::transaction(function () use ($comment) {
+            $commentIds = collect([$comment->id]);
+
+            if (Schema::hasColumn('comments', 'parent_id')) {
+                $commentIds = $commentIds->merge(Comment::where('parent_id', $comment->id)->pluck('id'));
+            }
+
+            if (Schema::hasTable('comment_likes')) {
+                DB::table('comment_likes')->whereIn('comment_id', $commentIds)->delete();
+            }
+
+            if (Schema::hasColumn('comments', 'parent_id')) {
+                Comment::where('parent_id', $comment->id)->delete();
+            }
+
+            $comment->delete();
+        });
+
+        return back()->with('success', 'Comment removed by admin.');
     }
 
     public function matches(Request $request)

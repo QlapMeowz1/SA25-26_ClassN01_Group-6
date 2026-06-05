@@ -323,7 +323,11 @@
 
         <div class="modal-footer">
             <button type="button" class="btn btn-secondary" id="closeModalBtn">{{ __('ui.team.close') }}</button>
-            <button type="button" class="btn btn-primary">{{ __('ui.team.join_team') }}</button>
+            <form method="POST" action="{{ route('teams.sampleJoin') }}" class="inline" id="sampleTeamJoinForm">
+                @csrf
+                <input type="hidden" name="team_name" id="sampleTeamJoinName" value="">
+                <button type="submit" class="btn btn-primary">{{ __('ui.team.join_team') }}</button>
+            </form>
         </div>
     </div>
 </div>
@@ -386,6 +390,7 @@
             document.getElementById('modalTeamDescription').textContent = teamData.description;
             document.getElementById('modalTeamMembers').textContent = `${teamData.members}/${teamData.max}`;
             document.getElementById('modalTeamLocation').textContent = teamData.location;
+            document.getElementById('sampleTeamJoinName').value = teamData.name;
 
             const progressPercent = Math.min(100, (teamData.members / teamData.max) * 100);
             document.getElementById('modalTeamProgress').style.width = progressPercent + '%';

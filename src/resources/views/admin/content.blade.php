@@ -68,10 +68,16 @@
 
                 <div class="admin-row-list">
                     @forelse($comments as $comment)
-                        <a href="{{ route('posts.show', $comment->post_id) }}#comments-section" class="admin-match-row">
-                            <strong>{{ $comment->user?->name ?? 'Unknown user' }}</strong>
-                            <span>{{ \Illuminate\Support\Str::limit($comment->content, 90) }}</span>
-                        </a>
+                        <div class="admin-match-row admin-review-row">
+                            <a href="{{ route('posts.show', $comment->post_id) }}#comments-section">
+                                <strong>{{ $comment->user?->name ?? 'Unknown user' }}</strong>
+                                <span>{{ \Illuminate\Support\Str::limit($comment->content, 90) }}</span>
+                            </a>
+                            <form method="POST" action="{{ route('admin.comments.delete', $comment->id) }}" onsubmit="return confirm('Delete this comment?');">
+                                @csrf
+                                <button type="submit" class="btn btn-danger btn-small">Delete</button>
+                            </form>
+                        </div>
                     @empty
                         <div class="empty-inline">No comments yet.</div>
                     @endforelse

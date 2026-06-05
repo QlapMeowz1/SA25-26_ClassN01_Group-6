@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\EmailVerificationController;
 
 class AuthController extends Controller
 {
@@ -34,8 +35,11 @@ class AuthController extends Controller
         ]);
 
         Auth::login($user);
+        $request->session()->regenerate();
 
-        return redirect()->route('dashboard')->with('success', 'Account created successfully!');
+        EmailVerificationController::sendCode($user);
+
+        return redirect()->route('verification.notice')->with('success', 'Account created. Please verify your email.');
     }
 
     public function showLogin()
@@ -51,7 +55,23 @@ class AuthController extends Controller
         ]);
 
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
+            if (Auth::user()->isBanned()) {
+                $reason = Auth::user()->ban_reason;
+                Auth::logout();
+
+                return back()->withErrors([
+                    'email' => $reason
+                        ? 'Your account has been banned: ' . $reason
+                        : 'Your account has been banned.',
+                ])->onlyInput('email');
+            }
+
             $request->session()->regenerate();
+
+            if (!Auth::user()->email_verified_at) {
+                return redirect()->route('verification.notice');
+            }
+
             return redirect()->intended(route('dashboard'))->with('success', 'Logged in successfully!');
         }
 

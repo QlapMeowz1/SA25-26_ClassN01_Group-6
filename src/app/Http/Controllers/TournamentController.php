@@ -235,8 +235,8 @@ class TournamentController extends Controller
         ]);
 
         $decorated = $samples->map(function (array $sample) {
-            $tournament = Tournament::make($sample);
-            $tournament->id = $sample['id'];
+            $tournament = Tournament::make(collect($sample)->except('id')->all());
+            $tournament->sample_id = $sample['id'];
             $tournament->name = $sample['name'];
             $tournament->description = $sample['description'];
             $tournament->status = $sample['status'];
@@ -301,13 +301,49 @@ class TournamentController extends Controller
                                    ->with('user')
                                    ->orderBy('position')
                                    ->paginate(20);
+        $canManageTournament = $this->canManageTournament($tournament);
+        $participantIds = $tournament->participants()->pluck('users.id');
+        $availableUsers = $canManageTournament
+            ? User::whereNotIn('id', $participantIds)->orderBy('name')->limit(80)->get()
+            : collect();
 
-        return view('tournaments.show', compact('tournament', 'participants'));
+        return view('tournaments.show', compact('tournament', 'participants', 'canManageTournament', 'availableUsers'));
     }
 
     public function create()
     {
         return view('tournaments.create');
+    }
+
+    public function preview(string $sampleId)
+    {
+        $sample = $this->sampleTournaments(false)->firstWhere('sample_id', $sampleId);
+
+        if (!$sample) {
+            abort(404);
+        }
+
+        $tournament = Tournament::where('name', $sample->name)->first();
+
+        if (!$tournament) {
+            $tournament = Tournament::create([
+                'name' => $sample->name,
+                'description' => $sample->description,
+                'organizer_id' => Auth::id(),
+                'start_date' => $sample->start_date,
+                'end_date' => $sample->end_date,
+                'max_participants' => $sample->max_participants,
+                'status' => $sample->status ?? 'upcoming',
+                'prize_pool' => $sample->prize_pool ?? 0,
+            ]);
+
+            TournamentParticipant::firstOrCreate([
+                'tournament_id' => $tournament->id,
+                'user_id' => Auth::id(),
+            ]);
+        }
+
+        return redirect()->route('tournaments.show', $tournament->id);
     }
 
     public function store(Request $request)
@@ -372,5 +408,55 @@ class TournamentController extends Controller
                               ->delete();
 
         return back()->with('success', 'Unregistered from tournament!');
+    }
+
+    public function addParticipant(Request $request, Tournament $tournament)
+    {
+        if (!$this->canManageTournament($tournament)) {
+            abort(403);
+        }
+
+        $data = $request->validate([
+            'user_id' => ['required', 'integer', 'exists:users,id'],
+        ]);
+
+        if ($tournament->hasParticipant($data['user_id'])) {
+            return back()->with('error', 'This user is already registered for the tournament.');
+        }
+
+        if ($tournament->isFull()) {
+            return back()->with('error', 'Tournament is full.');
+        }
+
+        TournamentParticipant::create([
+            'tournament_id' => $tournament->id,
+            'user_id' => $data['user_id'],
+        ]);
+
+        return back()->with('success', 'Participant added to tournament.');
+    }
+
+    public function removeParticipant(Tournament $tournament, User $user)
+    {
+        if (!$this->canManageTournament($tournament)) {
+            abort(403);
+        }
+
+        if ((int) $tournament->organizer_id === (int) $user->id) {
+            return back()->with('error', 'Tournament organizer cannot be removed.');
+        }
+
+        TournamentParticipant::where('tournament_id', $tournament->id)
+            ->where('user_id', $user->id)
+            ->delete();
+
+        return back()->with('success', 'Participant removed from tournament.');
+    }
+
+    private function canManageTournament(Tournament $tournament): bool
+    {
+        $user = Auth::user();
+
+        return $user && ($user->isAdmin() || (int) $tournament->organizer_id === (int) $user->id);
     }
 }

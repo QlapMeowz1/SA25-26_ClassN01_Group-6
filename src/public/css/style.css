@@ -6260,6 +6260,21 @@ h6 { font-size: 1rem; line-height: 1.5; }
 .match-filter-field input,
 .match-filter-field select {
     min-height: 44px;
+    border: 1px solid var(--ui-border-soft);
+    border-radius: var(--ui-radius-sm);
+    background: var(--input-bg);
+    color: var(--input-text);
+    padding: 0 13px;
+    font: inherit;
+    outline: 0;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.match-filter-field input:focus,
+.match-filter-field select:focus {
+    border-color: var(--ui-primary);
+    box-shadow: 0 0 0 4px var(--ui-ring);
 }
 
 .match-filter-levels {
@@ -7992,7 +8007,7 @@ h6 { font-size: 1rem; line-height: 1.5; }
 
 .team-roster-row {
     display: grid;
-    grid-template-columns: 52px minmax(0, 1fr) auto auto;
+    grid-template-columns: 52px minmax(0, 1fr) minmax(92px, auto) minmax(160px, auto);
     gap: 14px;
     align-items: center;
     padding: 14px;
@@ -8030,11 +8045,24 @@ h6 { font-size: 1rem; line-height: 1.5; }
     display: flex;
     gap: 8px;
     justify-content: flex-end;
+    flex-wrap: wrap;
 }
 
 .team-roster-row .member-stats span {
     min-width: 44px;
     text-align: center;
+}
+
+.team-roster-row .member-contact,
+.team-roster-row .member-joined {
+    display: block;
+    color: var(--muted-color);
+    font-size: 0.78rem;
+    line-height: 1.35;
+}
+
+.team-roster-row .member-contact {
+    overflow-wrap: anywhere;
 }
 
 .team-profile-card {
@@ -12867,6 +12895,344 @@ body.admin-route .admin-betting-purple {
 
     body.admin-route .admin-betting-market-row {
         grid-template-columns: 1fr;
+    }
+}
+
+/* Admin tone alignment with the main website */
+body.admin-route {
+    --admin-bg: var(--page-bg);
+    --admin-sidebar: var(--surface-bg);
+    --admin-panel: var(--surface-bg);
+    --admin-panel-soft: var(--surface-alt-bg);
+    --admin-border: var(--border-color);
+    --admin-border-soft: var(--border-color);
+    --admin-text: var(--text-color);
+    --admin-muted: var(--muted-color);
+    --admin-accent: var(--primary-color);
+    --admin-accent-soft: rgba(21, 128, 61, 0.10);
+    --admin-blue: var(--secondary-color);
+    --admin-green: var(--success-color);
+    --admin-red: var(--danger-color);
+    background:
+        radial-gradient(circle at top left, rgba(21, 128, 61, 0.08), transparent 30%),
+        radial-gradient(circle at top right, rgba(249, 115, 22, 0.08), transparent 28%),
+        var(--admin-bg);
+}
+
+:root[data-theme="dark"] body.admin-route {
+    --admin-accent-soft: rgba(21, 128, 61, 0.18);
+    background:
+        radial-gradient(circle at top left, rgba(21, 128, 61, 0.12), transparent 30%),
+        radial-gradient(circle at top right, rgba(249, 115, 22, 0.10), transparent 28%),
+        var(--admin-bg);
+}
+
+body.admin-route .admin-app-shell {
+    background: transparent;
+}
+
+body.admin-route .admin-section-nav,
+body.admin-route .admin-hero-card,
+body.admin-route .admin-panel,
+body.admin-route .admin-stat-card,
+body.admin-route .admin-tournament-card,
+body.admin-route .admin-schedule-match,
+body.admin-route .admin-bet-card,
+body.admin-route .admin-health-strip > div,
+body.admin-route .admin-user-row,
+body.admin-route .admin-content-row,
+body.admin-route .admin-match-row,
+body.admin-route .admin-action-grid a,
+body.admin-route .admin-content-review,
+body.admin-route .admin-table-wrap,
+body.admin-route .admin-table th,
+body.admin-route .admin-betting-kpi,
+body.admin-route .admin-betting-search,
+body.admin-route .admin-betting-market-table,
+body.admin-route .admin-betting-transactions,
+body.admin-route .admin-betting-detail-card {
+    background: var(--admin-panel);
+    border-color: var(--admin-border);
+}
+
+body.admin-route .admin-page-header h1,
+body.admin-route .admin-hero h1,
+body.admin-route .admin-hero-card strong,
+body.admin-route .admin-stat-card strong,
+body.admin-route .admin-betting-kpi strong {
+    text-shadow: 2px 2px 0 rgba(21, 128, 61, 0.14);
+}
+
+body.admin-route .admin-brand-mark,
+body.admin-route .admin-sidebar-avatar,
+body.admin-route .btn-primary,
+body.admin-route .admin-calendar-grid a.is-selected,
+body.admin-route .admin-create-market-btn,
+body.admin-route .admin-betting-tabs button.is-active,
+body.admin-route .admin-betting-primary-action {
+    background: var(--admin-accent);
+    border-color: var(--admin-accent);
+    color: #ffffff;
+}
+
+body.admin-route .admin-player-zone-link,
+body.admin-route .admin-bet-card:hover,
+body.admin-route .admin-action-grid a:hover,
+body.admin-route .admin-record-form input:focus,
+body.admin-route .admin-record-form select:focus,
+body.admin-route .admin-record-form textarea:focus {
+    border-color: rgba(21, 128, 61, 0.42);
+}
+
+body.admin-route .admin-section-nav a:hover,
+body.admin-route .admin-section-nav a.is-active,
+body.admin-route .admin-player-zone-link,
+body.admin-route .admin-action-grid a:hover,
+body.admin-route .admin-trophy,
+body.admin-route .admin-odds span,
+body.admin-route .admin-betting-detail-card header,
+body.admin-route .admin-betting-market-row.is-selected,
+body.admin-route .admin-betting-odds-grid label {
+    background: var(--admin-accent-soft);
+}
+
+body.admin-route .admin-betting-odds-grid label:last-child {
+    border-color: rgba(249, 115, 22, 0.30);
+    background: rgba(249, 115, 22, 0.08);
+}
+
+body.admin-route .admin-betting-market-row.is-selected {
+    border-left-color: var(--admin-accent);
+}
+
+body.admin-route .admin-bar span,
+body.admin-route .admin-betting-bars span i {
+    background: var(--admin-accent);
+}
+
+body.admin-route .admin-bar:hover span,
+body.admin-route .admin-bar:focus-visible span,
+body.admin-route .admin-betting-bars span:hover i,
+body.admin-route .admin-betting-bars span:focus-visible i {
+    background: var(--admin-accent);
+    box-shadow: 0 0 0 2px rgba(21, 128, 61, 0.20), 0 0 24px rgba(21, 128, 61, 0.18);
+}
+
+body.admin-route .admin-betting-bars span::after,
+body.admin-route .admin-bar::after,
+body.admin-route .admin-chart-hover-zones span::after,
+body.admin-route .admin-chart-point::after,
+body.admin-route .admin-cursor-tooltip {
+    border-color: rgba(21, 128, 61, 0.35);
+    background: var(--surface-bg);
+    color: var(--text-color);
+}
+
+body.admin-route .admin-betting-bars span::before,
+body.admin-route .admin-bar::before,
+body.admin-route .admin-chart-hover-zones span::before,
+body.admin-route .admin-chart-point::before {
+    background: var(--surface-bg);
+}
+
+body.admin-route .admin-betting-kpi span,
+body.admin-route .admin-betting-chart-card .admin-panel-heading span,
+body.admin-route .admin-betting-market-head,
+body.admin-route .admin-betting-detail-card header > span,
+body.admin-route .admin-betting-detail-card section p,
+body.admin-route .admin-betting-split-title span,
+body.admin-route .admin-betting-kpi small,
+body.admin-route .admin-betting-market-row small,
+body.admin-route .admin-betting-more,
+body.admin-route .admin-betting-empty,
+body.admin-route .admin-betting-detail-card header small,
+body.admin-route .admin-betting-odds-grid small,
+body.admin-route .admin-betting-split-labels,
+body.admin-route .admin-betting-detail-card dt,
+body.admin-route .admin-betting-axis,
+body.admin-route .admin-betting-line-scale {
+    color: var(--admin-muted);
+}
+
+body.admin-route .admin-pill--live,
+body.admin-route .admin-pill--ongoing,
+body.admin-route .admin-pill--active,
+body.admin-route .admin-pill--completed,
+body.admin-route .admin-betting-status--open,
+body.admin-route .admin-betting-txn-status--won {
+    background: rgba(21, 128, 61, 0.12);
+    color: var(--admin-accent);
+}
+
+body.admin-route .admin-pill--upcoming,
+body.admin-route .admin-pill--paused,
+body.admin-route .admin-pill--injured,
+body.admin-route .admin-betting-status--suspended,
+body.admin-route .admin-betting-txn-status--lost {
+    background: rgba(249, 115, 22, 0.14);
+    color: var(--secondary-color);
+}
+
+body.admin-route .admin-row-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+body.admin-route .admin-row-actions form,
+body.admin-route .admin-review-actions form,
+body.admin-route .admin-review-row form {
+    margin: 0;
+}
+
+body.admin-route .admin-user-cell small,
+body.admin-route .admin-muted-note,
+body.admin-route .admin-mini-stat {
+    display: block;
+    color: var(--admin-muted);
+    font-size: 0.76rem;
+    font-weight: 600;
+}
+
+body.admin-route .admin-mini-stat + .admin-mini-stat {
+    margin-top: 3px;
+}
+
+body.admin-route .admin-review-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 12px;
+    align-items: center;
+}
+
+body.admin-route .admin-review-row a {
+    display: grid;
+    gap: 4px;
+    color: inherit;
+    text-decoration: none;
+}
+
+/* Team card tag sizing fixes */
+.team-page .team-tags {
+    flex: 0 0 auto;
+    align-items: flex-start;
+    align-content: flex-start;
+    justify-content: flex-start;
+    min-height: 0;
+}
+
+.team-page .team-tags .tag,
+.team-page .team-compact-card .team-tags .tag {
+    display: inline-flex;
+    width: auto;
+    min-width: 0;
+    max-width: 100%;
+    min-height: 28px;
+    height: auto;
+    align-items: center;
+    justify-content: center;
+    flex: 0 1 auto;
+    border-radius: 999px;
+    padding: 5px 10px;
+    line-height: 1.2;
+    text-align: center;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+.team-page .team-card-content {
+    align-items: stretch;
+}
+
+.auth-secondary-actions {
+    display: grid;
+    gap: 10px;
+    margin-top: 14px;
+}
+
+.auth-link-button {
+    width: 100%;
+    border: 0;
+    background: transparent;
+    color: var(--primary-color);
+    cursor: pointer;
+    font: inherit;
+    font-weight: 800;
+    padding: 8px;
+}
+
+.auth-link-button:hover {
+    color: var(--primary-hover);
+    text-decoration: underline;
+}
+
+.member-manage-form {
+    display: grid;
+    grid-template-columns: auto minmax(220px, 1fr) auto;
+    gap: 10px;
+    align-items: end;
+    margin: 0 0 14px;
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    background: var(--surface-alt-bg);
+    padding: 12px;
+}
+
+.member-manage-form label {
+    color: var(--muted-color);
+    font-size: 0.76rem;
+    font-weight: 900;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.member-manage-form select {
+    min-height: 40px;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    background: var(--input-bg);
+    color: var(--input-text);
+    padding: 0 10px;
+}
+
+.member-remove-form {
+    margin: 0;
+    justify-self: end;
+}
+
+.team-roster-row {
+    grid-template-columns: 52px minmax(0, 1fr) minmax(92px, auto) minmax(160px, auto) auto;
+}
+
+.tournament-standings-row {
+    grid-template-columns: 64px minmax(0, 1fr) auto auto auto;
+}
+
+@media (max-width: 920px) {
+    .member-manage-form {
+        grid-template-columns: 1fr;
+    }
+
+    .team-roster-row {
+        grid-template-columns: 44px minmax(0, 1fr);
+    }
+
+    .team-roster-role,
+    .team-roster-row .member-stats,
+    .member-remove-form {
+        grid-column: 2;
+        justify-self: flex-start;
+    }
+
+    .tournament-standings-row {
+        display: flex;
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .tournament-standings-row .member-remove-form {
+        grid-column: auto;
     }
 }
 

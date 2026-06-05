@@ -26,6 +26,9 @@ class User extends Authenticatable
         'avatar',
         'theme',
         'role',
+        'is_banned',
+        'banned_at',
+        'ban_reason',
     ];
 
     protected $hidden = [
@@ -39,11 +42,18 @@ class User extends Authenticatable
         'updated_at' => 'datetime',
         'theme' => 'string',
         'role' => 'string',
+        'is_banned' => 'boolean',
+        'banned_at' => 'datetime',
     ];
 
     public function isAdmin(): bool
     {
         return $this->role === 'admin';
+    }
+
+    public function isBanned(): bool
+    {
+        return (bool) $this->is_banned;
     }
 
     public function challenges()
@@ -95,6 +105,11 @@ class User extends Authenticatable
     public function notifications()
     {
         return $this->hasMany(Notification::class);
+    }
+
+    public function emailVerificationCodes()
+    {
+        return $this->hasMany(EmailVerificationCode::class);
     }
 
     public function getRankPercentage()

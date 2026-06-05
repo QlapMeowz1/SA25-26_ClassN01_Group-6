@@ -131,6 +131,20 @@
                     <span class="tournament-roster-count">{{ $participantsCount }} players</span>
                 </div>
 
+                @if($canManageTournament)
+                    <form method="POST" action="{{ route('tournaments.participants.add', $tournament->id) }}" class="member-manage-form">
+                        @csrf
+                        <label for="tournament_participant_user_id">Add participant</label>
+                        <select id="tournament_participant_user_id" name="user_id" required>
+                            <option value="">Choose a player...</option>
+                            @foreach($availableUsers as $candidate)
+                                <option value="{{ $candidate->id }}">{{ $candidate->name }} - {{ $candidate->email }}</option>
+                            @endforeach
+                        </select>
+                        <button type="submit" class="btn btn-primary btn-small" @disabled($availableUsers->isEmpty() || $isFull)>Add</button>
+                    </form>
+                @endif
+
                 <div class="participant-list tournament-participant-list tournament-standings-list">
                     @forelse($participants as $p)
                         <article class="tournament-participant-row tournament-standings-row">
@@ -147,6 +161,13 @@
                                 <span>{{ $p->user->losses ?? 0 }}L</span>
                             </div>
                             <strong>{{ $p->points ?? 0 }} pts</strong>
+                            @if($canManageTournament && (int) $p->user_id !== (int) $tournament->organizer_id)
+                                <form method="POST" action="{{ route('tournaments.participants.remove', [$tournament->id, $p->user_id]) }}" class="member-remove-form" onsubmit="return confirm('Remove this participant from the tournament?');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-danger btn-small">Remove</button>
+                                </form>
+                            @endif
                         </article>
                     @empty
                         <div class="empty-state compact-empty">

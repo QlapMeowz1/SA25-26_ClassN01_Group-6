@@ -67,6 +67,12 @@ Route::middleware('guest')->group(function () {
 
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->name('logout');
 
+Route::middleware('auth')->group(function () {
+    Route::get('/email/verify-code', [\App\Http\Controllers\EmailVerificationController::class, 'notice'])->name('verification.notice');
+    Route::post('/email/verify-code', [\App\Http\Controllers\EmailVerificationController::class, 'verify'])->name('verification.verify');
+    Route::post('/email/verification-code/resend', [\App\Http\Controllers\EmailVerificationController::class, 'resend'])->name('verification.resend');
+});
+
 // Dashboard
 Route::get('/dashboard', [DashboardController::class, 'index'])->middleware('auth')->name('dashboard');
 
@@ -76,6 +82,9 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/players', [\App\Http\Controllers\Admin\PlayersController::class, 'index'])->name('players');
     Route::get('/players/create', [\App\Http\Controllers\Admin\PlayersController::class, 'create'])->name('players.create');
     Route::post('/players', [\App\Http\Controllers\Admin\PlayersController::class, 'store'])->name('players.store');
+    Route::post('/players/{user}/ban', [\App\Http\Controllers\Admin\PlayersController::class, 'ban'])->name('players.ban');
+    Route::post('/players/{user}/unban', [\App\Http\Controllers\Admin\PlayersController::class, 'unban'])->name('players.unban');
+    Route::delete('/players/{user}', [\App\Http\Controllers\Admin\PlayersController::class, 'destroy'])->name('players.destroy');
     Route::get('/users', fn () => redirect()->route('admin.players'))->name('users');
     Route::get('/tournaments', [\App\Http\Controllers\Admin\TournamentsController::class, 'index'])->name('tournaments');
     Route::get('/tournaments/create', [\App\Http\Controllers\Admin\TournamentsController::class, 'create'])->name('tournaments.create');
@@ -92,7 +101,9 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/statistics', [\App\Http\Controllers\Admin\StatisticsController::class, 'index'])->name('statistics');
     Route::get('/bets', fn () => redirect()->route('admin.betting'))->name('bets');
     Route::get('/matches', fn () => redirect()->route('admin.schedule'))->name('matches');
-    Route::get('/content', fn () => redirect()->route('admin.dashboard'))->name('content');
+    Route::get('/content', [\App\Http\Controllers\AdminController::class, 'content'])->name('content');
+    Route::post('/posts/{post}/delete', [\App\Http\Controllers\AdminController::class, 'destroyPost'])->name('posts.delete');
+    Route::post('/comments/{comment}/delete', [\App\Http\Controllers\AdminController::class, 'destroyComment'])->name('comments.delete');
 });
 
 // Profile Routes
@@ -140,6 +151,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/teams/create', [TeamController::class, 'create'])->name('teams.create');
     Route::get('/teams/{team}', [TeamController::class, 'show'])->name('teams.show');
     Route::post('/teams', [TeamController::class, 'store'])->name('teams.store');
+    Route::post('/teams/sample/join', [TeamController::class, 'joinSample'])->name('teams.sampleJoin');
+    Route::post('/teams/{team}/members', [TeamController::class, 'addMember'])->name('teams.members.add');
+    Route::delete('/teams/{team}/members/{user}', [TeamController::class, 'removeMember'])->name('teams.members.remove');
     Route::post('/teams/{team}/join', [TeamController::class, 'join'])->name('teams.join');
     Route::post('/teams/{team}/leave', [TeamController::class, 'leave'])->name('teams.leave');
 });
@@ -148,8 +162,11 @@ Route::middleware('auth')->group(function () {
 Route::middleware('auth')->group(function () {
     Route::get('/tournaments', [TournamentController::class, 'index'])->name('tournaments.index');
     Route::get('/tournaments/create', [TournamentController::class, 'create'])->name('tournaments.create');
+    Route::get('/tournaments/preview/{sampleId}', [TournamentController::class, 'preview'])->name('tournaments.preview');
     Route::get('/tournaments/{tournament}', [TournamentController::class, 'show'])->name('tournaments.show');
     Route::post('/tournaments', [TournamentController::class, 'store'])->name('tournaments.store');
+    Route::post('/tournaments/{tournament}/participants', [TournamentController::class, 'addParticipant'])->name('tournaments.participants.add');
+    Route::delete('/tournaments/{tournament}/participants/{user}', [TournamentController::class, 'removeParticipant'])->name('tournaments.participants.remove');
     Route::post('/tournaments/{tournament}/join', [TournamentController::class, 'join'])->name('tournaments.join');
     Route::post('/tournaments/{tournament}/leave', [TournamentController::class, 'leave'])->name('tournaments.leave');
 });
