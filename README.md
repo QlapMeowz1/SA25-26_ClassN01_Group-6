@@ -260,3 +260,4 @@ See [SETUP.md](SETUP.md#18-production-configuration) for the full deployment che
 ## License
 
 This project was developed for educational use.
+For any questions, please contact: hunter_rain@hotmail.com
