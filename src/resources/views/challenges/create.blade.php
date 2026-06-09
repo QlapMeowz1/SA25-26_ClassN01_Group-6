@@ -22,6 +22,28 @@
 
     <div class="challenge-create-layout">
         <section class="challenge-form-panel">
+            <form method="GET" action="{{ route('challenges.create') }}" class="challenge-find-form">
+                <div class="form-group">
+                    <label for="search">Find opponent</label>
+                    <input id="search" type="search" name="search" value="{{ $search }}" placeholder="Search by name, email, or rank">
+                </div>
+                <div class="form-group">
+                    <label for="rank">Rank</label>
+                    <select id="rank" name="rank">
+                        <option value="">Any rank</option>
+                        @foreach($rankOptions as $option)
+                            <option value="{{ $option }}" @selected($rank === $option)>{{ $option }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="challenge-find-actions">
+                    <button type="submit" class="btn btn-secondary">Find Opponent</button>
+                    @if($search !== '' || $rank !== '')
+                        <a href="{{ route('challenges.create') }}" class="btn btn-secondary">Reset</a>
+                    @endif
+                </div>
+            </form>
+
             <form method="POST" action="{{ route('challenges.store') }}" class="challenge-form">
                 @csrf
 
@@ -63,15 +85,25 @@
                 </div>
 
                 <div class="challenge-opponent-list">
-                    @foreach($users->getCollection()->take(6) as $user)
-                        <a href="{{ route('challenges.create') }}?opponent_id={{ $user->id }}" class="challenge-opponent-row">
-                            <span class="challenge-avatar">{{ strtoupper(substr($user->name, 0, 1)) }}</span>
-                            <span class="challenge-opponent-body">
-                                <strong>{{ $user->name }}</strong>
-                                <small>{{ $user->rank }} - {{ $user->elo_rating }} ELO</small>
-                            </span>
-                        </a>
-                    @endforeach
+                    @forelse($recommendedUsers as $user)
+                        <div class="challenge-opponent-row challenge-opponent-row-action">
+                            <a href="{{ route('challenges.create', array_filter(['opponent_id' => $user->id, 'search' => $search, 'rank' => $rank])) }}" class="challenge-opponent-link">
+                                <span class="challenge-avatar">{{ strtoupper(substr($user->name, 0, 1)) }}</span>
+                                <span class="challenge-opponent-body">
+                                    <strong>{{ $user->name }}</strong>
+                                    <small>{{ $user->rank }} - {{ $user->elo_rating }} ELO</small>
+                                </span>
+                            </a>
+                            <form method="POST" action="{{ route('challenges.store') }}">
+                                @csrf
+                                <input type="hidden" name="opponent_id" value="{{ $user->id }}">
+                                <input type="hidden" name="message" value="Want to play a friendly 3-set badminton challenge this week?">
+                                <button type="submit" class="btn btn-primary btn-small">Challenge</button>
+                            </form>
+                        </div>
+                    @empty
+                        <div class="empty-inline">No opponents found.</div>
+                    @endforelse
                 </div>
             </section>
         </aside>
@@ -80,5 +112,11 @@
     <div class="challenge-pagination">
         {{ $users->links() }}
     </div>
+
+    @if($users->isEmpty())
+        <div class="empty-panel challenge-empty-panel">
+            @include('partials.empty-illustration', ['title' => 'No matching opponents', 'message' => 'Try a different keyword or rank filter.'])
+        </div>
+    @endif
 </div>
 @endsection

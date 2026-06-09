@@ -181,7 +181,7 @@
 
         <div class="tournament-filter-bar" role="tablist" aria-label="Tournament filters">
             <button type="button" class="tournament-filter-btn is-active" data-filter="all">{{ __('ui.tournament.all_filter') }} <span>{{ $allTournaments->count() }}</span></button>
-            <button type="button" class="tournament-filter-btn" data-filter="upcoming">{{ __('ui.tournament.upcoming_filter') }} <span>{{ $upcomingTournaments->count() }}</span></button>
+            <button type="button" class="tournament-filter-btn" data-filter="registration open">Registration Open <span>{{ $upcomingTournaments->count() }}</span></button>
             <button type="button" class="tournament-filter-btn" data-filter="ongoing">{{ __('ui.tournament.ongoing_filter') }} <span>{{ $ongoingTournaments->count() }}</span></button>
             <button type="button" class="tournament-filter-btn" data-filter="completed">{{ __('ui.tournament.completed_filter') }} <span>{{ $completedTournaments->count() }}</span></button>
         </div>

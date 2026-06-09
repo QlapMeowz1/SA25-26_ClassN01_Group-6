@@ -1,14 +1,16 @@
 @php
-    $adminLinks = [
+    $adminUser = auth()->user();
+    $adminLinks = collect([
         ['route' => 'admin.dashboard', 'match' => 'admin.dashboard', 'icon' => 'grid', 'label' => 'Dashboard'],
-        ['route' => 'admin.players', 'match' => 'admin.players', 'icon' => 'users', 'label' => 'Players'],
+        ['route' => 'admin.players', 'match' => 'admin.players', 'icon' => 'users', 'label' => 'Players', 'show' => $adminUser?->canManageUsers()],
         ['route' => 'admin.tournaments', 'match' => 'admin.tournaments', 'icon' => 'trophy', 'label' => 'Tournaments'],
         ['route' => 'admin.schedule', 'match' => 'admin.schedule', 'icon' => 'calendar', 'label' => 'Schedule'],
         ['route' => 'admin.court-bookings', 'match' => 'admin.court-bookings', 'icon' => 'book', 'label' => 'Court Bookings'],
-        ['route' => 'admin.betting', 'match' => 'admin.betting', 'icon' => 'coins', 'label' => 'Betting'],
-        ['route' => 'admin.content', 'match' => 'admin.content', 'icon' => 'content', 'label' => 'Moderation'],
+        ['route' => 'admin.betting', 'match' => 'admin.betting', 'icon' => 'coins', 'label' => 'Betting', 'show' => $adminUser?->canManageBetting()],
+        ['route' => 'admin.content', 'match' => 'admin.content', 'icon' => 'content', 'label' => 'Moderation', 'show' => $adminUser?->canModerateContent()],
         ['route' => 'admin.statistics', 'match' => 'admin.statistics', 'icon' => 'chart', 'label' => 'Statistics'],
-    ];
+        ['route' => 'admin.audit', 'match' => 'admin.audit', 'icon' => 'content', 'label' => 'Audit Log', 'show' => $adminUser?->isAdmin()],
+    ])->filter(fn ($link) => $link['show'] ?? true)->values();
 
     $adminIcon = function ($name) {
         return match ($name) {
@@ -59,7 +61,7 @@
         <span class="admin-sidebar-avatar">{{ strtoupper(substr(auth()->user()->name ?? 'A', 0, 2)) }}</span>
         <div>
             <strong>{{ auth()->user()->name ?? 'Admin' }}</strong>
-            <span>Super Admin</span>
+            <span>{{ \Illuminate\Support\Str::headline($adminUser?->role ?? 'admin') }}</span>
         </div>
         <span class="admin-sidebar-bell" aria-hidden="true">⌕</span>
     </div>

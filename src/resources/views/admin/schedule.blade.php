@@ -48,6 +48,22 @@
                         </div>
                         <span>{{ $match['id'] }}</span>
                     </article>
+                    @if(($match['raw_status'] ?? null) === 'disputed')
+                        <form method="POST" action="{{ route('admin.matches.resolve-dispute', $match['database_id']) }}" class="admin-record-form">
+                            @csrf
+                            <p><strong>Dispute:</strong> {{ $match['dispute_reason'] }}</p>
+                            <div class="admin-form-grid">
+                                <input type="number" name="player1_score" min="0" placeholder="Player 1 score" required>
+                                <input type="number" name="player2_score" min="0" placeholder="Player 2 score" required>
+                                <select name="winner_id" required>
+                                    <option value="">Winner</option>
+                                    <option value="{{ $match['player1_id'] }}">Player 1</option>
+                                    <option value="{{ $match['player2_id'] }}">Player 2</option>
+                                </select>
+                                <button class="btn btn-primary" type="submit" onclick="return confirm('Finalize this disputed result and settle bets?');">Resolve Dispute</button>
+                            </div>
+                        </form>
+                    @endif
                 @empty
                     <div class="empty-inline">No matches on this day.</div>
                 @endforelse

@@ -9,7 +9,7 @@ class EnsureUserIsAdmin
 {
     public function handle(Request $request, Closure $next)
     {
-        if (!$request->user() || !$request->user()->isAdmin()) {
+        if (!$request->user() || !$request->user()->hasAdminAccess()) {
             abort(403, 'Admin access required.');
         }
 

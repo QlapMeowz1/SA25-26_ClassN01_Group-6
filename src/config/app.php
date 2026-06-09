@@ -7,11 +7,13 @@ return [
 
     'debug' => (bool) env('APP_DEBUG', false),
 
+    'demo_data' => (bool) env('APP_DEMO_DATA', env('APP_ENV', 'local') === 'local'),
+
     'url' => env('APP_URL', 'http://localhost'),
 
     'asset_url' => env('ASSET_URL'),
 
-    'timezone' => 'UTC',
+    'timezone' => env('APP_TIMEZONE', 'Asia/Ho_Chi_Minh'),
 
     'locale' => 'en',
 
@@ -30,6 +32,7 @@ return [
     'providers' => [
         App\Providers\RouteServiceProvider::class,
         App\Providers\SupabaseServiceProvider::class,
+        App\Providers\BroadcastServiceProvider::class,
         Illuminate\Auth\AuthServiceProvider::class,
         Illuminate\Broadcasting\BroadcastServiceProvider::class,
         Illuminate\Bus\BusServiceProvider::class,

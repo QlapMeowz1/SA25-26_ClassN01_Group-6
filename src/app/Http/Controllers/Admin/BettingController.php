@@ -5,14 +5,19 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Bet;
 use App\Models\GameMatch;
+use App\Models\Notification;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use App\Services\BetService;
+use App\Services\AuditService;
 
 class BettingController extends Controller
 {
     public function index(Request $request)
     {
+        $this->authorizeBettingManagement();
+
         $filters = [
             'q' => trim((string) $request->query('q', '')),
             'status' => (string) $request->query('status', 'all'),
@@ -34,15 +39,17 @@ class BettingController extends Controller
 
         $selectedMatch = $request->query('match');
         $selectedTicket = collect($tickets)->firstWhere('match_id', $selectedMatch ? (int) $selectedMatch : null)
-            ?? ($tickets[0] ?? $allTickets[0] ?? AdminMockData::betting()[0]);
+            ?? ($tickets[0] ?? $allTickets[0] ?? (config('app.demo_data') ? AdminMockData::betting()[0] : []));
         $transactions = $this->transactions();
         $stats = $this->stats($allTickets, $transactions);
 
         return view('admin.betting', compact('tickets', 'selectedTicket', 'transactions', 'filters', 'stats'));
     }
 
-    public function approve(GameMatch $match)
+    public function approve(GameMatch $match, AuditService $audit)
     {
+        $this->authorizeBettingManagement();
+
         if (!$match->player1_id || !$match->player2_id) {
             return back()->with('error', 'Kèo cần đủ 2 người chơi trước khi mở.');
         }
@@ -51,28 +58,43 @@ class BettingController extends Controller
             return back()->with('error', 'Không thể mở kèo cho trận đã hoàn tất hoặc đã hủy.');
         }
 
+        $before = $match->only(['betting_status', 'odds_updated_by', 'odds_updated_at']);
         $match->update([
             'betting_status' => 'open',
             'odds_updated_by' => auth()->id(),
             'odds_updated_at' => now(),
         ]);
+        $audit->record('betting.market_approved', $match, $before, $match->fresh()->only(array_keys($before)));
 
         return back()->with('success', 'Đã duyệt và mở kèo cá cược.');
     }
 
-    public function cancel(GameMatch $match)
+    public function cancel(GameMatch $match, BetService $betService, AuditService $audit)
     {
-        $match->update([
-            'betting_status' => 'cancelled',
-            'odds_updated_by' => auth()->id(),
-            'odds_updated_at' => now(),
-        ]);
+        $this->authorizeBettingManagement();
 
-        return back()->with('success', 'Đã tạm dừng nhận cược cho kèo này.');
+        $before = $match->only(['betting_status', 'odds_updated_by', 'odds_updated_at']);
+        DB::transaction(function () use ($match, $betService) {
+            $match->update([
+                'betting_status' => 'cancelled',
+                'odds_updated_by' => auth()->id(),
+                'odds_updated_at' => now(),
+            ]);
+
+            $betService->refundMatch($match, auth()->user());
+        });
+        $audit->record('betting.market_cancelled', $match, $before, $match->fresh()->only(array_keys($before)));
+
+        $this->notifyBettors($match, 'betting_cancelled', 'Betting Refunded', 'Betting has been suspended for ' . $this->matchLabel($match) . '. Pending stakes were returned to wallets.');
+        app(BetService::class)->broadcastPoolUpdate($match, true);
+
+        return back()->with('success', 'Đã tạm dừng kèo và hoàn điểm cho các vé đang chờ.');
     }
 
-    public function updateOdds(GameMatch $match, Request $request)
+    public function updateOdds(GameMatch $match, Request $request, AuditService $audit)
     {
+        $this->authorizeBettingManagement();
+
         $validated = $request->validate([
             'player1_odds' => ['required', 'numeric', 'min:1.01', 'max:50'],
             'player2_odds' => ['required', 'numeric', 'min:1.01', 'max:50'],
@@ -86,24 +108,37 @@ class BettingController extends Controller
             return back()->with('error', 'Không thể chỉnh tỉ lệ sau khi trận đã hoàn tất.');
         }
 
+        $before = $match->only(['player1_odds', 'player2_odds', 'odds_updated_by', 'odds_updated_at']);
         $match->update([
             'player1_odds' => round((float) $validated['player1_odds'], 2),
             'player2_odds' => round((float) $validated['player2_odds'], 2),
             'odds_updated_by' => auth()->id(),
             'odds_updated_at' => now(),
         ]);
+        $audit->record('betting.odds_updated', $match, $before, $match->fresh()->only(array_keys($before)));
+
+        $this->notifyBettors(
+            $match,
+            'odds_changed',
+            'Odds Changed',
+            'Odds changed for ' . $this->matchLabel($match) . ': ' . number_format((float) $validated['player1_odds'], 2) . ' / ' . number_format((float) $validated['player2_odds'], 2) . '.'
+        );
 
         return back()->with('success', 'Đã cập nhật tỉ lệ cá cược.');
     }
 
-    public function deleteOdds(GameMatch $match)
+    public function deleteOdds(GameMatch $match, AuditService $audit)
     {
+        $this->authorizeBettingManagement();
+
+        $before = $match->only(['player1_odds', 'player2_odds', 'odds_updated_by', 'odds_updated_at']);
         $match->update([
             'player1_odds' => null,
             'player2_odds' => null,
             'odds_updated_by' => auth()->id(),
             'odds_updated_at' => now(),
         ]);
+        $audit->record('betting.odds_deleted', $match, $before, $match->fresh()->only(array_keys($before)));
 
         return back()->with('success', 'Đã xóa tỉ lệ thủ công. Hệ thống sẽ tự tính lại.');
     }
@@ -116,7 +151,7 @@ class BettingController extends Controller
             ->latest('match_date')
             ->get();
 
-        if ($matches->isEmpty()) {
+        if (config('app.demo_data') && $matches->isEmpty()) {
             return AdminMockData::betting();
         }
 
@@ -153,7 +188,7 @@ class BettingController extends Controller
             ];
         })->all();
 
-        if (count($tickets) < 8 || array_sum(array_column($tickets, 'pool')) < 100000) {
+        if (config('app.demo_data') && (count($tickets) < 8 || array_sum(array_column($tickets, 'pool')) < 100000)) {
             $existingNames = collect($tickets)->pluck('match')->map(fn ($name) => Str::lower($name))->all();
             $supplemental = array_values(array_filter(AdminMockData::betting(), function ($ticket) use ($existingNames) {
                 return !in_array(Str::lower($ticket['match']), $existingNames, true);
@@ -165,6 +200,32 @@ class BettingController extends Controller
         return $tickets;
     }
 
+    private function notifyBettors(GameMatch $match, string $type, string $title, string $message): void
+    {
+        $userIds = Bet::where('match_id', $match->id)
+            ->whereIn('status', ['pending', 'live', 'refunded'])
+            ->distinct()
+            ->pluck('user_id');
+
+        foreach ($userIds as $userId) {
+            Notification::create([
+                'user_id' => $userId,
+                'title' => $title,
+                'message' => $message,
+                'type' => $type,
+                'related_user_id' => auth()->id(),
+                'target_url' => route('matches.show', $match->id),
+            ]);
+        }
+    }
+
+    private function matchLabel(GameMatch $match): string
+    {
+        $match->loadMissing(['player1', 'player2']);
+
+        return ($match->player1?->name ?? 'Player 1') . ' vs ' . ($match->player2?->name ?? 'Player 2');
+    }
+
     private function transactions(): array
     {
         $transactions = Bet::with(['user', 'gameMatch', 'betOnUser'])
@@ -172,7 +233,7 @@ class BettingController extends Controller
             ->limit(10)
             ->get();
 
-        if ($transactions->isEmpty()) {
+        if (config('app.demo_data') && $transactions->isEmpty()) {
             return AdminMockData::transactions();
         }
 
@@ -189,7 +250,7 @@ class BettingController extends Controller
             'time' => optional($bet->created_at)->isToday() ? $bet->created_at->format('H:i') : optional($bet->created_at)->diffForHumans(),
         ])->all();
 
-        if (count($rows) < 10) {
+        if (config('app.demo_data') && count($rows) < 10) {
             $existingIds = collect($rows)->pluck('id')->all();
             $supplemental = array_values(array_filter(AdminMockData::transactions(), function ($transaction) use ($existingIds) {
                 return !in_array($transaction['id'], $existingIds, true);
@@ -201,6 +262,11 @@ class BettingController extends Controller
         return $rows;
     }
 
+    private function authorizeBettingManagement(): void
+    {
+        abort_unless(auth()->user()?->canManageBetting(), 403);
+    }
+
     private function stats(array $tickets, array $transactions): array
     {
         $totalPool = array_sum(array_column($tickets, 'pool'));
@@ -208,10 +274,10 @@ class BettingController extends Controller
         $bettors = collect($transactions)->pluck('user')->filter()->unique()->count();
 
         return [
-            ['label' => 'Tổng quỹ cược', 'value' => $this->moneyShort($totalPool), 'icon' => '$', 'change' => '+18%', 'note' => 'tuần này', 'tone' => 'lime'],
-            ['label' => 'Kèo đang mở', 'value' => (string) collect($tickets)->whereIn('state', ['open', 'live'])->count(), 'icon' => '↗', 'change' => '', 'note' => 'trận đang nhận cược', 'tone' => 'blue'],
-            ['label' => 'Người đặt cược', 'value' => number_format(max($bettors, 0)), 'icon' => '♙', 'change' => '+124', 'note' => 'hôm nay', 'tone' => 'purple'],
-            ['label' => 'Doanh thu hoa hồng', 'value' => $this->moneyShort($commission), 'icon' => '⌁', 'change' => '+22%', 'note' => '5% hoa hồng', 'tone' => 'green'],
+            ['label' => 'Total Pool', 'value' => $this->moneyShort($totalPool), 'icon' => '$', 'change' => '+18%', 'note' => 'this week', 'tone' => 'lime'],
+            ['label' => 'Open Markets', 'value' => (string) collect($tickets)->whereIn('state', ['open', 'live'])->count(), 'icon' => '↗', 'change' => '', 'note' => 'accepting stakes', 'tone' => 'blue'],
+            ['label' => 'Bettors', 'value' => number_format(max($bettors, 0)), 'icon' => '♙', 'change' => '+124', 'note' => 'today', 'tone' => 'purple'],
+            ['label' => 'Commission Revenue', 'value' => $this->moneyShort($commission), 'icon' => '⌁', 'change' => '+22%', 'note' => '5% system tax', 'tone' => 'green'],
         ];
     }
 

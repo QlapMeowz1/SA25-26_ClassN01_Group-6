@@ -57,6 +57,23 @@ class DashboardController extends Controller
 
         $leaderboard = User::orderBy('elo_rating', 'desc')->limit(10)->get();
 
+        $predictionMasters = User::query()
+            ->select('users.*')
+            ->selectSub(function ($query) {
+                $query->from('bets')
+                    ->selectRaw('COUNT(*)')
+                    ->whereColumn('bets.user_id', 'users.id');
+            }, 'prediction_count')
+            ->selectSub(function ($query) {
+                $query->from('bets')
+                    ->selectRaw("SUM(CASE WHEN status = 'won' THEN 1 ELSE 0 END)")
+                    ->whereColumn('bets.user_id', 'users.id');
+            }, 'prediction_wins')
+            ->orderByDesc('prediction_wins')
+            ->orderByDesc('prediction_count')
+            ->limit(6)
+            ->get();
+
         $onlinePlayers = User::where('id', '!=', $user->id)
             ->orderBy('elo_rating', 'desc')
             ->limit(8)
@@ -74,7 +91,8 @@ class DashboardController extends Controller
             'notifications',
             'openMatches',
             'communityPosts',
-            'onlinePlayers'
+            'onlinePlayers',
+            'predictionMasters'
         ));
     }
 }

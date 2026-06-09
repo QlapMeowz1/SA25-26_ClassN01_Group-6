@@ -27,7 +27,7 @@
                 @csrf
                 <button type="submit" class="btn btn-primary">{{ __('ui.match.quick') }}</button>
             </form>
-            <a href="{{ route('matches.create') }}" class="btn btn-secondary">{{ __('ui.match.create') }}</a>
+            <a href="{{ route('matches.create') }}" class="btn btn-primary">Create Match / Find Court</a>
         </div>
     </section>
 
@@ -65,11 +65,20 @@
             </select>
         </div>
 
-        <div class="match-filter-levels" role="radiogroup" aria-label="Skill level">
-            @foreach(['Beginner' => __('ui.match.beginner'), 'Intermediate' => __('ui.match.intermediate'), 'Advanced' => __('ui.match.advanced'), 'Professional' => __('ui.match.professional')] as $levelValue => $levelLabel)
+        <div class="match-filter-levels match-quick-tabs" role="radiogroup" aria-label="Skill level">
+            @foreach(['Beginner' => 'Weak', 'Intermediate' => 'Intermediate', 'Advanced' => 'Good'] as $levelValue => $levelLabel)
                 <label class="match-chip">
                     <input type="radio" name="skill_level" value="{{ $levelValue }}" @checked(($filters['skill_level'] ?? '') === $levelValue)>
                     <span>{{ $levelLabel }}</span>
+                </label>
+            @endforeach
+        </div>
+
+        <div class="match-filter-levels match-quick-tabs" role="radiogroup" aria-label="Match type">
+            @foreach(['singles' => 'Singles', 'doubles' => 'Doubles'] as $typeValue => $typeLabel)
+                <label class="match-chip">
+                    <input type="radio" name="type" value="{{ $typeValue }}" @checked(($filters['type'] ?? '') === $typeValue)>
+                    <span>{{ $typeLabel }}</span>
                 </label>
             @endforeach
         </div>

@@ -34,7 +34,7 @@ class TournamentsController extends Controller
             })
             ->all();
 
-        if ($tournaments === []) {
+        if (config('app.demo_data') && $tournaments === []) {
             $tournaments = AdminMockData::tournaments();
         }
 

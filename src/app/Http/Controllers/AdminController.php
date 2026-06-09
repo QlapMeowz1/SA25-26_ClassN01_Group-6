@@ -14,6 +14,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
+use App\Services\AuditService;
 
 class AdminController extends Controller
 {
@@ -107,7 +108,9 @@ class AdminController extends Controller
 
     public function content(Request $request)
     {
-        $posts = Post::with('user')
+        abort_unless($request->user()?->canModerateContent(), 403);
+
+        $posts = Post::withTrashed()->with('user')
             ->withCount(['likes', 'comments'])
             ->when($request->filled('search'), function ($builder) use ($request) {
                 $search = $request->string('search');
@@ -128,28 +131,32 @@ class AdminController extends Controller
         return view('admin.content', compact('posts', 'comments'));
     }
 
-    public function destroyPost(Post $post)
+    public function destroyPost(Post $post, AuditService $audit)
     {
-        DB::transaction(function () use ($post) {
-            $commentIds = $post->comments()->pluck('id');
+        abort_unless(auth()->user()?->canModerateContent(), 403);
 
-            if (Schema::hasTable('comment_likes') && $commentIds->isNotEmpty()) {
-                DB::table('comment_likes')->whereIn('comment_id', $commentIds)->delete();
-            }
+        $audit->record('post.deleted', $post, $post->only(['user_id', 'content']), []);
+        $post->delete();
 
-            if (Schema::hasTable('post_likes')) {
-                DB::table('post_likes')->where('post_id', $post->id)->delete();
-            }
-
-            $post->comments()->delete();
-            $post->delete();
-        });
-
-        return back()->with('success', 'Post removed by admin.');
+        return back()->with('success', 'Post moved to trash.');
     }
 
-    public function destroyComment(Comment $comment)
+    public function restorePost(int $post, AuditService $audit)
     {
+        abort_unless(auth()->user()?->canModerateContent(), 403);
+
+        $model = Post::withTrashed()->findOrFail($post);
+        $model->restore();
+        $audit->record('post.restored', $model);
+
+        return back()->with('success', 'Post restored.');
+    }
+
+    public function destroyComment(Comment $comment, AuditService $audit)
+    {
+        abort_unless(auth()->user()?->canModerateContent(), 403);
+        $audit->record('comment.deleted', $comment, $comment->only(['user_id', 'post_id', 'content']), []);
+
         DB::transaction(function () use ($comment) {
             $commentIds = collect([$comment->id]);
 
@@ -173,7 +180,9 @@ class AdminController extends Controller
 
     public function matches(Request $request)
     {
-        $matches = GameMatch::with(['player1', 'player2', 'winner'])
+        abort_unless($request->user()?->isAdmin(), 403);
+
+        $matches = GameMatch::withTrashed()->with(['player1', 'player2', 'winner'])
             ->withCount('bets')
             ->when($request->filled('status'), fn ($builder) => $builder->where('status', $request->string('status')))
             ->latest()
@@ -181,6 +190,31 @@ class AdminController extends Controller
             ->withQueryString();
 
         return view('admin.matches', compact('matches'));
+    }
+
+    public function destroyMatch(GameMatch $match, AuditService $audit)
+    {
+        abort_unless(auth()->user()?->isAdmin(), 403);
+
+        if ($match->bets()->whereIn('status', ['pending', 'live'])->exists()) {
+            return back()->with('error', 'Cancel and refund the betting market before deleting this match.');
+        }
+
+        $audit->record('match.deleted', $match, $match->toArray(), []);
+        $match->delete();
+
+        return back()->with('success', 'Match moved to trash.');
+    }
+
+    public function restoreMatch(int $match, AuditService $audit)
+    {
+        abort_unless(auth()->user()?->isAdmin(), 403);
+
+        $model = GameMatch::withTrashed()->findOrFail($match);
+        $model->restore();
+        $audit->record('match.restored', $model);
+
+        return back()->with('success', 'Match restored.');
     }
 
     public function tournaments(Request $request)

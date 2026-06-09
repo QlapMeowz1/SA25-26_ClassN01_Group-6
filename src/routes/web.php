@@ -11,6 +11,8 @@ use App\Http\Controllers\TournamentController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\ThemeController;
+use App\Http\Controllers\PasswordResetController;
+use App\Http\Controllers\AccountSecurityController;
 use App\Models\GameMatch;
 use App\Models\Challenge;
 use App\Models\Post;
@@ -65,6 +67,15 @@ Route::middleware('guest')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
 });
 
+Route::get('/forgot-password', [PasswordResetController::class, 'create'])->name('password.request');
+Route::post('/forgot-password', [PasswordResetController::class, 'store'])
+    ->middleware('throttle:5,1')
+    ->name('password.email');
+Route::get('/reset-password/{token}', [PasswordResetController::class, 'edit'])->name('password.reset');
+Route::post('/reset-password', [PasswordResetController::class, 'update'])
+    ->middleware('throttle:5,1')
+    ->name('password.update');
+
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->name('logout');
 
 Route::middleware('auth')->group(function () {
@@ -83,9 +94,13 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/players/create', [\App\Http\Controllers\Admin\PlayersController::class, 'create'])->name('players.create');
     Route::post('/players', [\App\Http\Controllers\Admin\PlayersController::class, 'store'])->name('players.store');
     Route::post('/players/{user}/role', [\App\Http\Controllers\Admin\PlayersController::class, 'updateRole'])->name('players.role');
+    Route::post('/players/{user}/wallet', [\App\Http\Controllers\Admin\PlayersController::class, 'updateWallet'])->name('players.wallet');
     Route::post('/players/{user}/ban', [\App\Http\Controllers\Admin\PlayersController::class, 'ban'])->name('players.ban');
     Route::post('/players/{user}/unban', [\App\Http\Controllers\Admin\PlayersController::class, 'unban'])->name('players.unban');
     Route::delete('/players/{user}', [\App\Http\Controllers\Admin\PlayersController::class, 'destroy'])->name('players.destroy');
+    Route::post('/players/{user}/restore', [\App\Http\Controllers\Admin\PlayersController::class, 'restore'])->name('players.restore');
+    Route::post('/players/bulk', [\App\Http\Controllers\Admin\PlayersController::class, 'bulk'])->name('players.bulk');
+    Route::get('/players-export', [\App\Http\Controllers\Admin\PlayersController::class, 'export'])->name('players.export');
     Route::get('/users', fn () => redirect()->route('admin.players'))->name('users');
     Route::get('/tournaments', [\App\Http\Controllers\Admin\TournamentsController::class, 'index'])->name('tournaments');
     Route::get('/tournaments/create', [\App\Http\Controllers\Admin\TournamentsController::class, 'create'])->name('tournaments.create');
@@ -101,10 +116,15 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::post('/betting/matches/{match}/cancel', [\App\Http\Controllers\Admin\BettingController::class, 'cancel'])->name('betting.cancel');
     Route::get('/statistics', [\App\Http\Controllers\Admin\StatisticsController::class, 'index'])->name('statistics');
     Route::get('/bets', fn () => redirect()->route('admin.betting'))->name('bets');
-    Route::get('/matches', fn () => redirect()->route('admin.schedule'))->name('matches');
+    Route::get('/matches', [\App\Http\Controllers\AdminController::class, 'matches'])->name('matches');
     Route::get('/content', [\App\Http\Controllers\AdminController::class, 'content'])->name('content');
     Route::post('/posts/{post}/delete', [\App\Http\Controllers\AdminController::class, 'destroyPost'])->name('posts.delete');
+    Route::post('/posts/{post}/restore', [\App\Http\Controllers\AdminController::class, 'restorePost'])->name('posts.restore');
     Route::post('/comments/{comment}/delete', [\App\Http\Controllers\AdminController::class, 'destroyComment'])->name('comments.delete');
+    Route::get('/audit', [\App\Http\Controllers\Admin\AuditController::class, 'index'])->name('audit');
+    Route::delete('/matches/{match}', [\App\Http\Controllers\AdminController::class, 'destroyMatch'])->name('matches.destroy');
+    Route::post('/matches/{match}/restore', [\App\Http\Controllers\AdminController::class, 'restoreMatch'])->name('matches.restore');
+    Route::post('/matches/{match}/resolve-dispute', [\App\Http\Controllers\Admin\ScheduleController::class, 'resolveDispute'])->name('matches.resolve-dispute');
 });
 
 // Profile Routes
@@ -114,6 +134,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::post('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
     Route::get('/profile/{id}', [ProfileController::class, 'show'])->whereNumber('id')->name('profile.show');
+    Route::post('/settings/password', [AccountSecurityController::class, 'updatePassword'])->name('settings.password.update');
+    Route::post('/settings/logout-other-devices', [AccountSecurityController::class, 'logoutOtherDevices'])->name('settings.sessions.logout-others');
 });
 
 // Challenge Routes
@@ -141,6 +163,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/matches/{match}/requests/{joinRequest}/reject', [MatchController::class, 'rejectRequest'])->name('matches.requests.reject');
     Route::post('/matches/{match}/start', [MatchController::class, 'startMatch'])->name('matches.start');
     Route::post('/matches/{match}/result', [MatchController::class, 'submitResult'])->name('matches.submitResult');
+    Route::post('/matches/{match}/result/confirm', [MatchController::class, 'confirmResult'])->name('matches.confirmResult');
+    Route::post('/matches/{match}/result/dispute', [MatchController::class, 'disputeResult'])->name('matches.disputeResult');
     Route::post('/matches/{match}/odds', [MatchController::class, 'updateOdds'])->name('matches.odds.update');
     Route::delete('/matches/{match}/odds', [MatchController::class, 'deleteOdds'])->name('matches.odds.delete');
     Route::post('/matches/{match}/bet', [MatchController::class, 'placeBet'])->name('matches.placeBet');
@@ -174,8 +198,15 @@ Route::middleware('auth')->group(function () {
 
 // Notifications (simple JSON endpoints for the header)
 Route::middleware('auth')->group(function () {
+    Route::get('/notifications', [\App\Http\Controllers\NotificationsController::class, 'index'])->name('notifications.index');
     Route::get('/notifications/recent', [\App\Http\Controllers\NotificationsController::class, 'recent'])->name('notifications.recent');
+    Route::post('/notifications/{notification}/read', [\App\Http\Controllers\NotificationsController::class, 'markRead'])->name('notifications.markRead');
+    Route::post('/notifications/{notification}/unread', [\App\Http\Controllers\NotificationsController::class, 'markUnread'])->name('notifications.markUnread');
+    Route::post('/notifications/{notification}/pin', [\App\Http\Controllers\NotificationsController::class, 'togglePin'])->name('notifications.togglePin');
     Route::post('/notifications/mark-all-read', [\App\Http\Controllers\NotificationsController::class, 'markAllRead'])->name('notifications.markAll');
+    Route::delete('/notifications/read', [\App\Http\Controllers\NotificationsController::class, 'clearRead'])->name('notifications.clearRead');
+    Route::delete('/notifications/{notification}', [\App\Http\Controllers\NotificationsController::class, 'destroy'])->name('notifications.destroy');
+    Route::post('/settings/notifications', [\App\Http\Controllers\NotificationsController::class, 'updatePreferences'])->name('notifications.preferences');
     
     // Betting routes
     Route::get('/bets/slip/{match}', [\App\Http\Controllers\BetController::class, 'slip'])->name('bets.slip');

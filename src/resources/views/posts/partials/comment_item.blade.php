@@ -5,7 +5,7 @@
     $likeCount = $comment->likes_count ?? $comment->likes->count();
 @endphp
 
-<article class="comment-card modern-comment-card {{ $isReply ? 'comment-reply-card' : '' }}" data-comment-id="{{ $comment->id }}">
+<article id="comment-{{ $comment->id }}" class="comment-card modern-comment-card {{ $isReply ? 'comment-reply-card' : '' }}" data-comment-id="{{ $comment->id }}">
     <div class="comment-card-main">
         <a href="{{ route('profile.show', $comment->user->id) }}" class="comment-avatar-link">
             @if($comment->user->avatar)

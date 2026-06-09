@@ -40,19 +40,21 @@ class ChallengeController extends Controller
             ->get()
             ->map(fn (Challenge $challenge, int $index) => $this->decorateChallenge($challenge, 'open', $index));
 
-        $hasDuplicateNames = $openChallenges->pluck('challenger.name')->filter()->count() !== $openChallenges->pluck('challenger.name')->filter()->unique()->count();
-        if ($openChallenges->isEmpty() || $hasDuplicateNames) {
-            $openChallenges = $this->buildSampleOpenChallenges();
-        } elseif ($openChallenges->count() < 6) {
-            $openChallenges = $openChallenges->concat($this->buildSampleOpenChallenges())->unique(fn ($challenge) => $challenge->challenger?->name . $challenge->arena_description)->take(6)->values();
-        }
+        if (config('app.demo_data')) {
+            $hasDuplicateNames = $openChallenges->pluck('challenger.name')->filter()->count() !== $openChallenges->pluck('challenger.name')->filter()->unique()->count();
+            if ($openChallenges->isEmpty() || $hasDuplicateNames) {
+                $openChallenges = $this->buildSampleOpenChallenges();
+            } elseif ($openChallenges->count() < 6) {
+                $openChallenges = $openChallenges->concat($this->buildSampleOpenChallenges())->unique(fn ($challenge) => $challenge->challenger?->name . $challenge->arena_description)->take(6)->values();
+            }
 
-        if ($received->count() < 4) {
-            $received = $received->concat($this->buildSampleReceivedChallenges())->take(4)->values();
-        }
+            if ($received->count() < 4) {
+                $received = $received->concat($this->buildSampleReceivedChallenges())->take(4)->values();
+            }
 
-        if ($sent->count() < 4) {
-            $sent = $sent->concat($this->buildSampleSentChallenges())->take(4)->values();
+            if ($sent->count() < 4) {
+                $sent = $sent->concat($this->buildSampleSentChallenges())->take(4)->values();
+            }
         }
 
         return view('challenges.index', compact('sent', 'received', 'leaderboard', 'openChallenges'));
@@ -83,19 +85,41 @@ class ChallengeController extends Controller
             'message' => $user->name . ' auto-matched a challenge with you.',
             'type' => 'challenge',
             'related_user_id' => $user->id,
+            'target_url' => route('challenges.index') . '#challenge-' . $challenge->id,
         ]);
 
         return redirect()->route('challenges.index')->with('success', 'Quick Challenge sent to ' . $opponent->name . '.');
     }
 
-    public function create()
+    public function create(Request $request)
     {
-        $users = User::where('id', '!=', Auth::id())
-                    ->orderBy('elo_rating', 'desc')
-                    ->paginate(20);
-        $selectedOpponentId = request('opponent_id');
+        $currentUser = Auth::user();
+        $search = trim((string) $request->query('search', ''));
+        $rank = (string) $request->query('rank', '');
+        $selectedOpponentId = $request->query('opponent_id');
 
-        return view('challenges.create', compact('users', 'selectedOpponentId'));
+        $users = User::where('id', '!=', $currentUser->id)
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($builder) use ($search) {
+                    $builder->where('name', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%")
+                        ->orWhere('rank', 'like', "%{$search}%");
+                });
+            })
+            ->when($rank !== '', fn ($query) => $query->where('rank', $rank))
+            ->orderByRaw('ABS(elo_rating - ?) ASC', [$currentUser->elo_rating ?? 1200])
+            ->orderByDesc('elo_rating')
+            ->paginate(12)
+            ->withQueryString();
+
+        $recommendedUsers = User::where('id', '!=', $currentUser->id)
+            ->orderByRaw('ABS(elo_rating - ?) ASC', [$currentUser->elo_rating ?? 1200])
+            ->limit(6)
+            ->get();
+
+        $rankOptions = ['Beginner', 'Intermediate', 'Advanced', 'Professional'];
+
+        return view('challenges.create', compact('users', 'recommendedUsers', 'selectedOpponentId', 'search', 'rank', 'rankOptions'));
     }
 
     public function store(Request $request)
@@ -134,6 +158,7 @@ class ChallengeController extends Controller
                 'message' => $user->name . ' challenged you!',
                 'type' => 'challenge',
                 'related_user_id' => $user->id,
+                'target_url' => route('challenges.index') . '#challenge-' . $challenge->id,
             ]);
         }
 
@@ -159,6 +184,15 @@ class ChallengeController extends Controller
             'requestable_id' => $challenge->id,
             'requester_id' => Auth::id(),
             'status' => 'pending',
+        ]);
+
+        Notification::create([
+            'user_id' => $challenge->challenger_id,
+            'title' => 'New Challenge Request',
+            'message' => Auth::user()->name . ' wants to join your open challenge.',
+            'type' => 'challenge',
+            'related_user_id' => Auth::id(),
+            'target_url' => route('challenges.index') . '#challenge-' . $challenge->id,
         ]);
 
         return back()->with('success', 'Join request sent.');
@@ -205,6 +239,7 @@ class ChallengeController extends Controller
                 'message' => Auth::user()->name . ' accepted your request to join the challenge!',
                 'type' => 'challenge',
                 'related_user_id' => Auth::id(),
+                'target_url' => route('challenges.index') . '#challenge-' . $challenge->id,
             ]);
         });
 
@@ -223,6 +258,15 @@ class ChallengeController extends Controller
 
         $joinRequest->status = 'rejected';
         $joinRequest->save();
+
+        Notification::create([
+            'user_id' => $joinRequest->requester_id,
+            'title' => 'Challenge Request Declined',
+            'message' => Auth::user()->name . ' declined your request to join the challenge.',
+            'type' => 'challenge',
+            'related_user_id' => Auth::id(),
+            'target_url' => route('challenges.index') . '#challenge-' . $challenge->id,
+        ]);
 
         return back()->with('success', 'Join request rejected.');
     }
@@ -254,6 +298,7 @@ class ChallengeController extends Controller
             'message' => $challenge->opponent->name . ' accepted your challenge!',
             'type' => 'challenge',
             'related_user_id' => $challenge->opponent_id,
+            'target_url' => route('matches.show', $match->id),
         ]);
 
         return redirect()->route('matches.show', $match->id)->with('success', 'Challenge accepted! Match created.');
@@ -274,6 +319,7 @@ class ChallengeController extends Controller
             'message' => $challenge->opponent->name . ' rejected your challenge.',
             'type' => 'challenge',
             'related_user_id' => $challenge->opponent_id,
+            'target_url' => route('challenges.index') . '#challenge-' . $challenge->id,
         ]);
 
         return redirect()->route('challenges.index')->with('success', 'Challenge rejected.');

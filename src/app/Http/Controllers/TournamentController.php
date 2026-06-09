@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Str;
 
 class TournamentController extends Controller
 {
@@ -34,14 +35,14 @@ class TournamentController extends Controller
             ->map(fn ($tournament) => $this->decorateTournament($tournament, false));
 
         $upcomingTournaments = $allTournaments
-            ->where('display_status', 'upcoming')
+            ->where('display_status', 'registration open')
             ->when(!empty($myIds), fn ($collection) => $collection->reject(fn ($tournament) => in_array($tournament->id, $myIds, true)))
             ->values();
 
         $ongoingTournaments = $allTournaments->where('display_status', 'ongoing')->values();
         $completedTournaments = $allTournaments->where('display_status', 'completed')->values();
 
-        if ($allTournaments->count() < 8) {
+        if (config('app.demo_data') && $allTournaments->count() < 8) {
             $samples = $this->sampleTournaments(false);
             $existingNames = $allTournaments->pluck('name')->map(fn ($name) => strtolower($name))->all();
             $samples = $samples->reject(fn ($tournament) => in_array(strtolower($tournament->name), $existingNames, true));
@@ -54,16 +55,20 @@ class TournamentController extends Controller
 
             $myIds = $myTournaments->pluck('id')->filter()->all();
             $upcomingTournaments = $allTournaments
-                ->where('display_status', 'upcoming')
+                ->where('display_status', 'registration open')
                 ->when(!empty($myIds), fn ($collection) => $collection->reject(fn ($tournament) => in_array($tournament->id, $myIds, true)))
                 ->values();
             $ongoingTournaments = $allTournaments->where('display_status', 'ongoing')->values();
             $completedTournaments = $allTournaments->where('display_status', 'completed')->values();
         }
 
-        $featuredTournament = $upcomingTournaments->first() ?? $ongoingTournaments->first() ?? $myTournaments->first() ?? $this->sampleTournaments(true)->first();
+        $featuredTournament = $upcomingTournaments->first() ?? $ongoingTournaments->first() ?? $myTournaments->first();
 
-        if (!$featuredTournament) {
+        if (config('app.demo_data') && !$featuredTournament) {
+            $featuredTournament = $this->sampleTournaments(true)->first();
+        }
+
+        if (config('app.demo_data') && !$featuredTournament) {
             $featuredTournament = $this->decorateTournament(
                 Tournament::make([
                     'id' => 'featured-tournament',
@@ -96,7 +101,7 @@ class TournamentController extends Controller
         $isRegistrationClosed = $slotsFilled >= $slotsTotal || ($tournament->start_date && $tournament->start_date->isPast() && (!$tournament->end_date || $tournament->end_date->isFuture()));
         $isCompleted = ($tournament->status ?? '') === 'completed' || ($tournament->end_date && $tournament->end_date->isPast());
         $isOngoing = (!$isCompleted && $tournament->start_date && $tournament->start_date->isPast() && (!$tournament->end_date || $tournament->end_date->isFuture()));
-        $displayStatus = $isCompleted ? 'completed' : ($isOngoing ? 'ongoing' : ($isRegistrationClosed ? 'registration closed' : 'upcoming'));
+        $displayStatus = $isCompleted ? 'completed' : ($isOngoing ? 'ongoing' : ($isRegistrationClosed ? 'registration closed' : 'registration open'));
 
         $tournament->slots_filled = $slotsFilled;
         $tournament->slots_total = $slotsTotal;
@@ -108,7 +113,7 @@ class TournamentController extends Controller
         $tournament->tournament_type = $featured ? 'featured' : 'standard';
         $tournament->display_status = $displayStatus;
         $tournament->status_class = str_replace(' ', '-', $displayStatus);
-        $tournament->status_label = ucfirst($displayStatus);
+        $tournament->status_label = Str::headline($displayStatus);
         $tournament->starts_text = $tournament->start_date ? $tournament->start_date->format('M d, Y \a\t g:i A') . ' GMT+7' : 'TBA';
         $tournament->action_label = $isCompleted ? 'View Details' : ($isRegistrationClosed ? 'View Details' : 'Register Now');
         $tournament->action_variant = $isCompleted || $isRegistrationClosed ? 'secondary' : 'primary';
@@ -317,6 +322,8 @@ class TournamentController extends Controller
 
     public function preview(string $sampleId)
     {
+        abort_unless(config('app.demo_data'), 404);
+
         $sample = $this->sampleTournaments(false)->firstWhere('sample_id', $sampleId);
 
         if (!$sample) {

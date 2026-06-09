@@ -24,7 +24,7 @@ class MatchController extends Controller
     public function index(Request $request)
     {
         $user = Auth::user();
-        $filters = $request->only(['location', 'skill_level', 'date']);
+        $filters = $request->only(['location', 'skill_level', 'date', 'type']);
 
         $applyFilters = function ($query) use ($filters) {
             $query->when(!empty($filters['location']), function ($locationQuery) use ($filters) {
@@ -62,7 +62,7 @@ class MatchController extends Controller
             ->get()
             ->map(fn($match) => $this->decorateMatch($match));
 
-        if ($openMatches->count() < 6 && empty(array_filter($filters))) {
+        if (config('app.demo_data') && $openMatches->count() < 6 && empty(array_filter($filters))) {
             $openMatches = $this->mergeSampleMatches($openMatches, $this->buildSampleMatches(), 6);
         }
 
@@ -78,7 +78,7 @@ class MatchController extends Controller
             ->limit(8)
             ->get();
 
-        if ($upcomingMatches->count() < 5 && empty(array_filter($filters))) {
+        if (config('app.demo_data') && $upcomingMatches->count() < 5 && empty(array_filter($filters))) {
             $upcomingMatches = $this->mergeSampleMatches($upcomingMatches, $this->buildSampleUpcomingMatches(), 5);
         }
 
@@ -92,7 +92,7 @@ class MatchController extends Controller
             ->limit(8)
             ->get();
 
-        if ($completedMatches->count() < 6 && empty(array_filter($filters))) {
+        if (config('app.demo_data') && $completedMatches->count() < 6 && empty(array_filter($filters))) {
             $completedMatches = $this->mergeSampleMatches($completedMatches, $this->buildSampleCompletedMatches(), 6);
         }
 
@@ -131,6 +131,7 @@ class MatchController extends Controller
             'title' => 'Quick Match Request',
             'message' => "{$user->name} has scheduled a quick match with you!",
             'type' => 'match_request',
+            'target_url' => route('matches.show', $match->id),
         ]);
 
         return redirect()->route('matches.show', $match->id)
@@ -325,8 +326,9 @@ class MatchController extends Controller
         $odds = $betService->getMatchOdds($match);
         $betInsights = $betService->getMatchInsights($match);
         $betSlip = $betService->getBetSlipData($match);
+        $poolData = $betService->getPoolData($match);
 
-        return view('matches.show', compact('match', 'odds', 'betInsights', 'betSlip'));
+        return view('matches.show', compact('match', 'odds', 'betInsights', 'betSlip', 'poolData'));
     }
 
     public function create()
@@ -350,6 +352,11 @@ class MatchController extends Controller
         ]);
 
         $isOpenMatch = empty($validated['player2_id']);
+        $this->ensureNoScheduleConflict(
+            Carbon::parse($validated['match_date']),
+            $validated['location'] ?? null,
+            array_filter([Auth::id(), $validated['player2_id'] ?? null])
+        );
 
         $match = GameMatch::create([
             'player1_id' => Auth::id(),
@@ -447,6 +454,7 @@ class MatchController extends Controller
                 'message' => Auth::user()->name . ' accepted your request to join the match.',
                 'type' => 'match',
                 'related_user_id' => Auth::id(),
+                'target_url' => route('matches.show', $match->id),
             ]);
         });
 
@@ -476,7 +484,14 @@ class MatchController extends Controller
         }
 
         $match->status = 'in_progress';
+        $match->betting_status = 'locked';
         $match->save();
+
+        Bet::where('match_id', $match->id)
+            ->where('status', 'pending')
+            ->update(['status' => 'live']);
+
+        app(\App\Services\BetService::class)->broadcastPoolUpdate($match, true);
 
         return redirect()->route('matches.show', $match->id)->with('success', 'Match started!');
     }
@@ -493,28 +508,102 @@ class MatchController extends Controller
             'winner_id' => 'required|in:' . $match->player1_id . ',' . $match->player2_id,
         ]);
 
+        if ($match->status !== 'in_progress') {
+            return back()->with('error', 'Results can only be submitted for an active match.');
+        }
+
         DB::transaction(function () use ($match, $validated) {
             $match->player1_score = $validated['player1_score'];
             $match->player2_score = $validated['player2_score'];
             $match->winner_id = $validated['winner_id'];
-            $match->status = 'completed';
+            $match->status = 'pending_confirmation';
+            $match->result_submitted_by = Auth::id();
+            $match->result_submitted_at = now();
+            $match->result_confirmed_by = null;
+            $match->result_confirmed_at = null;
+            $match->result_dispute_reason = null;
             $match->save();
-
-            EloService::updatePlayerRatings($match);
-
-            // Settle bets using BetService
-            app(\App\Services\BetService::class)->settleBetsAfterMatch($match);
 
             Notification::create([
                 'user_id' => $match->player1_id === Auth::id() ? $match->player2_id : $match->player1_id,
-                'title' => 'Match Result',
-                'message' => Auth::user()->name . ' submitted match result.',
+                'title' => 'Confirm Match Result',
+                'message' => Auth::user()->name . ' submitted a result. Review and confirm it before payout.',
                 'type' => 'result',
                 'related_user_id' => Auth::id(),
+                'target_url' => route('matches.show', $match->id),
             ]);
         });
 
-        return redirect()->route('matches.show', $match->id)->with('success', 'Match result submitted!');
+        return redirect()->route('matches.show', $match->id)->with('success', 'Result submitted. The opponent must confirm it before settlement.');
+    }
+
+    public function confirmResult(GameMatch $match)
+    {
+        $otherPlayerId = (int) $match->player1_id === (int) $match->result_submitted_by
+            ? (int) $match->player2_id
+            : (int) $match->player1_id;
+
+        if ($match->status !== 'pending_confirmation' || (int) Auth::id() !== $otherPlayerId) {
+            return back()->with('error', 'You cannot confirm this result.');
+        }
+
+        DB::transaction(function () use ($match) {
+            $lockedMatch = GameMatch::whereKey($match->id)->lockForUpdate()->firstOrFail();
+            if ($lockedMatch->status !== 'pending_confirmation') {
+                return;
+            }
+
+            $lockedMatch->update([
+                'status' => 'completed',
+                'result_confirmed_by' => Auth::id(),
+                'result_confirmed_at' => now(),
+            ]);
+
+            EloService::updatePlayerRatings($lockedMatch);
+            app(\App\Services\BetService::class)->settleBetsAfterMatch($lockedMatch);
+        });
+
+        Notification::create([
+            'user_id' => $match->result_submitted_by,
+            'title' => 'Match Result Confirmed',
+            'message' => Auth::user()->name . ' confirmed the result. Ratings and bets were settled.',
+            'type' => 'result',
+            'related_user_id' => Auth::id(),
+            'target_url' => route('matches.show', $match->id),
+        ]);
+
+        return back()->with('success', 'Result confirmed and betting settlement completed.');
+    }
+
+    public function disputeResult(GameMatch $match, Request $request)
+    {
+        $otherPlayerId = (int) $match->player1_id === (int) $match->result_submitted_by
+            ? (int) $match->player2_id
+            : (int) $match->player1_id;
+
+        if ($match->status !== 'pending_confirmation' || (int) Auth::id() !== $otherPlayerId) {
+            return back()->with('error', 'You cannot dispute this result.');
+        }
+
+        $validated = $request->validate([
+            'reason' => ['required', 'string', 'max:1000'],
+        ]);
+
+        $match->update([
+            'status' => 'disputed',
+            'result_dispute_reason' => $validated['reason'],
+        ]);
+
+        Notification::create([
+            'user_id' => $match->result_submitted_by,
+            'title' => 'Match Result Disputed',
+            'message' => Auth::user()->name . ' disputed the submitted result. An admin must review it.',
+            'type' => 'result',
+            'related_user_id' => Auth::id(),
+            'target_url' => route('matches.show', $match->id),
+        ]);
+
+        return back()->with('success', 'Dispute submitted for admin review.');
     }
 
     public function updateOdds(GameMatch $match, Request $request)
@@ -580,5 +669,34 @@ class MatchController extends Controller
         }
 
         return redirect()->route('bets.show', $bet->id)->with('success', 'Bet placed!');
+    }
+
+    private function ensureNoScheduleConflict(Carbon $date, ?string $location, array $playerIds): void
+    {
+        $windowStart = $date->copy()->subMinutes(90);
+        $windowEnd = $date->copy()->addMinutes(90);
+        $conflictStatuses = ['open', 'scheduled', 'in_progress', 'pending_confirmation'];
+
+        $playerConflict = GameMatch::whereIn('status', $conflictStatuses)
+            ->whereBetween('match_date', [$windowStart, $windowEnd])
+            ->where(function ($query) use ($playerIds) {
+                $query->whereIn('player1_id', $playerIds)->orWhereIn('player2_id', $playerIds);
+            })
+            ->exists();
+
+        if ($playerConflict) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'match_date' => 'A selected player already has a match near this time.',
+            ]);
+        }
+
+        if ($location && GameMatch::whereIn('status', $conflictStatuses)
+            ->where('location', $location)
+            ->whereBetween('match_date', [$windowStart, $windowEnd])
+            ->exists()) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'location' => 'This court already has a booking near the selected time.',
+            ]);
+        }
     }
 }

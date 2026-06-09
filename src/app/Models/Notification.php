@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Events\UserNotificationUpdated;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -16,13 +17,23 @@ class Notification extends Model
         'type',
         'related_user_id',
         'is_read',
+        'is_pinned',
+        'target_url',
     ];
 
     protected $casts = [
         'is_read' => 'boolean',
+        'is_pinned' => 'boolean',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
+
+    protected static function booted(): void
+    {
+        static::created(function (Notification $notification) {
+            broadcast(new UserNotificationUpdated($notification));
+        });
+    }
 
     public function user()
     {

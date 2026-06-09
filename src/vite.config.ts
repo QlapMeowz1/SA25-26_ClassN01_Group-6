@@ -17,6 +17,7 @@ export default defineConfig({
     emptyOutDir: true,
     rollupOptions: {
       input: {
+        'app': path.resolve(__dirname, 'resources/js/app.js'),
         'player-portal': path.resolve(__dirname, 'resources/react/main.tsx'),
       },
     },

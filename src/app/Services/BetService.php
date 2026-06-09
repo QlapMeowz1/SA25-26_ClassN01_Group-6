@@ -2,17 +2,27 @@
 
 namespace App\Services;
 
+use App\Events\PoolUpdated;
 use App\Models\Bet;
 use App\Models\GameMatch;
+use App\Models\Notification;
 use App\Models\User;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class BetService
 {
+    public function __construct(private readonly WalletService $wallets)
+    {
+    }
+
     /** Place a bet for a user on a match */
     public function placeBet(User $user, GameMatch $match, int $amount, int $predictedWinnerId): Bet
     {
         return DB::transaction(function () use ($user, $match, $amount, $predictedWinnerId) {
+            $match = GameMatch::whereKey($match->id)->lockForUpdate()->firstOrFail();
+            $user = User::whereKey($user->id)->lockForUpdate()->firstOrFail();
+
             if (!$match->player1_id || !$match->player2_id) {
                 throw new \InvalidArgumentException('Betting opens after the match has two confirmed players.');
             }
@@ -47,8 +57,42 @@ class BetService
                 'status' => 'pending',
             ]);
 
-            $user->virtual_coins -= $amount;
-            $user->save();
+            $this->wallets->change(
+                $user,
+                -$amount,
+                'bet_stake',
+                'bet-stake-' . $bet->id,
+                'Stake locked for ' . $this->matchLabel($match),
+                $bet,
+                $user,
+                ['match_id' => $match->id, 'odds' => $selectedOdds]
+            );
+            $user->refresh();
+
+            $matchLabel = $this->matchLabel($match);
+            $pickName = User::whereKey($predictedWinnerId)->value('name') ?? 'your pick';
+
+            Notification::create([
+                'user_id' => $user->id,
+                'title' => 'Bet Confirmed',
+                'message' => "Your {$amount} coin bet on {$pickName} for {$matchLabel} is confirmed at {$selectedOdds}x odds.",
+                'type' => 'bet_placed',
+                'related_user_id' => $predictedWinnerId,
+                'target_url' => route('bets.show', $bet->id),
+            ]);
+
+            if ((int) $user->virtual_coins <= 500) {
+                Notification::create([
+                    'user_id' => $user->id,
+                    'title' => 'Low Wallet Balance',
+                    'message' => "Your wallet balance is now {$user->virtual_coins} coins after betting on {$matchLabel}.",
+                    'type' => 'wallet_low',
+                    'related_user_id' => $predictedWinnerId,
+                    'target_url' => route('matches.show', $match->id),
+                ]);
+            }
+
+            $this->broadcastPoolUpdate($match);
 
             return $bet;
         });
@@ -204,6 +248,45 @@ class BetService
         ];
     }
 
+    public function getPoolData(GameMatch $match): array
+    {
+        $match->loadMissing(['player1', 'player2', 'bets']);
+
+        $playerOnePool = (float) $match->bets->where('bet_on_user_id', $match->player1_id)->sum('amount');
+        $playerTwoPool = (float) $match->bets->where('bet_on_user_id', $match->player2_id)->sum('amount');
+        $totalPool = $playerOnePool + $playerTwoPool;
+        $percentA = $totalPool > 0 ? (int) round(($playerOnePool / $totalPool) * 100) : 50;
+        $percentB = 100 - $percentA;
+
+        return [
+            'match_id' => (int) $match->id,
+            'percent_a' => $percentA,
+            'percent_b' => $percentB,
+            'pool_a' => $playerOnePool,
+            'pool_b' => $playerTwoPool,
+            'total_pool' => $totalPool,
+            'bettor_count' => $match->bets->pluck('user_id')->unique()->count(),
+            'player_a' => $match->player1?->name ?? 'Player 1',
+            'player_b' => $match->player2?->name ?? 'Player 2',
+            'market_state' => $match->status === 'in_progress' || $match->betting_status === 'locked' ? 'locked' : ($match->betting_status ?? 'open'),
+        ];
+    }
+
+    public function broadcastPoolUpdate(GameMatch $match, bool $force = false): void
+    {
+        $lockKey = 'broadcast_lock_match_' . $match->id;
+
+        if (!$force && Cache::has($lockKey)) {
+            return;
+        }
+
+        $match->refresh();
+        broadcast(new PoolUpdated((int) $match->id, $this->getPoolData($match)));
+        if (!$force) {
+            Cache::put($lockKey, true, 2);
+        }
+    }
+
     private function getRecentFormScore(User $user): array
     {
         $recentMatches = GameMatch::query()
@@ -301,28 +384,122 @@ class BetService
     public function settleBetsAfterMatch(GameMatch $match): void
     {
         DB::transaction(function () use ($match) {
-            $bets = Bet::where('match_id', $match->id)->get();
+            $match = GameMatch::with(['player1', 'player2'])
+                ->whereKey($match->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            if (!$match->isCompleted() || !$match->winner_id) {
+                throw new \LogicException('A confirmed winner is required before settling bets.');
+            }
+
+            $bets = Bet::with(['user', 'betOnUser'])
+                ->where('match_id', $match->id)
+                ->whereIn('status', ['pending', 'live'])
+                ->lockForUpdate()
+                ->get();
+
             foreach ($bets as $bet) {
-                // reuse existing model settle if present
-                if (method_exists($bet, 'settle')) {
-                    $bet->settle();
-                } else {
-                    if ($match->isCompleted() && $match->winner_id === $bet->bet_on_user_id) {
-                        $bet->status = 'won';
-                        $bet->payout = ($bet->amount * 2);
-                    } else {
-                        $bet->status = 'lost';
-                        $bet->payout = 0;
-                    }
-                    $bet->save();
+                $settlementKey = 'match-' . $match->id . '-bet-' . $bet->id . '-settled';
+                if ($bet->settlement_key || \App\Models\WalletTransaction::where('reference', $settlementKey)->exists()) {
+                    continue;
                 }
 
-                if ($bet->status === 'won') {
-                    $user = $bet->user;
-                    $user->virtual_coins += $bet->payout;
-                    $user->save();
+                $user = $bet->user;
+                if (!$user) {
+                    continue;
+                }
+
+                if ((int) $match->winner_id === (int) $bet->bet_on_user_id) {
+                    $payout = (int) round($bet->amount * ($bet->odds ?: 2));
+                    $bet->update([
+                        'status' => 'won',
+                        'payout' => $payout,
+                        'settled_at' => now(),
+                        'settlement_key' => $settlementKey,
+                    ]);
+
+                    $transaction = $this->wallets->change(
+                        $user,
+                        $payout,
+                        'bet_payout',
+                        $settlementKey,
+                        'Payout for ' . $this->matchLabel($match),
+                        $bet,
+                        null,
+                        ['match_id' => $match->id]
+                    );
+
+                    Notification::create([
+                        'user_id' => $user->id,
+                        'title' => 'Bet Won',
+                        'message' => "You won {$payout} coins from {$this->matchLabel($match)}. Wallet balance: {$transaction->balance_after} coins.",
+                        'type' => 'bet_won',
+                        'related_user_id' => $bet->bet_on_user_id,
+                        'target_url' => route('bets.show', $bet->id),
+                    ]);
+                } else {
+                    $bet->update([
+                        'status' => 'lost',
+                        'payout' => 0,
+                        'settled_at' => now(),
+                        'settlement_key' => $settlementKey,
+                    ]);
+                    $pickName = $bet->betOnUser?->name ?? 'your pick';
+
+                    Notification::create([
+                        'user_id' => $user->id,
+                        'title' => 'Bet Lost',
+                        'message' => "Your {$bet->amount} coin bet on {$pickName} for {$this->matchLabel($match)} was not successful.",
+                        'type' => 'bet_lost',
+                        'related_user_id' => $bet->bet_on_user_id,
+                        'target_url' => route('bets.show', $bet->id),
+                    ]);
                 }
             }
+        });
+    }
+
+    public function refundMatch(GameMatch $match, ?User $actor = null): int
+    {
+        return DB::transaction(function () use ($match, $actor) {
+            $match = GameMatch::whereKey($match->id)->lockForUpdate()->firstOrFail();
+            $bets = Bet::with('user')
+                ->where('match_id', $match->id)
+                ->whereIn('status', ['pending', 'live'])
+                ->lockForUpdate()
+                ->get();
+
+            $refunded = 0;
+            foreach ($bets as $bet) {
+                $reference = 'match-' . $match->id . '-bet-' . $bet->id . '-refund';
+                if ($bet->settlement_key || \App\Models\WalletTransaction::where('reference', $reference)->exists()) {
+                    continue;
+                }
+
+                if ($bet->user) {
+                    $this->wallets->change(
+                        $bet->user,
+                        (int) $bet->amount,
+                        'bet_refund',
+                        $reference,
+                        'Refund for cancelled market ' . $this->matchLabel($match),
+                        $bet,
+                        $actor,
+                        ['match_id' => $match->id]
+                    );
+                }
+
+                $bet->update([
+                    'status' => 'refunded',
+                    'payout' => (int) $bet->amount,
+                    'settled_at' => now(),
+                    'settlement_key' => $reference,
+                ]);
+                $refunded++;
+            }
+
+            return $refunded;
         });
     }
 
@@ -330,5 +507,12 @@ class BetService
     public function getUserBetHistory(User $user)
     {
         return Bet::with(['gameMatch.player1', 'gameMatch.player2', 'betOnUser'])->where('user_id', $user->id)->latest()->get();
+    }
+
+    private function matchLabel(GameMatch $match): string
+    {
+        $match->loadMissing(['player1', 'player2']);
+
+        return ($match->player1?->name ?? 'Player 1') . ' vs ' . ($match->player2?->name ?? 'Player 2');
     }
 }

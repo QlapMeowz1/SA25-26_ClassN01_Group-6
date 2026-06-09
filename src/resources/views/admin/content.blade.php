@@ -41,11 +41,19 @@
                                 <p>{{ \Illuminate\Support\Str::limit($post->content, 220) }}</p>
                             </div>
                             <div class="admin-review-actions">
-                                <a href="{{ route('posts.show', $post->id) }}" class="btn btn-secondary btn-small">Open</a>
-                                <form method="POST" action="{{ route('admin.posts.delete', $post->id) }}" onsubmit="return confirm('Delete this post?');">
-                                    @csrf
-                                    <button type="submit" class="btn btn-danger btn-small">Delete</button>
-                                </form>
+                                @if($post->trashed())
+                                    <span class="admin-pill">Deleted</span>
+                                    <form method="POST" action="{{ route('admin.posts.restore', $post->id) }}">
+                                        @csrf
+                                        <button type="submit" class="btn btn-secondary btn-small">Restore</button>
+                                    </form>
+                                @else
+                                    <a href="{{ route('posts.show', $post->id) }}" class="btn btn-secondary btn-small">Open</a>
+                                    <form method="POST" action="{{ route('admin.posts.delete', $post->id) }}" onsubmit="return confirm('Move this post to trash?');">
+                                        @csrf
+                                        <button type="submit" class="btn btn-danger btn-small">Delete</button>
+                                    </form>
+                                @endif
                             </div>
                         </article>
                     @endforeach

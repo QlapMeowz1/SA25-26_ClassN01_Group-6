@@ -1,293 +1,483 @@
-# BadNet - Badminton Social Network
+# BadNet Setup Guide
 
-A Laravel-based badminton social network platform for learning purposes. This application demonstrates comprehensive web development features including user authentication, challenge systems, match management, rankings with ELO calculation, teams, tournaments, social features, and virtual betting.
+BadNet is a badminton social network built with Laravel 9, Blade, React, Vite, and MySQL. It includes a player portal, challenges, matches, teams, tournaments, virtual betting, realtime notifications, and an admin panel.
 
-## System Requirements
+## 1. System Requirements
 
-- PHP 8.0+
-- Composer
-- MySQL (via XAMPP)
-- Apache (via XAMPP)
+- Windows 10/11
+- PHP 8.1 or newer
+- Composer 2
+- Node.js 18 or newer and npm
+- MySQL 8 or MariaDB through XAMPP
+- PHP extensions: `pdo_mysql`, `mbstring`, `openssl`, `fileinfo`, and `curl`
 
-## Installation Steps
-
-### 1. Setup XAMPP
-
-- Download and install XAMPP from https://www.apachefriends.org/
-- Start Apache and MySQL services
-
-### 2. Create Database
-
-Open phpMyAdmin (http://localhost/phpmyadmin) and create a database named `badnet`:
-
-```sql
-CREATE DATABASE badnet;
-```
-
-### 3. Install Laravel Dependencies
-
-Navigate to the src folder and install dependencies:
+Verify the required tools:
 
 ```powershell
-Set-Location src
-composer install
+php -v
+composer --version
+node -v
+npm -v
 ```
 
-### 4. Configure Environment
+When using XAMPP, start MySQL. Apache is optional when the application is served with `php artisan serve`.
 
-Copy .env.example to .env (already provided):
+## 2. Open the Project Directory
+
+All Laravel and npm commands must run inside the `src` directory:
+
+```powershell
+Set-Location "C:\Users\hunte\Desktop\webtest\SA25-26_ClassN01_Group-5\src"
+```
+
+Replace the path if the project is stored elsewhere.
+
+## 3. Install Dependencies
+
+```powershell
+composer install
+npm install
+```
+
+## 4. Create the Database
+
+Open phpMyAdmin at `http://localhost/phpmyadmin`, or use the MySQL command line:
+
+```sql
+CREATE DATABASE badnet
+CHARACTER SET utf8mb4
+COLLATE utf8mb4_unicode_ci;
+```
+
+The project currently uses an SQL file for its base schema. Import:
+
+```text
+src/database/badnet.sql
+```
+
+Using phpMyAdmin:
+
+1. Select the `badnet` database.
+2. Open the **Import** tab.
+3. Select `src/database/badnet.sql`.
+4. Click **Import**.
+
+Do not skip this step. The current migrations upgrade the base schema; they do not create every original table.
+
+## 5. Configure `.env`
+
+Create the environment file if it does not exist:
 
 ```powershell
 Copy-Item .env.example .env
+php artisan key:generate
 ```
 
-Update the following in `.env`:
-- `APP_KEY` - Already set in .env
-- `DB_DATABASE=badnet`
-- `DB_USERNAME=root`
-- `DB_PASSWORD=` (leave empty for XAMPP)
+Minimum local configuration:
 
-### 5. Import SQL Schema
+```dotenv
+APP_NAME=BadNet
+APP_ENV=local
+APP_DEBUG=true
+APP_URL=http://localhost:8000
+APP_TIMEZONE=Asia/Ho_Chi_Minh
+APP_DEMO_DATA=true
 
-Open phpMyAdmin, select the `badnet` database, then use the Import tab to load:
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=badnet
+DB_USERNAME=root
+DB_PASSWORD=
 
-`src/database/badnet.sql`
+BROADCAST_DRIVER=log
+QUEUE_CONNECTION=sync
+SESSION_DRIVER=file
+```
 
-### 6. Create Public Directories
+`APP_DEMO_DATA` controls UI fallback data:
+
+- `true`: adds demonstration cards when the database contains little data.
+- `false`: displays database records only. Use this in production.
+
+Clear cached configuration after changing `.env`:
 
 ```powershell
-New-Item -ItemType Directory -Force -Path public/avatars, public/logos | Out-Null
+php artisan optimize:clear
 ```
 
-### 7. Start Development Server
+## 6. Run Migrations
+
+Run these commands after importing `badnet.sql`:
+
+```powershell
+php artisan migrate
+php artisan migrate:status
+```
+
+The migrations add:
+
+- Betting lifecycle and manual odds
+- Match result confirmation and disputes
+- Notification controls and preferences
+- Wallet ledger and audit logs
+- Login activity and soft deletion
+- Queue tables
+- Query indexes
+
+## 7. Build the Frontend
+
+Create a production build:
+
+```powershell
+npm run build
+```
+
+For frontend development with automatic rebuilding:
+
+```powershell
+npm run dev
+```
+
+Keep Vite running and use another terminal for Laravel.
+
+## 8. Configure Email
+
+Email is required for:
+
+- Six-digit verification codes after registration
+- Forgot-password requests
+- Password reset links, which expire after 15 minutes
+
+Example Gmail SMTP configuration:
+
+```dotenv
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=587
+MAIL_USERNAME=your-account@gmail.com
+MAIL_PASSWORD=your-google-app-password
+MAIL_ENCRYPTION=tls
+MAIL_FROM_ADDRESS=your-account@gmail.com
+MAIL_FROM_NAME="${APP_NAME}"
+```
+
+For Gmail:
+
+1. Enable two-step verification.
+2. Create a Google App Password.
+3. Set that App Password as `MAIL_PASSWORD`.
+4. Do not use the regular Google account password.
+5. Never commit `.env` or share the App Password.
+
+After changing mail settings:
+
+```powershell
+php artisan optimize:clear
+```
+
+With `QUEUE_CONNECTION=sync`, email is sent immediately and no queue worker is required.
+
+## 9. Create an Administrator
+
+Register an account and verify its email, then open Tinker:
+
+```powershell
+php artisan tinker
+```
+
+Run:
+
+```php
+$user = App\Models\User::where('email', 'your-email@example.com')->firstOrFail();
+$user->update(['role' => 'super_admin']);
+```
+
+Exit Tinker:
+
+```php
+exit
+```
+
+Available roles:
+
+- `user`
+- `moderator`
+- `betting_manager`
+- `admin`
+- `super_admin`
+
+The admin panel is available at:
+
+```text
+http://localhost:8000/admin
+```
+
+## 10. Start the Application
 
 ```powershell
 php artisan serve
 ```
 
-The application will be available at: `http://localhost:8000`
+Open:
 
-## Features
-
-### User Management
-- User registration and login
-- Profile management with avatar upload
-- Track ELO rating and ranking
-- View match history and statistics
-
-### Challenge System
-- Send challenges to players with similar ELO rating
-- Accept or reject challenges
-- Automatic match creation on acceptance
-- Maximum 400 ELO difference for fair play
-
-### Match Management
-- Create matches with opponent and date
-- Start match
-- Submit match results (scores and winner)
-- ELO rating updates automatically
-- Virtual betting on matches
-
-### Ranking System
-- ELO-based ranking (K-factor: 32)
-- Four rank tiers:
-  - Beginner (< 1400 ELO)
-  - Intermediate (1400-1599 ELO)
-  - Advanced (1600-1799 ELO)
-  - Professional (1800+ ELO)
-- Live leaderboard
-
-### Team System
-- Create and join teams
-- Team members management
-- Teams have leaders
-- View team statistics
-
-### Tournament System
-- Create tournaments with registration
-- Set max participants and prize pool
-- Tournament status tracking
-- Participant leaderboard
-
-### Social Features
-- Create and share posts
-- Comment on posts
-- Like posts
-- View community feed
-- Delete own posts and comments
-
-### Virtual Betting
-- Bet on match outcomes using virtual coins
-- Starting coins: 5,000
-- Bet settlement after match completion
-- Double payout for winning bets
-
-### Notifications
-- Challenge notifications
-- Match notifications
-- Comment and like notifications
-- Post notifications
-
-## Project Structure
-
-```
-src/
-├── app/
-│   ├── Http/Controllers/     # Request handlers
-│   │   ├── AuthController.php
-│   │   ├── ChallengeController.php
-│   │   ├── MatchController.php
-│   │   ├── TeamController.php
-│   │   ├── TournamentController.php
-│   │   ├── PostController.php
-│   │   ├── ProfileController.php
-│   │   └── DashboardController.php
-│   ├── Models/               # Database models
-│   │   ├── User.php
-│   │   ├── Challenge.php
-│   │   ├── Match.php
-│   │   ├── Team.php
-│   │   ├── TeamMember.php
-│   │   ├── Tournament.php
-│   │   ├── TournamentParticipant.php
-│   │   ├── Post.php
-│   │   ├── Comment.php
-│   │   ├── PostLike.php
-│   │   ├── Bet.php
-│   │   └── Notification.php
-│   └── Services/             # Business logic
-│       └── EloService.php    # ELO calculation
-├── database/
-│   └── badnet.sql            # MySQL schema for import
-├── resources/
-│   └── views/                # Blade templates
-│       ├── layout.blade.php
-│       ├── home.blade.php
-│       ├── dashboard.blade.php
-│       ├── auth/
-│       ├── profile/
-│       ├── challenges/
-│       ├── matches/
-│       ├── teams/
-│       ├── tournaments/
-│       └── posts/
-├── routes/
-│   └── web.php               # Web routes
-└── public/
-    ├── css/style.css         # Main stylesheet
-    ├── avatars/              # User avatars
-    └── logos/                # Team logos
+```text
+http://localhost:8000
 ```
 
-## Database Schema
+If port 8000 is occupied:
 
-### Users Table
-- id, name, email, password, phone, rank, elo_rating, virtual_coins, wins, losses, bio, avatar
+```powershell
+php artisan serve --port=8001
+```
 
-### Challenges Table
-- id, challenger_id, opponent_id, status, message, expires_at
+## 11. Scheduler
 
-### Matches Table
-- id, player1_id, player2_id, challenge_id, status, match_date, location, player1_score, player2_score, winner_id, elo_change
+The scheduler sends match reminders one to two hours before a match and removes expired password-reset tokens.
 
-### Teams Table
-- id, name, description, leader_id, logo, members_count
+For local development:
 
-### Tournaments Table
-- id, name, description, organizer_id, start_date, end_date, max_participants, status, prize_pool
+```powershell
+php artisan schedule:work
+```
 
-### Posts Table
-- id, user_id, content, likes_count
+Inspect scheduled tasks:
 
-### Bets Table
-- id, user_id, match_id, bet_on_user_id, amount, status, payout
+```powershell
+php artisan schedule:list
+```
 
-### Notifications Table
-- id, user_id, title, message, type, related_user_id, is_read
+For Linux production servers, add this cron entry:
 
-## ELO System Details
+```cron
+* * * * * cd /path/to/project/src && php artisan schedule:run >> /dev/null 2>&1
+```
 
-The ELO rating calculation uses the standard chess formula:
+## 12. Queue
 
-- K-factor: 32 points per game
-- Expected Score: 1 / (1 + 10^((opponent_rating - player_rating) / 400))
-- ELO Change: K × (Actual Score - Expected Score)
+The default local setting is:
 
-### Rank Transitions
-- Beginner → Intermediate at 1400 ELO
-- Intermediate → Advanced at 1600 ELO
-- Advanced → Professional at 1800 ELO
+```dotenv
+QUEUE_CONNECTION=sync
+```
 
-## Key Business Logic
+This does not require a worker.
 
-### Match Result Settlement
-Uses MySQL transaction to ensure data integrity:
-1. Update match scores and winner
-2. Calculate ELO changes for both players
-3. Update player rankings
-4. Settle all bets on the match
-5. Update virtual coin balances
+To use the database queue:
 
-### Challenge Logic
-- Players can only challenge opponents within 400 ELO points
-- Challenges expire after 7 days
-- Accepting a challenge auto-creates a match
-- Only pending challenges can be accepted/rejected
+```dotenv
+QUEUE_CONNECTION=database
+```
 
-### Betting Logic
-- Users can only bet with their virtual coins
-- Bets are pending until match completion
-- Winning bets pay 2x the bet amount
-- Losing bets return 0
+Then run:
 
-## Testing the Application
+```powershell
+php artisan optimize:clear
+php artisan queue:work --tries=3
+```
 
-### Sample Flow
-1. Register two users
-2. View leaderboard on challenges page
-3. Send challenge from User 1 to User 2
-4. User 2 accepts challenge
-5. Match is created automatically
-6. Place bets on the match
-7. User 1 starts and submits match result
-8. Check updated ELO ratings
-9. Verify bet settlements and coin updates
+A queue worker must remain active whenever the queue connection is not `sync`.
 
-## Troubleshooting
+## 13. Realtime Notifications and Pool Movement
 
-### Database Connection Error
-- Ensure MySQL is running in XAMPP
-- Check DB credentials in .env file
-- Verify database exists: `badnet`
+Without a WebSocket provider, notification data still refreshes through periodic polling. Configure Pusher Channels for immediate realtime updates:
 
-### File Upload Issues
-- Check permissions on `public/avatars` and `public/logos`
-- Ensure proper PHP configuration for file uploads
+```dotenv
+BROADCAST_DRIVER=pusher
 
-### SQL Import Issues
-- Verify the `badnet` database exists in phpMyAdmin
-- Import `src/database/badnet.sql` again if tables are missing
+PUSHER_APP_ID=your-app-id
+PUSHER_APP_KEY=your-app-key
+PUSHER_APP_SECRET=your-app-secret
+PUSHER_APP_CLUSTER=ap1
 
-### Session Issues
-- Clear browser cookies and session storage
-- Refresh the application after re-login
+VITE_PUSHER_APP_KEY="${PUSHER_APP_KEY}"
+VITE_PUSHER_APP_CLUSTER="${PUSHER_APP_CLUSTER}"
+```
 
-## Notes for Development
+After changing any `VITE_*` value, rebuild the frontend:
 
-- All passwords are hashed using Laravel's built-in Hash::make()
-- Transactions are used for critical operations (match results, bets)
-- Foreign keys enforce referential integrity
-- Timestamps track creation and updates
-- ELO calculations happen on match completion
-- All forms use CSRF tokens for security
+```powershell
+php artisan optimize:clear
+npm run build
+```
 
-## Future Enhancements
+Realtime updates are used for:
 
-- Real-time notifications with WebSockets
-- Direct messaging between players
-- Advanced tournament bracket system
-- Match statistics and analytics
-- Skill-based recommendations
-- Team vs Team matches
-- Achievement/Badge system
-- Video upload for match reviews
+- Notification red dots and unread counts
+- New user notifications
+- Betting pool values and distribution percentages
+
+## 14. Demo Data
+
+### UI fallback data
+
+Enable:
+
+```dotenv
+APP_DEMO_DATA=true
+```
+
+Disable:
+
+```dotenv
+APP_DEMO_DATA=false
+```
+
+### Database seeder
+
+The seeder creates users, posts, matches, and bets:
+
+```powershell
+php artisan db:seed --class=BadmintonSeeder
+```
+
+Warning: `BadmintonSeeder` deletes existing `comments` and `posts` before generating new records. Use it only with a local or test database.
+
+The default password for factory-generated users is:
+
+```text
+password
+```
+
+## 15. Test the Project
+
+Run automated tests:
+
+```powershell
+php artisan test
+```
+
+Inspect routes, scheduled tasks, and migrations:
+
+```powershell
+php artisan route:list
+php artisan schedule:list
+php artisan migrate:status
+```
+
+Verify the production frontend build:
+
+```powershell
+npm run build
+```
+
+## 16. Daily Local Development Workflow
+
+Terminal 1, Laravel:
+
+```powershell
+Set-Location "C:\Users\hunte\Desktop\webtest\SA25-26_ClassN01_Group-5\src"
+php artisan serve
+```
+
+Terminal 2, scheduler:
+
+```powershell
+Set-Location "C:\Users\hunte\Desktop\webtest\SA25-26_ClassN01_Group-5\src"
+php artisan schedule:work
+```
+
+Terminal 3, only while editing React or JavaScript:
+
+```powershell
+Set-Location "C:\Users\hunte\Desktop\webtest\SA25-26_ClassN01_Group-5\src"
+npm run dev
+```
+
+Terminal 4, only when using the database queue:
+
+```powershell
+Set-Location "C:\Users\hunte\Desktop\webtest\SA25-26_ClassN01_Group-5\src"
+php artisan queue:work --tries=3
+```
+
+## 17. Troubleshooting
+
+### `SQLSTATE[HY000] [1049] Unknown database`
+
+- Create the `badnet` database.
+- Verify `DB_DATABASE` in `.env`.
+
+### `Table ... doesn't exist`
+
+- Import `database/badnet.sql`.
+- Run `php artisan migrate`.
+
+### `.env` changes have no effect
+
+```powershell
+php artisan optimize:clear
+```
+
+### Old CSS or JavaScript is still displayed
+
+```powershell
+npm run build
+php artisan view:clear
+```
+
+Then perform a hard refresh with `Ctrl + F5`.
+
+### Email is not sent
+
+- Verify the Gmail App Password.
+- Verify `MAIL_FROM_ADDRESS`.
+- Run `php artisan optimize:clear`.
+- Check `storage/logs/laravel.log`.
+- If using a database queue, ensure `php artisan queue:work` is running.
+
+### Realtime notifications do not update
+
+- Verify `BROADCAST_DRIVER=pusher`.
+- Verify all `PUSHER_*` values.
+- Run `npm run build` again.
+- Inspect the Pusher connection in browser developer tools.
+- Without Pusher, polling continues to work but is not immediate.
+
+### Admin panel access is denied
+
+- Check the user's role through Tinker.
+- The role must be `admin`, `super_admin`, `moderator`, or `betting_manager`.
+- Each role only sees the management sections allowed by its capabilities.
+
+### Route, view, or configuration cache errors
+
+```powershell
+php artisan optimize:clear
+php artisan view:cache
+php artisan route:cache
+php artisan config:cache
+```
+
+## 18. Production Configuration
+
+Recommended values:
+
+```dotenv
+APP_ENV=production
+APP_DEBUG=false
+APP_DEMO_DATA=false
+QUEUE_CONNECTION=database
+BROADCAST_DRIVER=pusher
+```
+
+Basic deployment commands:
+
+```powershell
+composer install --no-dev --optimize-autoloader
+npm ci
+npm run build
+php artisan migrate --force
+php artisan optimize
+```
+
+Production also requires:
+
+- HTTPS
+- A queue worker managed by Supervisor or systemd
+- A cron job for the Laravel scheduler
+- Regular database backups
+- Separate SMTP and Pusher credentials
+- Write permissions for `storage` and `bootstrap/cache`
+
+Never commit `.env`, Gmail App Passwords, database passwords, or Pusher secrets.

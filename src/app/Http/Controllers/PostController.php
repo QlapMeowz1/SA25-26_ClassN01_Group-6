@@ -139,6 +139,7 @@ class PostController extends Controller
                     'message' => $user->name . ' liked your post!',
                     'type' => 'like',
                     'related_user_id' => $user->id,
+                    'target_url' => route('posts.show', $post->id),
                 ]);
             }
         }
@@ -189,6 +190,7 @@ class PostController extends Controller
                 'message' => Auth::user()->name . ' commented on your post!',
                 'type' => 'comment',
                 'related_user_id' => Auth::id(),
+                'target_url' => route('posts.show', $post->id) . '#comment-' . $comment->id,
             ]);
         }
 
@@ -243,6 +245,7 @@ class PostController extends Controller
                 'message' => Auth::user()->name . ' replied to your comment!',
                 'type' => 'comment',
                 'related_user_id' => Auth::id(),
+                'target_url' => route('posts.show', $comment->post_id) . '#comment-' . $reply->id,
             ]);
         }
 
@@ -292,6 +295,7 @@ class PostController extends Controller
                 'message' => Auth::user()->name . ' liked your comment!',
                 'type' => 'like',
                 'related_user_id' => Auth::id(),
+                'target_url' => route('posts.show', $comment->post_id) . '#comment-' . $comment->id,
             ]);
         }
 

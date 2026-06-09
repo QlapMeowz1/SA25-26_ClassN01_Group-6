@@ -42,6 +42,7 @@
                     <input type="checkbox" id="remember" name="remember">
                     <span>Remember me</span>
                 </label>
+                <a href="{{ route('password.request', ['email' => old('email')]) }}" class="auth-inline-link">Forgot password?</a>
             </div>
 
             <button type="submit" class="btn btn-primary btn-block">Login</button>

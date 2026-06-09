@@ -36,7 +36,7 @@ class DashboardController extends Controller
                 'status' => \Illuminate\Support\Str::headline($match->status),
             ])
             ->all();
-        if (empty($recentMatches)) {
+        if (config('app.demo_data') && empty($recentMatches)) {
             $recentMatches = array_slice(AdminMockData::matches(), 0, 5);
         }
 

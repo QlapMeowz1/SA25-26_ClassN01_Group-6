@@ -67,7 +67,7 @@ class CourtBookingsController extends Controller
             ->orderBy('match_date')
             ->get();
 
-        if ($matches->isEmpty()) {
+        if (config('app.demo_data') && $matches->isEmpty()) {
             return AdminMockData::courtBookings();
         }
 

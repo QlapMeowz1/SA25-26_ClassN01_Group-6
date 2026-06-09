@@ -1,11 +1,14 @@
 {
+  "resources/js/app.js": {
+    "file": "assets/app-BY4SeKtw.js",
+    "name": "app",
+    "src": "resources/js/app.js",
+    "isEntry": true
+  },
   "resources/react/main.tsx": {
-    "file": "assets/player-portal-C8VTzJjj.js",
+    "file": "assets/player-portal-V3V8WuFy.js",
     "name": "player-portal",
     "src": "resources/react/main.tsx",
-    "isEntry": true,
-    "css": [
-      "assets/player-portal-_8YzNoF1.css"
-    ]
+    "isEntry": true
   }
 }

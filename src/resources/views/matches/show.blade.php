@@ -126,7 +126,7 @@
                                 @csrf
                                 <button type="submit" class="btn btn-primary">Start Match</button>
                             </form>
-                        @elseif($match->canSubmitResult() && $isCreator)
+                        @elseif($match->canSubmitResult())
                             <form action="{{ route('matches.submitResult', $match->id) }}" method="POST" class="match-result-form">
                                 @csrf
                                 <div class="match-form-grid">
@@ -147,8 +147,28 @@
                                         </select>
                                     </div>
                                 </div>
-                                <button type="submit" class="btn btn-success">Submit Result</button>
+                                <button type="submit" class="btn btn-success">Submit Result for Confirmation</button>
                             </form>
+                        @elseif($match->status === 'pending_confirmation' && (int) auth()->id() !== (int) $match->result_submitted_by)
+                            <div class="match-result-review">
+                                <p><strong>Proposed score:</strong> {{ $match->player1_score }} - {{ $match->player2_score }}</p>
+                                <p><strong>Winner:</strong> {{ $match->winner?->name }}</p>
+                                <div class="challenge-actions">
+                                    <form action="{{ route('matches.confirmResult', $match) }}" method="POST">
+                                        @csrf
+                                        <button type="submit" class="btn btn-success">Confirm Result</button>
+                                    </form>
+                                    <form action="{{ route('matches.disputeResult', $match) }}" method="POST" class="match-compact-form">
+                                        @csrf
+                                        <input type="text" name="reason" maxlength="1000" placeholder="Explain what is incorrect" required>
+                                        <button type="submit" class="btn btn-danger">Dispute</button>
+                                    </form>
+                                </div>
+                            </div>
+                        @elseif($match->status === 'pending_confirmation')
+                            <p class="empty-message">Waiting for the opponent to confirm the submitted result.</p>
+                        @elseif($match->status === 'disputed')
+                            <p class="empty-message">This result is disputed and awaiting admin review.</p>
                         @else
                             <p class="empty-message">No action is needed right now.</p>
                         @endif
@@ -159,6 +179,32 @@
 
         <aside class="match-side-column">
             @auth
+                @if($match->player2_id)
+                    <section class="match-action-panel match-live-pool-panel" data-pool-match-id="{{ $match->id }}">
+                        <div class="match-section-heading">
+                            <div>
+                                <p class="home-eyebrow">Pool Movement</p>
+                                <h2>Live betting split</h2>
+                            </div>
+                            <span class="app-status app-status--{{ $poolData['market_state'] ?? 'open' }}" data-pool-state>{{ ucfirst($poolData['market_state'] ?? 'open') }}</span>
+                        </div>
+
+                        <div class="match-live-pool-teams">
+                            <span>{{ $poolData['player_a'] }}</span>
+                            <strong data-pool-total>{{ number_format($poolData['total_pool'] ?? 0) }} pts</strong>
+                            <span>{{ $poolData['player_b'] }}</span>
+                        </div>
+                        <div class="pulse-pool-bar match-live-pool-bar">
+                            <span data-pool-bar-a style="width: {{ $poolData['percent_a'] ?? 50 }}%"></span>
+                            <i data-pool-bar-b style="width: {{ $poolData['percent_b'] ?? 50 }}%"></i>
+                        </div>
+                        <div class="match-live-pool-meta">
+                            <span data-pool-split>{{ $poolData['percent_a'] ?? 50 }}% / {{ $poolData['percent_b'] ?? 50 }}%</span>
+                            <span data-pool-bettors>{{ $poolData['bettor_count'] ?? 0 }} bettors</span>
+                        </div>
+                    </section>
+                @endif
+
                 @if($canManageOdds && $match->status !== 'completed' && $match->player2_id)
                     <section class="match-action-panel">
                         <div class="match-section-heading">
@@ -215,7 +261,7 @@
                             </div>
                             <a href="{{ route('bets.slip', $match->id) }}" class="text-sm font-semibold text-sky-600 dark:text-sky-300">Open Bet Slip →</a>
                         </div>
-                        <form action="{{ route('matches.placeBet', $match->id) }}" method="POST" class="match-compact-form">
+                        <form action="{{ route('matches.placeBet', $match->id) }}" method="POST" class="match-compact-form" onsubmit="return confirm('Confirm this bet? Coins will be locked immediately and cannot be changed after submission.');">
                             @csrf
                             @error('bet_on_user_id') <span class="error-text">{{ $message }}</span> @enderror
                             @error('amount') <span class="error-text">{{ $message }}</span> @enderror

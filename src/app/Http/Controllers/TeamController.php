@@ -23,7 +23,7 @@ class TeamController extends Controller
         $locationFilter = $request->get('location', '');
 
         $myTeams = $user->teams()->paginate(10);
-        if ($myTeams->getCollection()->count() < 3) {
+        if (config('app.demo_data') && $myTeams->getCollection()->count() < 3) {
             $myTeams->setCollection(
                 $myTeams->getCollection()
                     ->concat($this->buildSampleTeamCards()->take(3))
@@ -67,7 +67,7 @@ class TeamController extends Controller
             })
         );
 
-        if ($allTeams->getCollection()->count() < 9 && empty($search) && empty($levelFilter) && empty($locationFilter)) {
+        if (config('app.demo_data') && $allTeams->getCollection()->count() < 9 && empty($search) && empty($levelFilter) && empty($locationFilter)) {
             $allTeams->setCollection(
                 $allTeams->getCollection()
                     ->concat($this->buildSampleTeamCards())

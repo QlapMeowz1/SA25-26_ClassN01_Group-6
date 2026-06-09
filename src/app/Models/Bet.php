@@ -18,6 +18,8 @@ class Bet extends Model
         'odds',
         'status',
         'payout',
+        'settled_at',
+        'settlement_key',
     ];
 
     protected $casts = [
@@ -26,6 +28,7 @@ class Bet extends Model
         'payout' => 'float',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
+        'settled_at' => 'datetime',
     ];
 
     public function user()

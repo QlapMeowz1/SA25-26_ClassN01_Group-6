@@ -14,6 +14,7 @@
         'pending' => ['label' => 'Pending', 'count' => $stats['pending'] ?? 0],
         'won' => ['label' => 'Won', 'count' => $stats['won'] ?? 0],
         'lost' => ['label' => 'Lost', 'count' => $stats['lost'] ?? 0],
+        'refunded' => ['label' => 'Refunded', 'count' => $stats['refunded'] ?? 0],
     ];
 @endphp
 
@@ -44,6 +45,56 @@
         <div><span>Average Stake</span><strong>{{ number_format($stats['avg_stake'] ?? 0) }}</strong></div>
         <div><span>Settled Tickets</span><strong>{{ number_format($stats['settled'] ?? 0) }}</strong></div>
         <div><span>ROI</span><strong class="{{ $roi >= 0 ? 'text-positive' : 'text-negative' }}">{{ $roi >= 0 ? '+' : '' }}{{ $roi }}%</strong></div>
+    </section>
+
+    <section class="pulse-panel pulse-hot-bets" id="markets">
+        <div class="pulse-panel-heading">
+            <div>
+                <p class="home-eyebrow">Hot Markets</p>
+                <h2>Live Pool Movement</h2>
+            </div>
+            <a href="{{ route('matches.index') }}">Browse matches</a>
+        </div>
+
+        @if($hotBetMarkets->isEmpty())
+            <div class="profile-empty-state profile-empty-state-small">
+                <div class="profile-empty-icon">POOL</div>
+                <h3>No active pools</h3>
+                <p>Open markets will appear here as soon as players start placing predictions.</p>
+            </div>
+        @else
+            <div class="pulse-hot-list">
+                @foreach($hotBetMarkets as $market)
+                    <article class="pulse-hot-card" data-pool-match-id="{{ $market->id }}">
+                        <div class="pulse-hot-top">
+                            <div>
+                                <strong>{{ $market->player1?->name ?? 'Player 1' }} vs {{ $market->player2?->name ?? 'Player 2' }}</strong>
+                                <span>{{ $market->match_date ? $market->match_date->format('M d, H:i') : 'Time TBD' }} · {{ $market->location ?: 'Court TBD' }}</span>
+                            </div>
+                            <span class="app-status app-status--{{ strtolower($market->pulse_state) }}" data-pool-state>{{ $market->pulse_state }}</span>
+                        </div>
+
+                        <div class="pulse-pool-bar" aria-label="Pool distribution">
+                            <span data-pool-bar-a style="width: {{ $market->pulse_player1_percent }}%"></span>
+                            <i data-pool-bar-b style="width: {{ $market->pulse_player2_percent }}%"></i>
+                        </div>
+
+                        <div class="pulse-pool-meta">
+                            <span>{{ $market->player1?->name ?? 'Player 1' }} {{ $market->pulse_player1_percent }}%</span>
+                            <strong data-pool-total>{{ number_format($market->pulse_pool) }} pts</strong>
+                            <span>{{ $market->pulse_player2_percent }}% {{ $market->player2?->name ?? 'Player 2' }}</span>
+                        </div>
+
+                        <div class="pulse-hot-actions">
+                            <a href="{{ route('bets.slip', $market->id) }}" class="pulse-odds-pill">{{ number_format($market->pulse_player1_odds, 2) }}x</a>
+                            <a href="{{ route('bets.slip', $market->id) }}" class="pulse-odds-pill pulse-odds-pill--blue">{{ number_format($market->pulse_player2_odds, 2) }}x</a>
+                            <span data-pool-bettors>{{ $market->pulse_bettors }} bettors</span>
+                            <span data-pool-split hidden>{{ $market->pulse_player1_percent }}% / {{ $market->pulse_player2_percent }}%</span>
+                        </div>
+                    </article>
+                @endforeach
+            </div>
+        @endif
     </section>
 
     <section class="betting-kpi-grid">
@@ -96,6 +147,8 @@
                                 $statusClass = 'is-won';
                             } elseif ($bet->status === 'lost') {
                                 $statusClass = 'is-lost';
+                            } elseif ($bet->status === 'refunded') {
+                                $statusClass = 'is-refunded';
                             }
 
                             $ticketOdds = $bet->odds ?: ($insights['selected_odds'] ?? 1);
@@ -133,9 +186,9 @@
                                         <strong>{{ number_format($expectedReturn) }}</strong>
                                     </div>
                                     <div>
-                                        <span>{{ $bet->status === 'pending' ? 'Risk' : 'Profit' }}</span>
+                                        <span>{{ in_array($bet->status, ['pending', 'live'], true) ? 'Risk' : ($bet->status === 'refunded' ? 'Returned' : 'Profit') }}</span>
                                         <strong class="{{ $profit >= 0 ? 'text-positive' : 'text-negative' }}">
-                                            {{ $bet->status === 'pending' ? ($insights['risk_level'] ?? 'Balanced') : (($profit >= 0 ? '+' : '') . number_format($profit)) }}
+                                            {{ in_array($bet->status, ['pending', 'live'], true) ? ($insights['risk_level'] ?? 'Balanced') : ($bet->status === 'refunded' ? number_format($bet->payout ?? $bet->amount) : (($profit >= 0 ? '+' : '') . number_format($profit))) }}
                                         </strong>
                                     </div>
                                 </div>
@@ -174,7 +227,7 @@
                 </div>
             </section>
 
-            <section class="betting-panel betting-market-watch" id="markets">
+            <section class="betting-panel betting-market-watch">
                 <div class="betting-panel-heading">
                     <div>
                         <p class="home-eyebrow">Market Watch</p>

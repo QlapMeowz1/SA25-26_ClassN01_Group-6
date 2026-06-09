@@ -18,7 +18,7 @@
         <form method="GET" action="{{ route('admin.matches') }}" class="admin-filter-bar">
             <select name="status">
                 <option value="">All statuses</option>
-                @foreach(['open', 'scheduled', 'in_progress', 'completed', 'cancelled'] as $status)
+                @foreach(['open', 'scheduled', 'in_progress', 'pending_confirmation', 'disputed', 'completed', 'cancelled'] as $status)
                     <option value="{{ $status }}" @selected(request('status') === $status)>{{ \Illuminate\Support\Str::headline($status) }}</option>
                 @endforeach
             </select>
@@ -47,11 +47,32 @@
                                 <strong>{{ $match->player1?->name ?? 'Player 1' }} vs {{ $match->player2?->name ?? 'TBD' }}</strong>
                                 <small>{{ $match->location ?? 'Court TBD' }}</small>
                             </td>
-                            <td><span class="admin-pill">{{ \Illuminate\Support\Str::headline($match->status) }}</span></td>
+                            <td>
+                                <span class="admin-pill">{{ $match->trashed() ? 'Deleted' : \Illuminate\Support\Str::headline($match->status) }}</span>
+                                @if($match->result_dispute_reason)
+                                    <small>{{ \Illuminate\Support\Str::limit($match->result_dispute_reason, 70) }}</small>
+                                @endif
+                            </td>
                             <td>{{ $match->match_date ? $match->match_date->format('M d, Y H:i') : 'No date' }}</td>
                             <td>{{ $match->winner?->name ?? 'N/A' }}<br><small>{{ $match->player1_score ?? '-' }} / {{ $match->player2_score ?? '-' }}</small></td>
                             <td>{{ $match->bets_count }}</td>
-                            <td><a href="{{ route('matches.show', $match->id) }}" class="btn btn-secondary btn-small">Open</a></td>
+                            <td>
+                                <div class="admin-row-actions">
+                                    @if($match->trashed())
+                                        <form method="POST" action="{{ route('admin.matches.restore', $match->id) }}">
+                                            @csrf
+                                            <button class="btn btn-secondary btn-small">Restore</button>
+                                        </form>
+                                    @else
+                                        <a href="{{ route('matches.show', $match->id) }}" class="btn btn-secondary btn-small">Open</a>
+                                        <form method="POST" action="{{ route('admin.matches.destroy', $match->id) }}" onsubmit="return confirm('Move this match to trash?');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button class="btn btn-danger btn-small">Delete</button>
+                                        </form>
+                                    @endif
+                                </div>
+                            </td>
                         </tr>
                     @endforeach
                 </tbody>

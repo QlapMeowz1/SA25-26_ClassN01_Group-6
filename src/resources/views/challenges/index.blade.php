@@ -84,7 +84,7 @@
                                 $pendingRequests = $challenge->joinRequests->where('status', 'pending');
                             @endphp
 
-                            <article class="challenge-card challenge-card-featured">
+                            <article id="challenge-{{ $challenge->id }}" class="challenge-card challenge-card-featured">
                                 <div class="challenge-card-top">
                                     <div class="challenge-from">
                                         <span class="challenge-avatar">{{ strtoupper(substr($challenge->challenger->name, 0, 1)) }}</span>
@@ -186,7 +186,7 @@
                 @else
                     <div class="challenge-list">
                         @foreach($received as $challenge)
-                            <article class="challenge-card">
+                            <article id="challenge-{{ $challenge->id }}" class="challenge-card">
                                 <div class="challenge-card-top">
                                     <div class="challenge-from">
                                         <span class="challenge-avatar">{{ strtoupper(substr($challenge->challenger->name, 0, 1)) }}</span>
@@ -255,7 +255,7 @@
                         @foreach($sent as $challenge)
                             @php $pendingRequests = $challenge->joinRequests->where('status', 'pending'); @endphp
 
-                            <article class="challenge-card">
+                            <article id="challenge-{{ $challenge->id }}" class="challenge-card">
                                 <div class="challenge-card-top">
                                     <div class="challenge-from">
                                         <span class="challenge-avatar">{{ strtoupper(substr(auth()->user()->name, 0, 1)) }}</span>

@@ -50,7 +50,7 @@
         </div>
     </section>
 
-    <form action="{{ route('matches.placeBet', $match->id) }}" method="POST" class="betting-slip-layout" id="betSlipForm">
+    <form action="{{ route('matches.placeBet', $match->id) }}" method="POST" class="betting-slip-layout" id="betSlipForm" onsubmit="return confirm('Confirm this bet? Your stake will be deducted and locked immediately.');">
         @csrf
 
         <main class="betting-main-column">
@@ -140,10 +140,9 @@
                     </div>
 
                     <div class="betting-quick-stakes">
-                        @foreach([50, 100, 250, $maxRecommended] as $stake)
-                            <button type="button" data-quick-stake="{{ $stake }}">{{ number_format($stake) }}</button>
-                        @endforeach
-                        <button type="button" data-quick-stake="{{ $wallet }}">Max</button>
+                        <button type="button" data-quick-add="100">+100</button>
+                        <button type="button" data-quick-add="500">+500</button>
+                        <button type="button" data-quick-stake="{{ $wallet }}">All-in</button>
                     </div>
                 </div>
 
@@ -204,7 +203,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const players = @json($players->values());
     const radios = document.querySelectorAll('[data-player-choice]');
     const stakeInput = document.getElementById('stakeAmount');
-    const quickStakeButtons = document.querySelectorAll('[data-quick-stake]');
+    const quickStakeButtons = document.querySelectorAll('[data-quick-stake], [data-quick-add]');
     const wallet = parseInt(stakeInput?.dataset.wallet || '0', 10) || 0;
     const formatter = new Intl.NumberFormat('en-US');
 
@@ -260,7 +259,10 @@ document.addEventListener('DOMContentLoaded', function () {
     quickStakeButtons.forEach(function (button) {
         button.addEventListener('click', function () {
             if (!stakeInput) return;
-            stakeInput.value = Math.min(wallet, parseInt(button.getAttribute('data-quick-stake') || '0', 10) || 0);
+            const add = parseInt(button.getAttribute('data-quick-add') || '0', 10) || 0;
+            const fixed = parseInt(button.getAttribute('data-quick-stake') || '0', 10) || 0;
+            const current = parseInt(stakeInput.value || '0', 10) || 0;
+            stakeInput.value = add > 0 ? Math.min(wallet, current + add) : Math.min(wallet, fixed);
             updatePreview();
         });
     });

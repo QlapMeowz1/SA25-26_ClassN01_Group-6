@@ -53,6 +53,7 @@
     @endunless
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
     <link rel="stylesheet" href="{{ asset('css/dashboard-redesign.css') }}">
+    @vite('resources/js/app.js')
     <script src="{{ asset('js/theme-manager.js') }}"></script>
 </head>
 <body class="{{ request()->routeIs('admin.*') ? 'admin-route' : '' }}" data-page="{{ request()->routeIs('dashboard') ? 'dashboard' : (request()->routeIs('admin.*') ? 'admin' : 'app') }}">
@@ -73,7 +74,7 @@
                     <a href="{{ route('matches.index') }}" class="nav-link {{ request()->routeIs('matches.*') ? 'nav-link-active' : '' }}">{{ __('ui.nav.matches') }}</a>
                     <a href="{{ route('teams.index') }}" class="nav-link {{ request()->routeIs('teams.*') ? 'nav-link-active' : '' }}">{{ __('ui.nav.teams') }}</a>
                     <a href="{{ route('tournaments.index') }}" class="nav-link {{ request()->routeIs('tournaments.*') ? 'nav-link-active' : '' }}">{{ __('ui.nav.tournaments') }}</a>
-                    @if(auth()->user()->isAdmin())
+                    @if(auth()->user()->hasAdminAccess())
                         <a href="{{ route('admin.dashboard') }}" class="nav-link {{ request()->routeIs('admin.*') ? 'nav-link-active' : '' }}">Admin</a>
                     @endif
                 </div>
@@ -121,11 +122,18 @@
                                 <strong>{{ __('ui.notifications.title') }}</strong>
                                 <button type="button" id="markAllReadBtn" class="btn btn-link">{{ __('ui.notifications.mark_all_read') }}</button>
                             </div>
+                            <div class="nav-bell-tabs" role="tablist" aria-label="Notification filters">
+                                <button type="button" class="nav-bell-tab is-active" data-notification-tab="all">All</button>
+                                <button type="button" class="nav-bell-tab" data-notification-tab="interactions">Interactions</button>
+                                <button type="button" class="nav-bell-tab" data-notification-tab="matches">Matches</button>
+                                <button type="button" class="nav-bell-tab" data-notification-tab="betting">Betting / Wallet</button>
+                                <button type="button" class="nav-bell-tab" data-notification-tab="system">System</button>
+                            </div>
                             <div class="nav-bell-list" id="navBellList">
                                 <p class="muted">Loading…</p>
                             </div>
                             <div class="nav-bell-footer">
-                                <a href="{{ route('dashboard') }}#notifications">{{ __('ui.notifications.view_all') }}</a>
+                                <a href="{{ route('notifications.index') }}">{{ __('ui.notifications.view_all') }}</a>
                             </div>
                         </div>
                     </div>
@@ -144,7 +152,7 @@
                         <div class="nav-dropdown">
                             <a href="{{ route('profile.show', auth()->id()) }}" class="nav-dropdown-link">{{ __('ui.nav.profile') }}</a>
                             <a href="{{ route('profile.edit') }}" class="nav-dropdown-link">{{ __('ui.nav.settings') }}</a>
-                            @if(auth()->user()->isAdmin())
+                            @if(auth()->user()->hasAdminAccess())
                                 <a href="{{ route('admin.dashboard') }}" class="nav-dropdown-link">Admin Console</a>
                             @endif
                             <form action="{{ route('logout') }}" method="POST">
@@ -249,7 +257,7 @@
             </span>
             <span class="mobile-nav-label">{{ __('ui.nav.tournaments') }}</span>
         </a>
-        @if(auth()->user()->isAdmin())
+        @if(auth()->user()->hasAdminAccess())
             <a href="{{ route('admin.dashboard') }}" class="mobile-nav-item {{ request()->routeIs('admin.*') ? 'mobile-nav-active' : '' }}" title="Admin">
                 <span class="mobile-nav-icon" aria-hidden="true">
                     <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -376,25 +384,39 @@
             const navBell = document.getElementById('navBell');
             const navBellDropdown = document.getElementById('navBellDropdown');
             const navBellList = document.getElementById('navBellList');
-            const navBellBadge = document.getElementById('navBellBadge');
+            let navBellBadge = document.getElementById('navBellBadge');
             const markAllReadBtn = document.getElementById('markAllReadBtn');
+            const notificationTabs = Array.from(document.querySelectorAll('[data-notification-tab]'));
+            let allNotifications = [];
+            let currentNotificationTab = 'all';
+
+            function csrfToken() {
+                return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
+                    || document.querySelector('input[name="_token"]')?.value
+                    || '';
+            }
 
             async function fetchNotifications() {
                 if (!navBellList) return;
                 try {
                     const res = await fetch('{{ route('notifications.recent') }}', { credentials: 'same-origin' });
                     const data = await res.json();
-                    renderNotifications(data.notifications || []);
+                    allNotifications = data.notifications || [];
+                    renderNotifications();
+                    updateNotificationBadge(data.unread_count ?? allNotifications.filter(i => !i.is_read).length);
                 } catch (e) {
                     navBellList.innerHTML = '<p class="muted">Unable to load</p>';
                 }
             }
 
-            function renderNotifications(items) {
+            function renderNotifications() {
                 if (!navBellList) return;
+                const items = currentNotificationTab === 'all'
+                    ? allNotifications
+                    : allNotifications.filter(n => (n.category || 'system') === currentNotificationTab);
+
                 if (!items.length) {
-                    navBellList.innerHTML = '<p class="muted">No new notifications</p>';
-                    if (navBellBadge) navBellBadge.remove();
+                    navBellList.innerHTML = '<p class="muted notification-empty">No notifications in this tab</p>';
                     return;
                 }
 
@@ -405,30 +427,213 @@
                     const parts = String(rawText).split(' ');
                     const head = parts.shift() || '';
                     const tail = parts.join(' ');
-                    return `<a href="${escapeHtml(link)}" class="notification-item ${n.is_read ? 'read' : 'unread'}" data-link="${escapeHtml(link)}">
+                    const actions = Array.isArray(n.actions) && n.actions.length
+                        ? `<div class="notification-actions">${n.actions.map(action => `
+                            <button type="button"
+                                class="notification-action notification-action--${escapeHtml(action.tone || 'default')}"
+                                data-notification-action
+                                data-action-url="${escapeHtml(action.url)}"
+                                data-action-method="${escapeHtml(action.method || 'POST')}">
+                                ${escapeHtml(action.label)}
+                            </button>`).join('')}</div>`
+                        : '';
+                    const controls = String(n.id).startsWith('demo-') ? '' : `
+                        <div class="notification-controls" aria-label="Notification actions">
+                            <button type="button" class="notification-control" data-notification-open title="Open notification">Open</button>
+                            <button type="button" class="notification-control" data-notification-unread title="Mark as unread">Unread</button>
+                            <button type="button" class="notification-control ${n.is_pinned ? 'is-active' : ''}" data-notification-pin title="${n.is_pinned ? 'Unpin notification' : 'Pin notification'}">
+                                ${n.is_pinned ? 'Pinned' : 'Pin'}
+                            </button>
+                        </div>`;
+
+                    return `<article
+                        class="notification-item notification-tone-${escapeHtml(n.tone || 'neutral')} ${n.is_read ? 'read' : 'unread'} ${n.is_pinned ? 'is-pinned' : ''}"
+                        data-notification-id="${escapeHtml(n.id)}"
+                        data-link="${escapeHtml(link)}">
                         <div class="notification-icon">${escapeHtml(icon)}</div>
                         <div class="notification-body">
-                            <div class="notification-text"><strong>${escapeHtml(head)}</strong>${tail ? ' ' + escapeHtml(tail) : ''}</div>
-                            <div class="notification-meta">${n.time ?? ''}</div>
+                            <button type="button" class="notification-content" data-notification-open>
+                                <span class="notification-text"><strong>${escapeHtml(head)}</strong>${tail ? ' ' + escapeHtml(tail) : ''}</span>
+                            </button>
+                            <div class="notification-meta">
+                                <span>${escapeHtml(n.time ?? '')}</span>
+                                <span class="notification-category">${escapeHtml(categoryLabel(n.category))}</span>
+                                ${n.is_pinned ? '<span class="notification-pinned-label">Pinned</span>' : ''}
+                            </div>
+                            ${actions}
+                            ${controls}
                         </div>
-                    </a>`;
+                    </article>`;
                 }).join('');
 
-                // make items clickable to navigate
                 Array.from(navBellList.querySelectorAll('.notification-item')).forEach(function(el){
-                    el.addEventListener('click', function(e){
-                        // allow normal link behavior
+                    Array.from(el.querySelectorAll('[data-notification-open]')).forEach(function(openButton) {
+                        openButton.addEventListener('click', async function(e){
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const id = el.getAttribute('data-notification-id');
+                        const link = el.getAttribute('data-link') || '#';
+
+                        if (id && !String(id).startsWith('demo-')) {
+                            await markNotificationRead(id);
+                        }
+
+                        if (link !== '#') {
+                            window.location.href = link;
+                        }
+                        });
                     });
                 });
 
-                // update badge
-                const unread = items.filter(i => !i.is_read).length;
-                if (navBellBadge) {
-                    if (unread > 0) navBellBadge.textContent = unread; else navBellBadge.remove();
+                Array.from(navBellList.querySelectorAll('[data-notification-action]')).forEach(function(button) {
+                    button.addEventListener('click', async function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        button.disabled = true;
+
+                        try {
+                            await fetch(button.getAttribute('data-action-url'), {
+                                method: button.getAttribute('data-action-method') || 'POST',
+                                credentials: 'same-origin',
+                                headers: {
+                                    'X-CSRF-TOKEN': csrfToken(),
+                                    'Accept': 'application/json'
+                                }
+                            });
+                            await fetchNotifications();
+                        } catch (error) {
+                            button.disabled = false;
+                        }
+                    });
+                });
+
+                Array.from(navBellList.querySelectorAll('[data-notification-unread]')).forEach(function(button) {
+                    button.addEventListener('click', async function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const item = button.closest('.notification-item');
+                        const id = item?.getAttribute('data-notification-id');
+                        if (!id) return;
+
+                        button.disabled = true;
+                        try {
+                            const response = await fetch(`/notifications/${encodeURIComponent(id)}/unread`, {
+                                method: 'POST',
+                                credentials: 'same-origin',
+                                headers: {
+                                    'X-CSRF-TOKEN': csrfToken(),
+                                    'Accept': 'application/json',
+                                    'X-Requested-With': 'XMLHttpRequest'
+                                }
+                            });
+                            if (!response.ok) throw new Error('Unable to mark notification as unread');
+                            allNotifications = allNotifications.map(notification =>
+                                String(notification.id) === String(id)
+                                    ? { ...notification, is_read: false }
+                                    : notification
+                            );
+                            renderNotifications();
+                            updateNotificationBadge(allNotifications.filter(notification => !notification.is_read).length);
+                        } catch (error) {
+                            button.disabled = false;
+                            console.error(error);
+                        }
+                    });
+                });
+
+                Array.from(navBellList.querySelectorAll('[data-notification-pin]')).forEach(function(button) {
+                    button.addEventListener('click', async function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const item = button.closest('.notification-item');
+                        const id = item?.getAttribute('data-notification-id');
+                        if (!id) return;
+
+                        button.disabled = true;
+                        try {
+                            const response = await fetch(`/notifications/${encodeURIComponent(id)}/pin`, {
+                                method: 'POST',
+                                credentials: 'same-origin',
+                                headers: {
+                                    'X-CSRF-TOKEN': csrfToken(),
+                                    'Accept': 'application/json',
+                                    'X-Requested-With': 'XMLHttpRequest'
+                                }
+                            });
+                            if (!response.ok) throw new Error('Unable to update pin');
+                            const payload = await response.json();
+                            allNotifications = allNotifications
+                                .map(notification =>
+                                    String(notification.id) === String(id)
+                                        ? { ...notification, is_pinned: Boolean(payload.is_pinned) }
+                                        : notification
+                                )
+                                .sort((a, b) => Number(Boolean(b.is_pinned)) - Number(Boolean(a.is_pinned)));
+                            renderNotifications();
+                        } catch (error) {
+                            button.disabled = false;
+                            console.error(error);
+                        }
+                    });
+                });
+            }
+
+            async function markNotificationRead(id) {
+                try {
+                    const response = await fetch(`/notifications/${encodeURIComponent(id)}/read`, {
+                        method: 'POST',
+                        credentials: 'same-origin',
+                        headers: {
+                            'X-CSRF-TOKEN': csrfToken(),
+                            'Accept': 'application/json'
+                        }
+                    });
+                    if (!response.ok) return;
+                    allNotifications = allNotifications.map(notification =>
+                        String(notification.id) === String(id)
+                            ? { ...notification, is_read: true }
+                            : notification
+                    );
+                    updateNotificationBadge(allNotifications.filter(notification => !notification.is_read).length);
+                } catch (e) {
+                    console.error(e);
                 }
             }
 
+            function updateNotificationBadge(unread) {
+                if (!navBell) return;
+                if (unread > 0) {
+                    if (!navBellBadge) {
+                        navBellBadge = document.createElement('span');
+                        navBellBadge.className = 'nav-bell-badge';
+                        navBellBadge.id = 'navBellBadge';
+                        navBell.appendChild(navBellBadge);
+                    }
+                    navBellBadge.textContent = unread;
+                } else if (navBellBadge) {
+                    navBellBadge.remove();
+                    navBellBadge = null;
+                }
+            }
+
+            function categoryLabel(category) {
+                return {
+                    interactions: 'Interactions',
+                    matches: 'Matches',
+                    betting: 'Betting',
+                    system: 'System'
+                }[category] || 'System';
+            }
+
             function escapeHtml(s){ if(!s) return ''; return String(s).replace(/[&<>"']/g, function(m){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[m]; }); }
+
+            notificationTabs.forEach(function(tab) {
+                tab.addEventListener('click', function() {
+                    currentNotificationTab = tab.getAttribute('data-notification-tab') || 'all';
+                    notificationTabs.forEach(item => item.classList.toggle('is-active', item === tab));
+                    renderNotifications();
+                });
+            });
 
             if (navBell && navBellDropdown) {
                 navBell.addEventListener('click', function (e) {
@@ -453,21 +658,42 @@
             }
 
             if (markAllReadBtn) {
-                markAllReadBtn.addEventListener('click', async function () {
+                markAllReadBtn.addEventListener('click', async function (event) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    markAllReadBtn.disabled = true;
                     try {
-                        await fetch('{{ route('notifications.markAll') }}', {
+                        const response = await fetch('{{ route('notifications.markAll') }}', {
                             method: 'POST',
                             credentials: 'same-origin',
                             headers: {
-                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]') ? document.querySelector('meta[name="csrf-token"]').getAttribute('content') : document.querySelector('input[name="_token"]') ? document.querySelector('input[name="_token"]').value : '' ,
-                                'Accept': 'application/json'
+                                'X-CSRF-TOKEN': csrfToken(),
+                                'Accept': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest'
                             }
                         });
+
+                        if (!response.ok) {
+                            throw new Error('Unable to mark notifications as read');
+                        }
+
+                        const payload = await response.json().catch(() => ({ unread_count: 0 }));
+
+                        allNotifications = allNotifications.map(item => ({ ...item, is_read: true }));
+                        renderNotifications();
+                        updateNotificationBadge(payload.unread_count ?? 0);
                         fetchNotifications();
                     } catch (e) {
                         console.error(e);
+                    } finally {
+                        markAllReadBtn.disabled = false;
                     }
                 });
+            }
+
+            if (navBell) {
+                fetchNotifications();
+                setInterval(fetchNotifications, 45000);
             }
 
             // Countdown ticker for any element with data-target

@@ -2,15 +2,17 @@
 
 namespace App\Models;
 
+use App\Notifications\ResetPasswordNotification;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 use App\Models\GameMatch;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, SoftDeletes;
 
     protected $fillable = [
         'name',
@@ -23,12 +25,16 @@ class User extends Authenticatable
         'wins',
         'losses',
         'bio',
+        'handedness',
+        'playing_style',
         'avatar',
         'theme',
         'role',
         'is_banned',
         'banned_at',
         'ban_reason',
+        'last_login_at',
+        'last_login_ip',
     ];
 
     protected $hidden = [
@@ -44,16 +50,22 @@ class User extends Authenticatable
         'role' => 'string',
         'is_banned' => 'boolean',
         'banned_at' => 'datetime',
+        'last_login_at' => 'datetime',
     ];
 
     public function isAdmin(): bool
     {
-        return $this->role === 'admin';
+        return in_array($this->role, ['admin', 'super_admin'], true);
     }
 
     public function isBanned(): bool
     {
         return (bool) $this->is_banned;
+    }
+
+    public function sendPasswordResetNotification($token): void
+    {
+        $this->notify(new ResetPasswordNotification($token));
     }
 
     public function challenges()
@@ -105,6 +117,41 @@ class User extends Authenticatable
     public function notifications()
     {
         return $this->hasMany(Notification::class);
+    }
+
+    public function walletTransactions()
+    {
+        return $this->hasMany(WalletTransaction::class);
+    }
+
+    public function loginActivities()
+    {
+        return $this->hasMany(LoginActivity::class);
+    }
+
+    public function notificationPreference()
+    {
+        return $this->hasOne(NotificationPreference::class);
+    }
+
+    public function hasAdminAccess(): bool
+    {
+        return in_array($this->role, ['admin', 'super_admin', 'moderator', 'betting_manager'], true);
+    }
+
+    public function canManageBetting(): bool
+    {
+        return in_array($this->role, ['admin', 'super_admin', 'betting_manager'], true);
+    }
+
+    public function canManageUsers(): bool
+    {
+        return in_array($this->role, ['admin', 'super_admin'], true);
+    }
+
+    public function canModerateContent(): bool
+    {
+        return in_array($this->role, ['admin', 'super_admin', 'moderator'], true);
     }
 
     public function emailVerificationCodes()

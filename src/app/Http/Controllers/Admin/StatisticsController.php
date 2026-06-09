@@ -23,7 +23,7 @@ class StatisticsController extends Controller
             ])
             ->all();
 
-        if (count($players) < 3) {
+        if (config('app.demo_data') && count($players) < 3) {
             $existingNames = collect($players)->pluck('name')->map(fn ($name) => Str::lower($name))->all();
             $fallbackPlayers = array_values(array_filter(AdminMockData::players(), function ($player) use ($existingNames) {
                 return !in_array(Str::lower($player['name']), $existingNames, true);
@@ -52,7 +52,7 @@ class StatisticsController extends Controller
         $seasonPlayers = $months->map(fn (Carbon $month) => User::where('created_at', '<=', $month->copy()->endOfMonth())->count())->all();
         $seasonMatches = $months->map(fn (Carbon $month) => GameMatch::whereBetween('match_date', [$month, $month->copy()->endOfMonth()])->count())->all();
 
-        if (array_sum($seasonPlayers) < 50 && array_sum($seasonMatches) < 50) {
+        if (config('app.demo_data') && array_sum($seasonPlayers) < 50 && array_sum($seasonMatches) < 50) {
             $seasonLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
             $seasonPlayers = [860, 904, 966, 1015, 1078, 1140, 1186, 1235, 1284, 1322, 1375, 1428];
             $seasonMatches = [220, 184, 245, 206, 274, 318, 366, 342, 421, 458, 501, 536];
@@ -63,7 +63,7 @@ class StatisticsController extends Controller
             ->map(fn (string $rank) => User::where('rank', $rank)->count())
             ->all();
 
-        if (array_sum($rankCounts) < 10) {
+        if (config('app.demo_data') && array_sum($rankCounts) < 10) {
             $categoryLabels = ["Men's Singles", "Women's Singles", "Men's Doubles", "Women's Doubles", 'Mixed Doubles'];
             $categoryMatches = [512, 388, 160, 118, 235];
         } else {

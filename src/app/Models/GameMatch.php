@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class GameMatch extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $table = 'matches';
 
@@ -21,6 +22,11 @@ class GameMatch extends Model
         'player1_score',
         'player2_score',
         'winner_id',
+        'result_submitted_by',
+        'result_confirmed_by',
+        'result_submitted_at',
+        'result_confirmed_at',
+        'result_dispute_reason',
         'elo_change',
         'player1_odds',
         'player2_odds',
@@ -34,6 +40,8 @@ class GameMatch extends Model
         'player1_odds' => 'float',
         'player2_odds' => 'float',
         'odds_updated_at' => 'datetime',
+        'result_submitted_at' => 'datetime',
+        'result_confirmed_at' => 'datetime',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];

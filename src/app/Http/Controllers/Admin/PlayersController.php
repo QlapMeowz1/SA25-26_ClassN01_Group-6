@@ -3,10 +3,14 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Notification;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use App\Services\WalletService;
+use App\Services\AuditService;
 
 class PlayersController extends Controller
 {
@@ -14,12 +18,12 @@ class PlayersController extends Controller
     {
         $sort = $request->query('sort', 'rank');
         $dir = $request->query('dir', 'asc') === 'desc' ? 'desc' : 'asc';
-        $allowed = ['name', 'category', 'club', 'rank', 'wins', 'losses', 'rating', 'status'];
+        $allowed = ['name', 'category', 'club', 'rank', 'wins', 'losses', 'rating', 'wallet', 'status'];
         $sort = in_array($sort, $allowed, true) ? $sort : 'rank';
         $search = $request->query('search', '');
-        $columnMap = ['rating' => 'elo_rating', 'status' => 'is_banned', 'category' => 'rank', 'club' => 'id'];
+        $columnMap = ['rating' => 'elo_rating', 'wallet' => 'virtual_coins', 'status' => 'is_banned', 'category' => 'rank', 'club' => 'id'];
 
-        $users = User::query()
+        $users = User::withTrashed()
             ->withCount(['posts', 'bets'])
             ->when($search !== '', function ($query) use ($search) {
                 $query->where(function ($builder) use ($search) {
@@ -32,7 +36,7 @@ class PlayersController extends Controller
             ->get();
 
         $players = $users->map(function (User $user, int $index) {
-            $status = $user->is_banned ? 'Banned' : ($user->role === 'admin' ? 'Admin' : 'Active');
+            $status = $user->trashed() ? 'Deleted' : ($user->is_banned ? 'Banned' : ($user->hasAdminAccess() ? 'Admin' : 'Active'));
 
             return [
                 'id' => $user->id,
@@ -45,6 +49,7 @@ class PlayersController extends Controller
                 'wins' => $user->wins ?? 0,
                 'losses' => $user->losses ?? 0,
                 'rating' => $user->elo_rating ?? 0,
+                'wallet' => (int) ($user->virtual_coins ?? 0),
                 'status' => $status,
                 'role' => $user->role,
                 'posts_count' => $user->posts_count,
@@ -52,10 +57,11 @@ class PlayersController extends Controller
                 'is_banned' => $user->is_banned,
                 'can_manage' => auth()->id() !== $user->id,
                 'can_update_role' => auth()->id() !== $user->id,
+                'deleted_at' => $user->deleted_at,
             ];
         })->all();
 
-        if (empty($players)) {
+        if (config('app.demo_data') && empty($players)) {
             $players = AdminMockData::players();
         }
 
@@ -64,11 +70,15 @@ class PlayersController extends Controller
 
     public function create()
     {
+        $this->authorizeUserManagement();
+
         return view('admin.players-create');
     }
 
     public function store(Request $request)
     {
+        $this->authorizeUserManagement();
+
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
@@ -95,27 +105,86 @@ class PlayersController extends Controller
         return redirect()->route('admin.players')->with('success', 'Đã thêm player mới.');
     }
 
-    public function updateRole(Request $request, User $user)
+    public function updateRole(Request $request, User $user, AuditService $audit)
     {
+        $this->authorizeUserManagement();
+
         $data = $request->validate([
-            'role' => ['required', Rule::in(['user', 'admin'])],
+            'role' => ['required', Rule::in(['user', 'moderator', 'betting_manager', 'admin', 'super_admin'])],
         ]);
 
-        if ($user->id === $request->user()->id && $data['role'] !== 'admin') {
+        if ($user->id === $request->user()->id && !in_array($data['role'], ['admin', 'super_admin'], true)) {
             return back()->with('error', 'Bạn không thể tự hạ quyền admin của mình.');
         }
 
-        if ($user->isAdmin() && $data['role'] !== 'admin' && User::where('role', 'admin')->count() <= 1) {
+        if ($user->hasAdminAccess() && !in_array($data['role'], ['admin', 'super_admin'], true)
+            && User::whereIn('role', ['admin', 'super_admin'])->count() <= 1) {
             return back()->with('error', 'Không thể hạ quyền admin cuối cùng.');
         }
 
+        $before = ['role' => $user->role];
         $user->update(['role' => $data['role']]);
+        $audit->record('user.role_updated', $user, $before, ['role' => $data['role']]);
 
         return back()->with('success', 'Đã cập nhật role cho user.');
     }
 
-    public function ban(Request $request, User $user)
+    public function updateWallet(Request $request, User $user, WalletService $wallets, AuditService $audit)
     {
+        $this->authorizeUserManagement();
+
+        $data = $request->validate([
+            'operation' => ['required', Rule::in(['set', 'add', 'subtract'])],
+            'amount' => ['required', 'integer', 'min:0', 'max:1000000000'],
+            'reason' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        $before = (int) $user->virtual_coins;
+        $amount = (int) $data['amount'];
+        $target = match ($data['operation']) {
+            'set' => $amount,
+            'add' => min(1000000000, $before + $amount),
+            'subtract' => max(0, $before - $amount),
+        };
+        $reason = trim((string) ($data['reason'] ?? 'Admin wallet adjustment'));
+        $transaction = $wallets->set($user, $target, $reason, $request->user());
+        $after = $transaction->balance_after;
+
+        $difference = $after - $before;
+        $direction = $difference >= 0 ? 'credited' : 'deducted';
+        $audit->record('user.wallet_updated', $user, ['virtual_coins' => $before], ['virtual_coins' => $after], [
+            'operation' => $data['operation'],
+            'reason' => $reason,
+            'wallet_transaction_id' => $transaction->id,
+        ]);
+
+        Notification::create([
+            'user_id' => $user->id,
+            'title' => 'Wallet Balance Updated',
+            'message' => sprintf(
+                'An admin %s %s points. Your balance is now %s points.%s',
+                $direction,
+                number_format(abs($difference)),
+                number_format($after),
+                $reason !== '' ? ' Reason: ' . $reason : ''
+            ),
+            'type' => $difference >= 0 ? 'wallet_credit' : 'wallet_debit',
+            'related_user_id' => $request->user()->id,
+            'target_url' => route('profile.show', $user->id) . '#betting',
+        ]);
+
+        return back()->with('success', sprintf(
+            'Updated %s wallet from %s to %s points.',
+            $user->name,
+            number_format($before),
+            number_format($after)
+        ));
+    }
+
+    public function ban(Request $request, User $user, AuditService $audit)
+    {
+        $this->authorizeUserManagement();
+
         $data = $request->validate([
             'reason' => ['nullable', 'string', 'max:255'],
         ]);
@@ -124,7 +193,7 @@ class PlayersController extends Controller
             return back()->with('error', 'Bạn không thể tự ban tài khoản của mình.');
         }
 
-        if ($user->isAdmin() && User::where('role', 'admin')->where('is_banned', false)->count() <= 1) {
+        if ($user->isAdmin() && User::whereIn('role', ['admin', 'super_admin'])->where('is_banned', false)->count() <= 1) {
             return back()->with('error', 'Không thể ban admin cuối cùng đang hoạt động.');
         }
 
@@ -133,33 +202,110 @@ class PlayersController extends Controller
             'banned_at' => now(),
             'ban_reason' => $data['reason'] ?? 'Banned by admin',
         ]);
+        $audit->record('user.banned', $user, ['is_banned' => false], [
+            'is_banned' => true,
+            'reason' => $user->ban_reason,
+        ]);
 
         return back()->with('success', 'Đã ban user.');
     }
 
-    public function unban(User $user)
+    public function unban(User $user, AuditService $audit)
     {
+        $this->authorizeUserManagement();
+
         $user->update([
             'is_banned' => false,
             'banned_at' => null,
             'ban_reason' => null,
         ]);
+        $audit->record('user.unbanned', $user, ['is_banned' => true], ['is_banned' => false]);
 
         return back()->with('success', 'Đã mở ban user.');
     }
 
-    public function destroy(Request $request, User $user)
+    public function destroy(Request $request, User $user, AuditService $audit)
     {
+        $this->authorizeUserManagement();
+
         if ($user->id === $request->user()->id) {
             return back()->with('error', 'Bạn không thể tự xóa tài khoản của mình.');
         }
 
-        if ($user->isAdmin() && User::where('role', 'admin')->count() <= 1) {
+        if ($user->isAdmin() && User::whereIn('role', ['admin', 'super_admin'])->count() <= 1) {
             return back()->with('error', 'Không thể xóa admin cuối cùng.');
         }
 
+        $audit->record('user.deleted', $user, $user->only(['name', 'email', 'role']), []);
         $user->delete();
 
-        return redirect()->route('admin.players')->with('success', 'Đã xóa user và dữ liệu liên quan.');
+        return redirect()->route('admin.players')->with('success', 'User moved to trash and can be restored.');
+    }
+
+    public function restore(int $user, AuditService $audit)
+    {
+        $this->authorizeUserManagement();
+
+        $model = User::withTrashed()->findOrFail($user);
+        $model->restore();
+        $audit->record('user.restored', $model, [], $model->only(['name', 'email', 'role']));
+
+        return back()->with('success', 'User restored.');
+    }
+
+    public function bulk(Request $request, AuditService $audit)
+    {
+        $this->authorizeUserManagement();
+
+        $data = $request->validate([
+            'action' => ['required', Rule::in(['ban', 'unban', 'delete'])],
+            'user_ids' => ['required', 'array', 'min:1'],
+            'user_ids.*' => ['integer', 'exists:users,id'],
+        ]);
+
+        $users = User::whereIn('id', $data['user_ids'])->where('id', '!=', $request->user()->id)->get();
+        foreach ($users as $user) {
+            if ($data['action'] === 'ban') {
+                $user->update(['is_banned' => true, 'banned_at' => now(), 'ban_reason' => 'Bulk admin action']);
+            } elseif ($data['action'] === 'unban') {
+                $user->update(['is_banned' => false, 'banned_at' => null, 'ban_reason' => null]);
+            } else {
+                $user->delete();
+            }
+            $audit->record('user.bulk_' . $data['action'], $user);
+        }
+
+        return back()->with('success', count($users) . ' users updated.');
+    }
+
+    public function export(Request $request)
+    {
+        $this->authorizeUserManagement();
+
+        $users = User::withTrashed()->orderBy('id')->get();
+
+        return response()->streamDownload(function () use ($users) {
+            $output = fopen('php://output', 'w');
+            fputcsv($output, ['ID', 'Name', 'Email', 'Role', 'Rank', 'ELO', 'Wallet', 'Banned', 'Deleted At']);
+            foreach ($users as $user) {
+                fputcsv($output, [
+                    $user->id,
+                    $user->name,
+                    $user->email,
+                    $user->role,
+                    $user->rank,
+                    $user->elo_rating,
+                    $user->virtual_coins,
+                    $user->is_banned ? 'Yes' : 'No',
+                    optional($user->deleted_at)->toDateTimeString(),
+                ]);
+            }
+            fclose($output);
+        }, 'players-' . now()->format('Y-m-d-His') . '.csv', ['Content-Type' => 'text/csv']);
+    }
+
+    private function authorizeUserManagement(): void
+    {
+        abort_unless(auth()->user()?->canManageUsers(), 403);
     }
 }

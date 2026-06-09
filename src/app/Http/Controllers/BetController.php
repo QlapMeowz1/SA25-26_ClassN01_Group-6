@@ -20,15 +20,16 @@ class BetController extends Controller
     {
         $user = auth()->user();
         $history = $this->service->getUserBetHistory($user);
-        $pendingExposure = (int) $history->where('status', 'pending')->sum('amount');
+        $pendingExposure = (int) $history->whereIn('status', ['pending', 'live'])->sum('amount');
         $settled = $history->whereIn('status', ['won', 'lost']);
         $avgStake = $history->count() > 0 ? (int) round($history->avg('amount')) : 0;
 
         $stats = [
             'total' => $history->count(),
-            'pending' => $history->where('status', 'pending')->count(),
+            'pending' => $history->whereIn('status', ['pending', 'live'])->count(),
             'won' => $history->where('status', 'won')->count(),
             'lost' => $history->where('status', 'lost')->count(),
+            'refunded' => $history->where('status', 'refunded')->count(),
             'coins' => $user->virtual_coins,
             'wagered' => (int) $history->sum('amount'),
             'payout' => (int) $history->sum('payout'),
@@ -57,7 +58,34 @@ class BetController extends Controller
             ->take(4)
             ->get();
 
-        return view('bets.index', compact('history', 'stats', 'favoritePicks', 'openMarkets'));
+        $hotBetMarkets = GameMatch::with(['player1', 'player2', 'bets'])
+            ->whereNotNull('player2_id')
+            ->whereIn('status', ['open', 'scheduled', 'in_progress'])
+            ->where(function ($query) {
+                $query->whereNull('betting_status')
+                    ->orWhereIn('betting_status', ['open', 'approved', 'locked']);
+            })
+            ->withSum('bets as pool_total', 'amount')
+            ->orderByDesc('pool_total')
+            ->orderBy('match_date')
+            ->limit(6)
+            ->get()
+            ->map(function (GameMatch $match) {
+                $pool = $this->service->getPoolData($match);
+                $odds = $this->service->getMatchOdds($match);
+
+                $match->pulse_pool = $pool['total_pool'];
+                $match->pulse_player1_percent = $pool['percent_a'];
+                $match->pulse_player2_percent = $pool['percent_b'];
+                $match->pulse_player1_odds = (float) ($odds['player1_odds'] ?? 1);
+                $match->pulse_player2_odds = (float) ($odds['player2_odds'] ?? 1);
+                $match->pulse_bettors = $pool['bettor_count'];
+                $match->pulse_state = $pool['market_state'] === 'locked' ? 'Locked' : 'Open';
+
+                return $match;
+            });
+
+        return view('bets.index', compact('history', 'stats', 'favoritePicks', 'openMarkets', 'hotBetMarkets'));
     }
 
     public function show($id)

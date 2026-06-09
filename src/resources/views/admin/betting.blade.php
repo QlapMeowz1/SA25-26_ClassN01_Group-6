@@ -45,7 +45,7 @@
         </div>
         <a href="{{ route('matches.create') }}" class="admin-create-market-btn">
             <span>+</span>
-            Tạo kèo mới
+            Create Market
         </a>
     </section>
 
@@ -70,11 +70,11 @@
     <section class="admin-betting-chart-grid">
         <article class="admin-panel admin-betting-chart-card">
             <div class="admin-panel-heading">
-                <h2>Doanh thu tuần này</h2>
+                <h2>This Week Revenue</h2>
             </div>
             <div
                 class="admin-betting-bars"
-                aria-label="Doanh thu tuần này"
+                aria-label="This week revenue"
                 data-admin-cursor-chart="{{ collect($revenueBars)->map(fn ($bar) => $bar['day'] . ': ' . $bar['value'])->implode('|') }}"
             >
                 @foreach($revenueBars as $bar)
@@ -137,11 +137,11 @@
             <form method="GET" action="{{ route('admin.betting') }}" class="admin-betting-toolbar">
                 <label class="admin-betting-search">
                     <span aria-hidden="true">⌕</span>
-                    <input type="search" name="q" value="{{ $filters['q'] }}" placeholder="Tìm trận đấu...">
+                <input type="search" name="q" value="{{ $filters['q'] }}" placeholder="Search matches or users...">
                 </label>
                 <div class="admin-betting-tabs">
                     @foreach([
-                        'all' => 'Tất cả',
+                        'all' => 'All',
                         'open' => 'Open',
                         'live' => 'Live',
                         'suspended' => 'Suspended',
@@ -154,10 +154,10 @@
 
             <section class="admin-betting-market-table">
                 <div class="admin-betting-market-head">
-                    <span>Trận đấu</span>
-                    <span>Quỹ cược</span>
-                    <span>Tỷ lệ</span>
-                    <span>Trạng thái</span>
+                    <span>Match</span>
+                    <span>Pool</span>
+                    <span>Odds</span>
+                    <span>Status</span>
                     <span></span>
                 </div>
                 @forelse($tickets as $ticket)
@@ -182,31 +182,31 @@
                         <span class="admin-betting-more">•••</span>
                     </a>
                 @empty
-                    <div class="admin-betting-empty">Không tìm thấy kèo phù hợp.</div>
+                    <div class="admin-betting-empty">No market matches the current filters.</div>
                 @endforelse
             </section>
         </main>
 
         <aside class="admin-betting-detail-card">
             <header>
-                <span>Chi tiết kèo</span>
-                <strong>{{ $selectedTicket['match'] }}</strong>
+                <span>Market Details</span>
+                <strong>{{ $selectedTicket['match'] ?? 'No market selected' }}</strong>
                 <small>{{ $selectedTicket['event'] ?? 'Open Match' }} · {{ $selectedTicket['date'] ?? 'Jun 4, 2026' }}</small>
             </header>
 
             <form method="POST" action="{{ isset($selectedTicket['match_id']) ? route('admin.betting.odds.update', $selectedTicket['match_id']) : '#' }}">
                 @csrf
                 <section>
-                    <p>Tỷ lệ cược</p>
+                    <p>Odds</p>
                     <div class="admin-betting-odds-grid">
                         <label>
                             <span>{{ $selectedTicket['player1_name'] ?? 'Player 1' }}</span>
-                            <input type="number" name="player1_odds" min="1.01" max="50" step="0.01" value="{{ $selectedTicket['odds_a'] }}" required>
+                            <input type="number" name="player1_odds" min="1.01" max="50" step="0.01" value="{{ $selectedTicket['odds_a'] ?? '' }}" required>
                             <small>{{ $shortMoney($selectedTicket['player1_pool'] ?? 0) }} · {{ number_format($selectedTicket['a_percent'] ?? 50) }}%</small>
                         </label>
                         <label>
                             <span>{{ $selectedTicket['player2_name'] ?? 'Player 2' }}</span>
-                            <input type="number" name="player2_odds" min="1.01" max="50" step="0.01" value="{{ $selectedTicket['odds_b'] }}" required>
+                            <input type="number" name="player2_odds" min="1.01" max="50" step="0.01" value="{{ $selectedTicket['odds_b'] ?? '' }}" required>
                             <small>{{ $shortMoney($selectedTicket['player2_pool'] ?? 0) }} · {{ number_format($selectedTicket['b_percent'] ?? 50) }}%</small>
                         </label>
                     </div>
@@ -214,7 +214,7 @@
 
                 <section>
                     <div class="admin-betting-split-title">
-                        <p>Phân bổ cược</p>
+                        <p>Pool Distribution</p>
                         <span>{{ $selectedTicket['a_percent'] ?? 50 }}% / {{ $selectedTicket['b_percent'] ?? 50 }}%</span>
                     </div>
                     <div class="admin-betting-split">
@@ -227,43 +227,54 @@
                 </section>
 
                 <dl>
-                    <div><dt>Tổng quỹ</dt><dd>{{ $money($selectedTicket['pool'] ?? 0) }}</dd></div>
-                    <div><dt>Hoa hồng (5%)</dt><dd>{{ $money($selectedTicket['commission'] ?? 0) }}</dd></div>
-                    <div><dt>Quỹ thanh toán</dt><dd>{{ $money($selectedTicket['potential_payout'] ?? 0) }}</dd></div>
+                    <div><dt>Total Pool</dt><dd>{{ $money($selectedTicket['pool'] ?? 0) }}</dd></div>
+                    <div><dt>System Tax (5%)</dt><dd>{{ $money($selectedTicket['commission'] ?? 0) }}</dd></div>
+                    <div><dt>Payout Pool</dt><dd>{{ $money($selectedTicket['potential_payout'] ?? 0) }}</dd></div>
                 </dl>
 
                 @if(isset($selectedTicket['match_id']))
-                    <button type="submit" class="admin-betting-primary-action">Cập nhật tỷ lệ</button>
+                    <button type="submit" class="admin-betting-primary-action">Update Odds</button>
                 @endif
             </form>
 
             @if(isset($selectedTicket['match_id']))
-                <form method="POST" action="{{ route('admin.betting.cancel', $selectedTicket['match_id']) }}" onsubmit="return confirm('Tạm dừng nhận cược cho kèo này?');">
-                    @csrf
-                    <button type="submit" class="admin-betting-danger-action">Tạm dừng nhận cược</button>
-                </form>
+                <div class="admin-betting-action-stack">
+                    <form method="POST" action="{{ route('admin.betting.approve', $selectedTicket['match_id']) }}">
+                        @csrf
+                        <button type="submit" class="admin-betting-primary-action">Open Market</button>
+                    </form>
+                    <form method="POST" action="{{ route('admin.betting.odds.delete', $selectedTicket['match_id']) }}" onsubmit="return confirm('Reset manual odds for this market?');">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="admin-betting-secondary-action">Reset Manual Odds</button>
+                    </form>
+                    <form method="POST" action="{{ route('admin.betting.cancel', $selectedTicket['match_id']) }}" onsubmit="return confirm('Suspend this market and refund pending tickets?');">
+                        @csrf
+                        <button type="submit" class="admin-betting-danger-action">Suspend & Refund</button>
+                    </form>
+                </div>
             @endif
         </aside>
     </section>
 
     <section class="admin-betting-transactions">
         <div class="admin-panel-heading">
-            <h2>Giao dịch gần đây</h2>
-            <a href="{{ route('admin.betting') }}">Xem tất cả →</a>
+            <h2>Recent Transactions</h2>
+            <a href="{{ route('admin.betting') }}">View all →</a>
         </div>
         <div class="admin-table-wrap">
             <table class="admin-table">
                 <thead>
                     <tr>
-                        <th>Mã GD</th>
-                        <th>Người dùng</th>
-                        <th>Trận đấu</th>
-                        <th>Lựa chọn</th>
-                        <th>Số tiền</th>
-                        <th>Tỷ lệ</th>
-                        <th>Tiềm năng</th>
+                        <th>Txn ID</th>
+                        <th>User</th>
+                        <th>Match</th>
+                        <th>Pick</th>
+                        <th>Stake</th>
+                        <th>Odds</th>
+                        <th>Potential</th>
                         <th>TT</th>
-                        <th>Giờ</th>
+                        <th>Time</th>
                     </tr>
                 </thead>
                 <tbody>
