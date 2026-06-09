@@ -19,4 +19,4 @@ yarn-error.log
 *~
 .env.backup
 .DS_Store
-*.md
+
