@@ -14,7 +14,7 @@ class BadmintonSeeder extends Seeder
 {
     public function run()
     {
-        $this->command->info('🚀 Đang seed dữ liệu mạng xã hội cầu lông...');
+        $this->command->info(' Đang seed dữ liệu mạng xã hội cầu lông...');
 
         DB::table('comments')->delete();
         DB::table('posts')->delete();
@@ -25,7 +25,7 @@ class BadmintonSeeder extends Seeder
             $users = $users->merge(User::factory(60 - $users->count())->create());
         }
 
-        $this->command->info("✅ Đã tạo {$users->count()} tài khoản.");
+        $this->command->info(" Đã tạo {$users->count()} tài khoản.");
 
         $postCount = 0;
         foreach ($users as $user) {
@@ -33,9 +33,9 @@ class BadmintonSeeder extends Seeder
             $postCount += $posts->count();
         }
 
-        $this->command->info("✅ Đã tạo {$postCount} bài đăng kèm ảnh cầu lông.");
+        $this->command->info("Đã tạo {$postCount} bài đăng kèm ảnh cầu lông.");
         $this->seedBetting($users);
-        $this->command->info('🎉 Hoàn thành! Mật khẩu mặc định: password');
+        $this->command->info(' Hoàn thành! Mật khẩu mặc định: password');
     }
 
     private function seedBetting($users): void
@@ -44,7 +44,7 @@ class BadmintonSeeder extends Seeder
         $existingBets = Bet::count();
 
         if ($existingBets >= $targetBets) {
-            $this->command->info('ℹ️ Đã có dữ liệu betting, bỏ qua seed thêm.');
+            $this->command->info('ℹ Đã có dữ liệu betting, bỏ qua seed thêm.');
             return;
         }
 
@@ -75,7 +75,7 @@ class BadmintonSeeder extends Seeder
             ->get();
 
         if ($matches->isEmpty()) {
-            $this->command->warn('⚠️ Không có trận đấu để seed betting.');
+            $this->command->warn(' Không có trận đấu để seed betting.');
             return;
         }
 
@@ -121,6 +121,6 @@ class BadmintonSeeder extends Seeder
             $betService->settleBetsAfterMatch($match->fresh());
         }
 
-        $this->command->info('✅ Đã seed dữ liệu betting mẫu.');
+        $this->command->info('Đã seed dữ liệu betting mẫu.');
     }
 }
